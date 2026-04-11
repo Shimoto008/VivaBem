@@ -1,0 +1,6 @@
+Olá pessoal tudo bem? Vou comentar aqui tudo que já fiz no código por que ainda não vi como comentar dentro delekkkkkk
+
+O código foi formado primeiramente apenas pelo app.js, onde estava toda a estrutura dele, foi lá que eu criei a primeira página que agr está nomeada como Home, é lá onde a pessoa seleciona qual o tipo de cadastro, após fazer algumas formatações para deixar a tela mais bonita eu parti aos estudos da navegação entre telas, acabei optando por separar os arquivos para não deixar o app.js muito carregado com informações, entt fragmentei em outros arquivos para melhor explicação e para vcs conseguirem editar da melhor forma 
+
+
+Espero que o Nathan ou outra pessoa consiga pegar o repositório no Github e tente modificar algumas coisas pq deixei o código um pouco "podre", um pouco bagunçado no mínimo, em caso de dúvidas consulte a documentação do react native ou mande msg pra mim
