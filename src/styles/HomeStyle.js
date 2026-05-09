@@ -1,31 +1,4 @@
-import { StatusBar } from "expo-status-bar";
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Image
-} from "react-native";
-
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-
-export default function Cuidador() {
-  return (
-    <View style={styles.container}>
-    <Image style={styles.img}
-  source={require('../assets/VivaBem.png')}
-    /> 
-
-      <Text style={styles.titulo}>ÁREA DE CADASTRO</Text>
-      
-
-      <Text style={styles.login}>Cuidar do seu idoso hoje é cuidar de você amanhã</Text>
-
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   container: {
@@ -134,3 +107,5 @@ const styles = StyleSheet.create({
     alignSelf: 'center'
   },
 });
+
+export default styles;
