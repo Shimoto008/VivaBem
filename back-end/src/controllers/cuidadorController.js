@@ -1,14 +1,17 @@
 const db = require('../config/db');
 
 exports.cadastrarCuidador = async (req, res) => {
-    const { nome, email, telefone, especialidade } = req.body;
+    // Pegamos os dados que vem do corpo (body) da requisição
+    const { nome, CPF, telefone, especialidade } = req.body;
 
     try {
-        const query = 'INSERT INTO cuidadores (nome, email, telefone, especialidade) VALUES (?, ?, ?, ?)';
-        const [result] = await db.query(query, [nome, email, telefone, especialidade]);
+        const query = 'INSERT INTO cuidadores (nome, CPF, telefone, especialidade) VALUES (?, ?, ?, ?)';
+        const [result] = await db.query(query, [nome, CPF, telefone, especialidade]);
         
-        res.status(201).json({ message: 'Cuidador cadastrado!', id: result.insertId });
+        // Retornamos status 201 (Criado com sucesso)
+        res.status(201).json({ message: 'Cadastrado com sucesso!', id: result.insertId });
     } catch (err) {
-        res.status(500).json({ erro: err.message });
+        console.error(err);
+        res.status(500).json({ erro: 'Erro ao salvar no banco de dados' });
     }
 };
