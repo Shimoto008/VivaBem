@@ -10,6 +10,7 @@ import styles from "../styles/CuidadorStyle";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useState } from "react";
+import axios from 'axios'
 
 export default function Cuidador() {
   
@@ -53,6 +54,10 @@ export default function Cuidador() {
         placeholder="(11) 00000-0000"
         keyboardType="numeric"
       />
+
+      <TouchableOpacity style = {styles.cadastro}>
+        <Text style = {styles.txt_cad}>CADASTRAR</Text>
+      </TouchableOpacity>
   
       <StatusBar style="auto" />
     </View>

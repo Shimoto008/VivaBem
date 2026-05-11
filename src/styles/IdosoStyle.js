@@ -40,6 +40,22 @@ const styles = StyleSheet.create({
     marginTop: 20,
     
   },
+
+  cadastro: {
+    backgroundColor: "#4169e1",
+    marginTop: 60,
+    padding: 20,
+    borderRadius: 10,
+    width: "50%",
+    alignItems: "center"
+
+  },
+
+  txt_cad:{
+    color: "white",
+    fontSize: 15,
+    fontWeight: "bold"
+  }
 });
 
 export default styles;

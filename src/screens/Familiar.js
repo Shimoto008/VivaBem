@@ -54,7 +54,9 @@ export default function Familiar() {
         keyboardType="numeric"
       />
 
-      <TouchableOpacity></TouchableOpacity>
+<TouchableOpacity style = {styles.cadastro}>
+        <Text style = {styles.txt_cad}>CADASTRAR</Text>
+      </TouchableOpacity>
   
       <StatusBar style="auto" />
     </View>

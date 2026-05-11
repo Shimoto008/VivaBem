@@ -53,6 +53,10 @@ export default function Idoso() {
         placeholder="(11) 00000-0000"
         keyboardType="numeric"
       />
+
+<TouchableOpacity style = {styles.cadastro}>
+        <Text style = {styles.txt_cad}>CADASTRAR</Text>
+      </TouchableOpacity>
   
       <StatusBar style="auto" />
     </View>
