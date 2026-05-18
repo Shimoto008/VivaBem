@@ -8,17 +8,19 @@ const styles = StyleSheet.create({
     alignItems: "center"
   },
   titulo: {
-    color: "#3f3f3f",
+    color: "#",
     fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 80
+    marginBottom: 10
   },
 
   img: {
     width: 150,
-    height: 100,
-    alignSelf: 'center'
+    height: 200,
+    alignSelf: 'center',
+    marginTop: 10
+
   },
 
   
@@ -26,7 +28,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: "#ffffff",
     width: "90%",
-    fontSize: 18,
+    fontSize: 20,
     borderWidth: 1,
     borderColor: '#d3d3d3',
     borderRadius: 10,
@@ -43,10 +45,10 @@ const styles = StyleSheet.create({
 
   cadastro: {
     backgroundColor: "#4169e1",
-    marginTop: 60,
-    padding: 20,
-    borderRadius: 10,
-    width: "50%",
+    marginTop: 20,
+    padding: 10,
+    borderRadius: 30,
+    width: "90%",
     alignItems: "center"
 
   },
@@ -55,6 +57,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 15,
     fontWeight: "bold"
+
   }
 });
 

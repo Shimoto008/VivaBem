@@ -17,7 +17,7 @@ export default function Home() {
       <Text style={styles.titulo}>ÁREA DE LOGIN</Text>
       <Text style={styles.app}>Auxiliar cuidadores de idoso</Text>
 
-      <Text style={styles.selecionar}>Selecione seu peril </Text>
+      <Text style={styles.selecionar}>Selecione seu perfil </Text>
 
       <TouchableOpacity style={styles.botaoC} onPress={() => navigation.navigate('Cuidador')}>
         <MaterialIcons name="health-and-safety" size={30} color="#ecdd0afb" />
@@ -37,7 +37,7 @@ export default function Home() {
 
       <TouchableOpacity style={styles.botaoI} onPress={() => navigation.navigate('Idoso')}>
         <FontAwesome5 name="heartbeat" size={30} color="#0b63d6fb" />
-        <Text style={styles.escolha}>idoso</Text>
+        <Text style={styles.escolha}>Idoso</Text>
         <Text style={styles.desc}>Jogos, alertas e atividades</Text>
       </TouchableOpacity>
 

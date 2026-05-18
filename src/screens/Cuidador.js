@@ -1,5 +1,17 @@
 import { StatusBar } from "expo-status-bar";
-import {Text, View, TouchableOpacity, Image,TextInput, Alert} from "react-native";
+import { 
+  Text, 
+  View, 
+  TouchableOpacity, 
+  Image, 
+  TextInput, 
+  Alert, 
+  KeyboardAvoidingView, 
+  ScrollView, 
+  TouchableWithoutFeedback, 
+  Keyboard, 
+  Platform 
+} from "react-native";
 import styles from "../styles/CuidadorStyle";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
@@ -16,7 +28,7 @@ export default function Cuidador() {
     const salvarCuidador = async () => {
       try {
         // ATENÇÃO: Se usar telemóvel físico, troque 'localhost' pelo IP da sua máquina
-        const response = await axios.post('http://192.168.80.62:3000/cuidadores/cadastrar', {
+        const response = await axios.post('http://192.168.80.63:3000/cuidadores/cadastrar', {
           nome: name,
           CPF: cpf,
           telefone: fone,
@@ -39,56 +51,73 @@ export default function Cuidador() {
   
 
   return (
-    <View style={styles.container}>
-    <Image style={styles.img}
-  source={require('../../assets/VivaBem.png')}
-    /> 
-      <Text style={styles.titulo}>ÁREA DE CADASTRO</Text>
+    <KeyboardAvoidingView 
+      behavior="padding" // Força o preenchimento sutil em ambas as plataformas sem deformar os elementos
+      style={{ flex: 1 }}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView 
+          contentContainerStyle={styles.container} 
+          bounces={true} // Permite o efeito elástico profissional ao scrollar
+          showsVerticalScrollIndicator={true} // Deixa a barra visível para o usuário saber que a página pode rolar
+          keyboardShouldPersistTaps="handled" // Permite clicar em botões mesmo com o teclado aberto sem travar a rolagem
+        >
+          <Image 
+            style={styles.img}
+            source={require('../../assets/VivaBem.png')}
+          /> 
+          
+          <Text style={styles.titulo}>ÁREA DE CADASTRO</Text>
+          
+          <Text style={styles.txt}>
+            Nome Completo
+          </Text>
+          <TextInput 
+            style={styles.input}
+            placeholder="Digite seu nome completo"
+            onChangeText={setName} 
+            value={name}
+          />
+           
+          <Text style={styles.txt}>
+            CPF
+          </Text>
+          <TextInput 
+            style={styles.input}
+            onChangeText={setCPF} 
+            value={cpf}
+            placeholder="000.000.000-00"
+            keyboardType="numeric"
+          />
+        
+          <Text style={styles.txt}>
+            Telefone
+          </Text>
+          <TextInput 
+            style={styles.input}
+            onChangeText={setFone} 
+            value={fone}
+            placeholder="(11) 00000-0000"
+            keyboardType="numeric"
+          />
+
+          <Text style={styles.txt}>
+            Digite sua especialidade
+          </Text>
+          <TextInput 
+            style={styles.input}
+            onChangeText={setEspecialidade} 
+            value={especialidade}
+            placeholder="Especialidade"
+          />
+
+          <TouchableOpacity style={styles.cadastro} onPress={salvarCuidador}>
+            <Text style={styles.txt_cad}>CADASTRAR</Text>
+          </TouchableOpacity>
       
-    <Text style = {styles.txt}>
-      Nome Completo
-    </Text>
-
-      <TextInput style = {styles.input}
-        placeholder="Digite seu nome completo"
-        onChangeText={setName} value={name}
-      />
-       
-       
-    <Text style = {styles.txt}>
-      CPF
-    </Text>
-    <TextInput style = {styles.input}
-        onChangeText={setCPF} value={cpf}
-        placeholder="000.000.000-00"
-        keyboardType="numeric"
-      />
-    
-
-    
-    <Text style = {styles.txt}>
-      Telefone
-    </Text>
-    <TextInput style = {styles.input}
-        onChangeText={setFone} value={fone}
-        placeholder="(11) 00000-0000"
-        keyboardType="numeric"
-      />
-
-
-<Text style = {styles.txt}>
-      Digite sua especialidade
-    </Text>
-    <TextInput style = {styles.input}
-        onChangeText={setEspecialidade} value={especialidade}
-        placeholder="Especialidade"
-      />
-
-      <TouchableOpacity style = {styles.cadastro} onPress={salvarCuidador}>
-        <Text style = {styles.txt_cad}>CADASTRAR</Text>
-      </TouchableOpacity>
-  
-      <StatusBar style="auto" />
-    </View>
+          <StatusBar style="auto" />
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }

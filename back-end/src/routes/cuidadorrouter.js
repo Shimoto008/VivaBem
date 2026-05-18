@@ -4,4 +4,4 @@ const cuidadorController = require('../controllers/cuidadorController');
 
 router.post('/cadastrar', cuidadorController.cadastrarCuidador);
 
-module.exports = router;
+module.exports = router;                            
