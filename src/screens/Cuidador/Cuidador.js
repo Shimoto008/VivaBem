@@ -12,13 +12,16 @@ import {
   Keyboard, 
   Platform 
 } from "react-native";
-import styles from "../styles/CuidadorStyle";
+import styles from "../Cuidador/CuidadorStyle";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useState } from "react";
 import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Cuidador() {
+
+  const navigation = useNavigation();
   
     const [name, setName] = useState('');
     const [fone, setFone] = useState('');
@@ -64,7 +67,7 @@ export default function Cuidador() {
         >
           <Image 
             style={styles.img}
-            source={require('../../assets/VivaBem.png')}
+            source={require('../../../assets/VivaBem.png')}
           /> 
           
           <Text style={styles.titulo}>ÁREA DE CADASTRO</Text>
@@ -111,9 +114,18 @@ export default function Cuidador() {
             placeholder="Especialidade"
           />
 
-          <TouchableOpacity style={styles.cadastro} onPress={salvarCuidador}>
-            <Text style={styles.txt_cad}>CADASTRAR</Text>
-          </TouchableOpacity>
+          {/* Botão de cadastro normal (que envia pro banco) */}
+<TouchableOpacity style={styles.cadastro} onPress={salvarCuidador}>
+  <Text style={styles.txt_cad}>CADASTRAR</Text>
+</TouchableOpacity>
+
+{/* BOTÃO TEMPORÁRIO: Navega direto sem passar pelo banco */}
+<TouchableOpacity 
+  style={[styles.cadastro, { backgroundColor: '#333', marginTop: 10 }]} 
+  onPress={() => navigation.navigate('home_Cuidador', { nomeUsuario: 'Cuidador Teste' })}
+>
+  <Text style={styles.txt_cad}>TESTAR HOME (SEM BANCO)</Text>
+</TouchableOpacity>
       
           <StatusBar style="auto" />
         </ScrollView>

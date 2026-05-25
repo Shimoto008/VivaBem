@@ -6,7 +6,7 @@ import {
   Image,
   TextInput
 } from "react-native";
-import styles from "../styles/FamiliarStyle";
+import styles from "../Familiar/FamiliarStyle";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useState } from "react";
@@ -20,7 +20,7 @@ export default function Familiar() {
   return (
     <View style={styles.container}>
     <Image style={styles.img}
-  source={require('../../assets/VivaBem.png')}
+  source={require('../../../assets/VivaBem.png')}
     /> 
       <Text style={styles.titulo}>ÁREA DE CADASTRO</Text>
       

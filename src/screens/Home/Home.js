@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import {StyleSheet, Text, View, TouchableOpacity, Image} from "react-native";
-import styles from "../styles/HomeStyle"
+import styles from "../Home/HomeStyle"
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <View style={styles.container}>
     <Image style={styles.img}
-  source={require('../../assets/VivaBem.png')}
+  source={require('../../../assets/VivaBem.png')}
     /> 
 
       <Text style={styles.titulo}>ÁREA DE LOGIN</Text>
