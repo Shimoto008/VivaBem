@@ -16,42 +16,50 @@ import styles from "../Cuidador/CuidadorStyle";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useState } from "react";
-import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
+import { supabase } from "../../services/supabase";
 
 export default function Cuidador() {
 
-  const navigation = useNavigation();
   
     const [name, setName] = useState('');
     const [fone, setFone] = useState('');
     const [cpf, setCPF] = useState('');
     const [especialidade, setEspecialidade] = useState('');
   
-    const salvarCuidador = async () => {
-      try {
-        // ATENÇÃO: Se usar telemóvel físico, troque 'localhost' pelo IP da sua máquina
-        const response = await axios.post('http://192.168.80.63:3000/cuidadores/cadastrar', {
+    const testarConexao = async () => {
+  const { data, error } = await supabase
+    .from('cuidadores')
+    .select('*');
+
+  console.log('DATA:', data);
+  console.log('ERROR:', error);
+};
+
+ const salvarCuidador = async () => {
+    const { data, error } = await supabase
+      .from('cuidadores')
+      .insert([
+        {
           nome: name,
-          CPF: cpf,
+          cpf: cpf,
           telefone: fone,
           especialidade: especialidade
-        });
-  
-        if (response.status === 201) {
-          Alert.alert('Sucesso', 'Cuidador cadastrado com sucesso!');
-          // Limpar campos
-          setName('');
-          setFone('');
-          setCPF('');
-          setEspecialidade('');
         }
-      } catch (error) {
-        console.error(error);
-        Alert.alert('Erro', 'Não foi possível conectar ao servidor.');
-      }
-    };
-  
+      ]);
+
+    console.log('DATA:', data);
+    console.log('ERROR:', error);
+
+    if (!error) {
+      Alert.alert('Sucesso', 'Cuidador cadastrado!');
+
+      setName('');
+      setCPF('');
+      setFone('');
+      setEspecialidade('');
+    }
+  };
 
   return (
     <KeyboardAvoidingView 
