@@ -21,6 +21,7 @@ import { supabase } from "../../services/supabase";
 
 export default function Cuidador() {
 
+   const navigation = useNavigation();
   
     const [name, setName] = useState('');
     const [fone, setFone] = useState('');
@@ -37,6 +38,16 @@ export default function Cuidador() {
 };
 
  const salvarCuidador = async () => {
+
+  if (!name || !cpf || !fone || !especialidade) {
+    Alert.alert(
+      'Campos obrigatórios',
+      'Preencha todos os campos antes de continuar.'
+    );
+    return;
+  }
+
+
     const { data, error } = await supabase
       .from('cuidadores')
       .insert([
@@ -48,17 +59,26 @@ export default function Cuidador() {
         }
       ]);
 
+       if (error) {
+    Alert.alert('Erro', error.message);
+    console.log(error);
+    return;
+  }
+
+  Alert.alert('Sucesso', 'Cuidador cadastrado!');
+
     console.log('DATA:', data);
     console.log('ERROR:', error);
-
-    if (!error) {
-      Alert.alert('Sucesso', 'Cuidador cadastrado!');
 
       setName('');
       setCPF('');
       setFone('');
       setEspecialidade('');
-    }
+
+   navigation.navigate('home_Cuidador', {
+    nomeUsuario: name
+  });
+    
   };
 
   return (
@@ -125,14 +145,6 @@ export default function Cuidador() {
           {/* Botão de cadastro normal (que envia pro banco) */}
 <TouchableOpacity style={styles.cadastro} onPress={salvarCuidador}>
   <Text style={styles.txt_cad}>CADASTRAR</Text>
-</TouchableOpacity>
-
-{/* BOTÃO TEMPORÁRIO: Navega direto sem passar pelo banco */}
-<TouchableOpacity 
-  style={[styles.cadastro, { backgroundColor: '#333', marginTop: 10 }]} 
-  onPress={() => navigation.navigate('home_Cuidador', { nomeUsuario: 'Cuidador Teste' })}
->
-  <Text style={styles.txt_cad}>TESTAR HOME (SEM BANCO)</Text>
 </TouchableOpacity>
       
           <StatusBar style="auto" />
