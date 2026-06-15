@@ -26,7 +26,7 @@ export default function HomeCuidador() {
 
   // --- ESTADOS DO CALENDÁRIO DINÂMICO ---
   const dataAtual = new Date();
-  const [mesAtual, setMesAtual] = useState(dataAtual.getMonth()); // 0 = Janeiro, 11 = Dezembro
+  const [mesAtual, setMesAtual] = useState(dataAtual.getMonth()); 
   const [anoAtual, setAnoAtual] = useState(dataAtual.getFullYear());
   const [diaSelecionado, setDiaSelecionado] = useState(dataAtual.getDate());
 
@@ -53,7 +53,7 @@ export default function HomeCuidador() {
       nome: nomeIdoso,
       idade: idadeIdoso,
       cpf: cpfIdoso,
-      historicoAgenda: {}, // Guardará como { "ano-mes-dia": "legenda" }
+      historicoAgenda: {}, 
       historicoRelatorios: [],
       historicoMedicacao: [],
       historicoObservacoes: []
@@ -65,76 +65,106 @@ export default function HomeCuidador() {
     Alert.alert('Sucesso', `${nomeIdoso} foi cadastrado com sucesso!`);
   };
 
-  // --- FUNÇÃO DE SALVAR COMPROMISSO ---
-  const handleSalvarAtividade = (tipo, texto, setTexto) => {
+  // --- CARREGAR DADOS AO ABRIR A FERRAMENTA ---
+  const handleAbrirSubAtividade = (tipo, idoso) => {
+    setSubAtividadeAtiva(tipo);
+    if (tipo === 'agenda') {
+      const chaveData = `${anoAtual}-${mesAtual}-${diaSelecionado}`;
+      setTextoAgenda(idoso.historicoAgenda[chaveData] || '');
+    }
+    if (tipo === 'relatorios') setTextoRelatorio('');
+    if (tipo === 'medicaçao') setTextoMedicao('');
+    if (tipo === 'observaçao') setTextoObservacao('');
+  };
+
+  // --- FUNÇÃO DE SALVAR COMPROMISSO / NOTA ---
+  const handleSalvarAtividade = (tipo, texto) => {
     if (!texto.trim()) {
       Alert.alert('Erro', 'O texto não pode estar vazio!');
       return;
     }
 
+    const dataRegistro = new Date().toLocaleDateString('pt-BR');
+
     const listaAtualizada = listaPacientes.map(idoso => {
       if (idoso.id === pacienteSelecionado.id) {
         if (tipo === 'agenda') {
-          // Chave única baseada na data para não misturar os meses
           const chaveData = `${anoAtual}-${mesAtual}-${diaSelecionado}`;
           idoso.historicoAgenda[chaveData] = texto;
         } else {
-          const novaNota = { id: Date.now().toString(), data: new Date().toLocaleDateString('pt-BR'), conteudo: texto };
-          if (tipo === 'relatorios') idoso.historicoRelatorios.push(novaNota);
-          if (tipo === 'medicaçao') idoso.historicoMedicacao.push(novaNota);
-          if (tipo === 'observaçao') idoso.historicoObservacoes.push(novaNota);
+          const novoItem = { id: Date.now().toString(), data: dataRegistro, conteudo: texto };
+          if (tipo === 'relatorios') idoso.historicoRelatorios.unshift(novoItem); 
+          if (tipo === 'medicaçao') idoso.historicoMedicacao.unshift(novoItem);
+          if (tipo === 'observaçao') idoso.historicoObservacoes.unshift(novoItem);
         }
       }
       return idoso;
     });
 
     setListaPacientes(listaAtualizada);
-    setTexto(''); 
+    const pacienteAtualizado = listaAtualizada.find(p => p.id === pacienteSelecionado.id);
+    setPacienteSelecionado(pacienteAtualizado);
     setSubAtividadeAtiva(null); 
-    Alert.alert('Sucesso', 'Informações atualizadas!');
+    Alert.alert('Sucesso', 'Registro adicionado com sucesso!');
+  };
+
+  // --- FUNÇÃO DE EDITAR DADO JÁ INSERIDO ---
+  const handleEditarItem = (tipo, item, chaveAgenda = null) => {
+    setSubAtividadeAtiva(tipo);
+
+    if (tipo === 'agenda' && chaveAgenda) {
+      setTextoAgenda(pacienteSelecionado.historicoAgenda[chaveAgenda]);
+      const [ano, mes, dia] = chaveAgenda.split('-');
+      setAnoAtual(parseInt(ano)); setMesAtual(parseInt(mes)); setDiaSelecionado(parseInt(dia));
+    } else {
+      if (tipo === 'relatorios') setTextoRelatorio(item.conteudo);
+      if (tipo === 'medicaçao') setTextoMedicao(item.conteudo);
+      if (tipo === 'observaçao') setTextoObservacao(item.conteudo);
+
+      const listaLimpa = listaPacientes.map(idoso => {
+        if (idoso.id === pacienteSelecionado.id) {
+          if (tipo === 'relatorios') idoso.historicoRelatorios = idoso.historicoRelatorios.filter(i => i.id !== item.id);
+          if (tipo === 'medicaçao') idoso.historicoMedicacao = idoso.historicoMedicacao.filter(i => i.id !== item.id);
+          if (tipo === 'observaçao') idoso.historicoObservacoes = idoso.historicoObservacoes.filter(i => i.id !== item.id);
+        }
+        return idoso;
+      });
+      setListaPacientes(listaLimpa);
+    }
   };
 
   // --- NAVEGAÇÃO DO CALENDÁRIO ---
+  const alternarDiaCalendario = (dia, idoso) => {
+    setDiaSelecionado(dia);
+    const chaveData = `${anoAtual}-${mesAtual}-${dia}`;
+    setTextoAgenda(idoso.historicoAgenda[chaveData] || '');
+  };
+
   const handleMesAnterior = () => {
-    if (mesAtual === 0) {
-      setMesAtual(11);
-      setAnoAtual(anoAtual - 1);
-    } else {
-      setMesAtual(mesAtual - 1);
-    }
+    if (mesAtual === 0) { setMesAtual(11); setAnoAtual(anoAtual - 1); } else { setMesAtual(mesAtual - 1); }
   };
 
   const handleMesSeguinte = () => {
-    if (mesAtual === 11) {
-      setMesAtual(0);
-      setAnoAtual(anoAtual + 1);
-    } else {
-      setMesAtual(mesAtual + 1);
-    }
+    if (mesAtual === 11) { setMesAtual(0); setAnoAtual(anoAtual + 1); } else { setMesAtual(mesAtual + 1); }
   };
 
   // --- GERADOR DE CALENDÁRIO VISUAL ---
   const renderCalendario = (idoso) => {
-    // Truque JS: O "dia 0" do mês seguinte nos dá a quantidade exata de dias do mês atual
     const quantidadeDias = new Date(anoAtual, mesAtual + 1, 0).getDate();
     const diasDoMes = Array.from({ length: quantidadeDias }, (_, i) => i + 1);
 
     return (
       <View style={styles.calendarioContainer}>
-        {/* Header de Navegação do Mês */}
         <View style={styles.calendarioHeaderNavegacao}>
           <TouchableOpacity onPress={handleMesAnterior} style={styles.btnSetas}>
             <MaterialIcons name="chevron-left" size={28} color="#4169E1" />
           </TouchableOpacity>
-          
           <Text style={styles.mesTitulo}>{nomesDosMeses[mesAtual]} {anoAtual}</Text>
-          
           <TouchableOpacity onPress={handleMesSeguinte} style={styles.btnSetas}>
             <MaterialIcons name="chevron-right" size={28} color="#4169E1" />
           </TouchableOpacity>
         </View>
 
-        {/* Grid de Dias */}
         <View style={styles.diasGrid}>
           {diasDoMes.map((dia) => {
             const chaveData = `${anoAtual}-${mesAtual}-${dia}`;
@@ -149,10 +179,7 @@ export default function HomeCuidador() {
                   isSelected && styles.diaSelecionado,
                   temCompromisso && !isSelected && styles.diaComInfo
                 ]}
-                onPress={() => {
-                  setDiaSelecionado(dia);
-                  setTextoAgenda(idoso.historicoAgenda[chaveData] || '');
-                }}
+                onPress={() => alternarDiaCalendario(dia, idoso)}
               >
                 <Text style={[styles.diaTexto, isSelected && styles.diaTextoSelecionado]}>{dia}</Text>
                 {temCompromisso && <View style={styles.pontoIndicador} />}
@@ -177,47 +204,79 @@ export default function HomeCuidador() {
               <MaterialIcons name="cancel" size={22} color="#FF6347" />
             </TouchableOpacity>
           </View>
-
           {renderCalendario(idoso)}
-
-          <Text style={styles.legendaInputTitulo}>
-            Legenda para o dia {diaSelecionado} de {nomesDosMeses[mesAtual]}:
-          </Text>
-          <TextInput
-            style={styles.textArea}
-            placeholder="Digite compromissos, banhos ou rotinas agendadas..."
-            multiline={true}
-            value={textoAgenda}
-            onChangeText={setTextoAgenda}
-          />
-
-          <TouchableOpacity 
-            style={styles.btnSalvarNota}
-            onPress={() => handleSalvarAtividade('agenda', textoAgenda, setTextoAgenda)}
-          >
-            <Text style={styles.btnSalvarNotaTexto}>Salvar na Agenda do Dia</Text>
-          </TouchableOpacity>
+          <Text style={styles.legendaInputTitulo}>Legenda para o dia {diaSelecionado} de {nomesDosMeses[mesAtual]}:</Text>
+          <TextInput style={styles.textArea} placeholder="Digite compromissos..." multiline={true} value={textoAgenda} onChangeText={setTextoAgenda} />
+          <TouchableOpacity style={styles.btnSalvarNota} onPress={() => handleSalvarAtividade('agenda', textoAgenda)}><Text style={styles.btnSalvarNotaTexto}>Salvar na Agenda do Dia</Text></TouchableOpacity>
         </View>
       );
     }
 
     let titulo = ''; let placeholder = ''; let valorTexto = ''; let setValorTexto = () => {};
-    if (subAtividadeAtiva === 'relatorios') { titulo = 'Relatório Diário'; placeholder = 'Evolução do paciente...'; valorTexto = textoRelatorio; setValorTexto = setTextoRelatorio; }
-    if (subAtividadeAtiva === 'medicaçao') { titulo = 'Nova Medicação'; placeholder = 'Remédios e horários...'; valorTexto = textoMedicao; setValorTexto = setTextoMedicao; }
-    if (subAtividadeAtiva === 'observaçao') { titulo = 'Observação (Aviso Familiar)'; placeholder = 'Falta de insumos, recados...'; valorTexto = textoObservacao; setValorTexto = setTextoObservacao; }
+    if (subAtividadeAtiva === 'relatorios') { titulo = 'Relatório Diário'; placeholder = 'Evolução...'; valorTexto = textoRelatorio; setValorTexto = setTextoRelatorio; }
+    if (subAtividadeAtiva === 'medicaçao') { titulo = 'Nova Medicação'; placeholder = 'Remédios...'; valorTexto = textoMedicao; setValorTexto = setTextoMedicao; }
+    if (subAtividadeAtiva === 'observaçao') { titulo = 'Observação'; placeholder = 'Avisos...'; valorTexto = textoObservacao; setValorTexto = setTextoObservacao; }
 
     return (
       <View style={styles.subAbaAtividade}>
-        <View style={styles.subAbaHeader}>
-          <Text style={styles.subAbaTitulo}>{titulo}</Text>
-          <TouchableOpacity onPress={() => setSubAtividadeAtiva(null)}>
-            <MaterialIcons name="cancel" size={22} color="#FF6347" />
-          </TouchableOpacity>
-        </View>
+        <View style={styles.subAbaHeader}><Text style={styles.subAbaTitulo}>{titulo}</Text><TouchableOpacity onPress={() => setSubAtividadeAtiva(null)}><MaterialIcons name="cancel" size={22} color="#FF6347" /></TouchableOpacity></View>
         <TextInput style={styles.textArea} placeholder={placeholder} multiline={true} value={valorTexto} onChangeText={setValorTexto} />
-        <TouchableOpacity style={styles.btnSalvarNota} onPress={() => handleSalvarAtividade(subAtividadeAtiva, valorTexto, setValorTexto)}>
-          <Text style={styles.btnSalvarNotaTexto}>Salvar Registro</Text>
-        </TouchableOpacity>
+        <TouchableOpacity style={styles.btnSalvarNota} onPress={() => handleSalvarAtividade(subAtividadeAtiva, valorTexto)}><Text style={styles.btnSalvarNotaTexto}>Salvar Registro</Text></TouchableOpacity>
+      </View>
+    );
+  };
+
+  // --- SEÇÃO DE HISTÓRICO VISUAL ---
+  const renderHistoricoLabels = (idoso) => {
+    const chavesAgenda = Object.keys(idoso.historicoAgenda).filter(key => idoso.historicoAgenda[key]);
+    const possuiDados = chavesAgenda.length > 0 || idoso.historicoRelatorios.length > 0 || idoso.historicoMedicacao.length > 0 || idoso.historicoObservacoes.length > 0;
+    if (!possuiDados) return null;
+
+    return (
+      <View style={styles.containerHistoricoLabels}>
+        <Text style={styles.tituloLinhaTempo}>Atividades Cadastradas</Text>
+        {chavesAgenda.map((chave) => {
+          const [ano, mes, dia] = chave.split('-');
+          return (
+            <View key={chave} style={[styles.cardLabelHistorico, { borderLeftColor: '#4169E1' }]}>
+              <View style={styles.labelHeaderHistorico}>
+                <View style={styles.labelTagIcon}><MaterialIcons name="event" size={16} color="#4169E1" /><Text style={[styles.txtTagLabel, { color: '#4169E1' }]}>Agenda ({dia}/{parseInt(mes) + 1}/{ano})</Text></View>
+                <TouchableOpacity style={styles.btnEditarLabel} onPress={() => handleEditarItem('agenda', null, chave)}><MaterialIcons name="edit" size={16} color="#666" /></TouchableOpacity>
+              </View>
+              <Text style={styles.txtConteudoLabel}>{idoso.historicoAgenda[chave]}</Text>
+            </View>
+          );
+        })}
+        {/* Relatórios */}
+        {idoso.historicoRelatorios.map((item) => (
+          <View key={item.id} style={[styles.cardLabelHistorico, { borderLeftColor: '#20B2AA' }]}>
+            <View style={styles.labelHeaderHistorico}>
+              <View style={styles.labelTagIcon}><MaterialIcons name="assessment" size={16} color="#20B2AA" /><Text style={[styles.txtTagLabel, { color: '#20B2AA' }]}>Relatório ({item.data})</Text></View>
+              <TouchableOpacity style={styles.btnEditarLabel} onPress={() => handleEditarItem('relatorios', item)}><MaterialIcons name="edit" size={16} color="#666" /></TouchableOpacity>
+            </View>
+            <Text style={styles.txtConteudoLabel}>{item.conteudo}</Text>
+          </View>
+        ))}
+        {/* Medicações */}
+        {idoso.historicoMedicacao.map((item) => (
+          <View key={item.id} style={[styles.cardLabelHistorico, { borderLeftColor: '#9370DB' }]}>
+            <View style={styles.labelHeaderHistorico}>
+              <View style={styles.labelTagIcon}><MaterialIcons name="healing" size={16} color="#9370DB" /><Text style={[styles.txtTagLabel, { color: '#9370DB' }]}>Medicação ({item.data})</Text></View>
+              <TouchableOpacity style={styles.btnEditarLabel} onPress={() => handleEditarItem('medicaçao', item)}><MaterialIcons name="edit" size={16} color="#666" /></TouchableOpacity>
+            </View>
+            <Text style={styles.txtConteudoLabel}>{item.conteudo}</Text>
+          </View>
+        ))}
+        {/* Observações */}
+        {idoso.historicoObservacoes.map((item) => (
+          <View key={item.id} style={[styles.cardLabelHistorico, { borderLeftColor: '#FF6347' }]}>
+            <View style={styles.labelHeaderHistorico}>
+              <View style={styles.labelTagIcon}><MaterialIcons name="notification-important" size={16} color="#FF6347" /><Text style={[styles.txtTagLabel, { color: '#FF6347' }]}>Observação ({item.data})</Text></View>
+              <TouchableOpacity style={styles.btnEditarLabel} onPress={() => handleEditarItem('observaçao', item)}><MaterialIcons name="edit" size={16} color="#666" /></TouchableOpacity>
+            </View>
+            <Text style={styles.txtConteudoLabel}>{item.conteudo}</Text>
+          </View>
+        ))}
       </View>
     );
   };
@@ -226,39 +285,21 @@ export default function HomeCuidador() {
   const renderAcoesPaciente = (idoso) => (
     <View style={styles.containerAcoes}>
       <View style={styles.topoAcoes}>
-        <Text style={styles.tituloAcoes}>Painel do Paciente</Text>
-        <TouchableOpacity onPress={() => { setPacienteSelecionado(null); setSubAtividadeAtiva(null); }}>
-          <MaterialIcons name="close" size={20} color="#666" />
-        </TouchableOpacity>
+        <Text style={styles.tituloAcoes}>Painel do Paciente - {idoso.nome}</Text>
+        <TouchableOpacity onPress={() => { setPacienteSelecionado(null); setSubAtividadeAtiva(null); }}><MaterialIcons name="close" size={20} color="#666" /></TouchableOpacity>
       </View>
-      
       <View style={styles.gridAcoes}>
-        <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'agenda' && styles.btnAtivo]} onPress={() => setSubAtividadeAtiva('agenda')}>
-          <MaterialIcons name="event" size={24} color="#4169E1" />
-          <Text style={styles.txtAcaoCard}>Agenda</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'relatorios' && styles.btnAtivo]} onPress={() => setSubAtividadeAtiva('relatorios')}>
-          <MaterialIcons name="assessment" size={24} color="#4169E1" />
-          <Text style={styles.txtAcaoCard}>Relatórios</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'medicaçao' && styles.btnAtivo]} onPress={() => setSubAtividadeAtiva('medicaçao')}>
-          <MaterialIcons name="healing" size={24} color="#4169E1" />
-          <Text style={styles.txtAcaoCard}>Medicação</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'observaçao' && styles.btnAtivo]} onPress={() => setSubAtividadeAtiva('observaçao')}>
-          <MaterialIcons name="notification-important" size={24} color="#FF6347" />
-          <Text style={styles.txtAcaoCard}>Observação</Text>
-        </TouchableOpacity>
+        <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'agenda' && styles.btnAtivo]} onPress={() => handleAbrirSubAtividade('agenda', idoso)}><MaterialIcons name="event" size={24} color="#4169E1" /><Text style={styles.txtAcaoCard}>Agenda</Text></TouchableOpacity>
+        <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'relatorios' && styles.btnAtivo]} onPress={() => handleAbrirSubAtividade('relatorios', idoso)}><MaterialIcons name="assessment" size={24} color="#4169E1" /><Text style={styles.txtAcaoCard}>Relatórios</Text></TouchableOpacity>
+        <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'medicaçao' && styles.btnAtivo]} onPress={() => handleAbrirSubAtividade('medicaçao', idoso)}><MaterialIcons name="healing" size={24} color="#4169E1" /><Text style={styles.txtAcaoCard}>Medicação</Text></TouchableOpacity>
+        <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'observaçao' && styles.btnAtivo]} onPress={() => handleAbrirSubAtividade('observaçao', idoso)}><MaterialIcons name="notification-important" size={24} color="#FF6347" /><Text style={styles.txtAcaoCard}>Observação</Text></TouchableOpacity>
       </View>
-
       {renderFormAtividade(idoso)}
+      {renderHistoricoLabels(idoso)}
     </View>
   );
 
-  // --- RENDERIZAÇÃO DAS TELAS ---
+  // --- RENDERS DAS TELAS PRINCIPAIS ---
   const renderHome = () => (
     <View style={styles.containerAbas}>
       <View style={styles.grid}>
@@ -285,7 +326,7 @@ export default function HomeCuidador() {
               <View style={styles.infoPacienteHome}><Text style={styles.nomePacienteHome}>{idoso.nome}</Text><Text style={styles.detalhesPacienteHome}>{idoso.idade} anos</Text></View>
               <MaterialIcons name={pacienteSelecionado?.id === idoso.id ? "expand-less" : "expand-more"} size={28} color="#4169E1" />
             </TouchableOpacity>
-            {pacienteSelecionado?.id === idoso.id && renderAcoesPaciente(idoso)}
+            {pacienteSelecionado?.id === idoso.id && renderAcoesPaciente(pacienteSelecionado)}
           </View>
         ))
       )}
@@ -317,16 +358,77 @@ export default function HomeCuidador() {
             <View style={{ marginLeft: 15, flex: 1 }}><Text style={{ fontWeight: 'bold', fontSize: 16 }}>{idoso.nome}</Text></View>
             <MaterialIcons name={pacienteSelecionado?.id === idoso.id ? "expand-less" : "expand-more"} size={24} color="#4169E1" />
           </TouchableOpacity>
-          {pacienteSelecionado?.id === idoso.id && renderAcoesPaciente(idoso)}
+          {pacienteSelecionado?.id === idoso.id && renderAcoesPaciente(pacienteSelecionado)}
         </View>
       ))}
+    </View>
+  );
+
+  // --- NOVA TELA: ÁREA DO CUIDADOR (PERFIL PROFISSIONAL) ---
+  const renderPerfilCuidador = () => (
+    <View style={styles.containerAbas}>
+      {/* Header do Perfil */}
+      <View style={styles.headerPerfil}>
+        <View style={styles.avatarEsquerda}>
+          <FontAwesome5 name="user-md" size={42} color="#4169E1" />
+        </View>
+        <View style={styles.infoDireitaPerfil}>
+          <Text style={styles.nomeCuidador}>Carlos Alberto Silva</Text>
+          <Text style={styles.subtituloCuidador}>Cuidador de Idosos Particular</Text>
+          <TouchableOpacity style={styles.btnEditarPerfil} onPress={() => Alert.alert('Aviso', 'Edição de perfil será implementada em breve!')}>
+            <MaterialIcons name="edit" size={14} color="#FFF" />
+            <Text style={styles.txtBtnEditarPerfil}>Editar Perfil</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Seção: Biografia / Bibliografia */}
+      <View style={styles.cardSecaoPerfil}>
+        <View style={styles.tituloSecaoPerfilContainer}>
+          <MaterialIcons name="description" size={20} color="#4169E1" />
+          <Text style={styles.tituloSecaoPerfil}>Biografia & Filosofia de Trabalho</Text>
+        </View>
+        <Text style={styles.conteudoTextoPerfil}>
+          Profissional dedicado ao bem-estar e saúde na terceira idade com mais de 5 anos de experiência. Focado em atendimento humanizado, controle rigoroso de medicações e estímulo a atividades cognitivas e motoras para manutenção da autonomia do idoso.
+        </Text>
+      </View>
+
+      {/* Seção: Experiências */}
+      <View style={styles.cardSecaoPerfil}>
+        <View style={styles.tituloSecaoPerfilContainer}>
+          <MaterialIcons name="work" size={20} color="#4169E1" />
+          <Text style={styles.tituloSecaoPerfil}>Experiências Profissionais</Text>
+        </View>
+        <View style={styles.itemExperiencia}>
+          <Text style={styles.cargoExperiencia}>Cuidador Home Care - Lar Doce Lar</Text>
+          <Text style={styles.periodoExperiencia}>Jan 2023 - Presente (3 anos)</Text>
+          <Text style={styles.detalheExperiencia}>Acompanhamento integral de idosos pós-cirúrgicos, gerenciamento de rotinas diárias e suporte em reabilitação física.</Text>
+        </View>
+        <View style={styles.itemExperiencia}>
+          <Text style={styles.cargoExperiencia}>Acompanhante de Idosos - Particular</Text>
+          <Text style={styles.periodoExperiencia}>Mar 2021 - Dez 2022</Text>
+          <Text style={styles.detalheExperiencia}>Cuidados gerais, preparação de alimentação balanceada conforme orientação médica e acompanhamento em consultas.</Text>
+        </View>
+      </View>
+
+      {/* Seção: Formação / Certificações */}
+      <View style={styles.cardSecaoPerfil}>
+        <View style={styles.tituloSecaoPerfilContainer}>
+          <MaterialIcons name="verified" size={20} color="#4169E1" />
+          <Text style={styles.tituloSecaoPerfil}>Formação e Certificados</Text>
+        </View>
+        <Text style={styles.conteudoTextoPerfil}>• Curso Profissionalizante de Cuidador de Idosos - SENAC (180h)</Text>
+        <Text style={styles.conteudoTextoPerfil}>• Especialização em Primeiros Socorros na Terceira Idade - Cruz Vermelha</Text>
+        <Text style={styles.conteudoTextoPerfil}>• Workshop de Introdução aos Cuidados de Pacientes com Alzheimer</Text>
+      </View>
     </View>
   );
 
   const renderConteudo = () => {
     if (abaAtiva === 'home') return renderHome();
     if (abaAtiva === 'paciente') return renderPaciente();
-    return <View style={styles.telaPlaceholder}><Text>Área de Histórico</Text></View>;
+    if (abaAtiva === 'perfil') return renderPerfilCuidador();
+    return null;
   };
 
   return (
@@ -336,7 +438,7 @@ export default function HomeCuidador() {
         <View style={styles.bottomTab}>
           <TouchableOpacity style={styles.tabItem} onPress={() => setAbaAtiva('home')}><MaterialIcons name="home" size={28} color={abaAtiva === 'home' ? '#4169E1' : '#000'} /><Text style={styles.tabText}>Home</Text></TouchableOpacity>
           <TouchableOpacity style={styles.tabItem} onPress={() => setAbaAtiva('paciente')}><FontAwesome5 name="user-injured" size={22} color={abaAtiva === 'paciente' ? '#4169E1' : '#000'} /><Text style={styles.tabText}>Paciente</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.tabItem} onPress={() => setAbaAtiva('relatorios')}><MaterialIcons name="assessment" size={28} color={abaAtiva === 'relatorios' ? '#4169E1' : '#000'} /><Text style={styles.tabText}>Relatórios</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.tabItem} onPress={() => setAbaAtiva('perfil')}><MaterialIcons name="account-circle" size={28} color={abaAtiva === 'perfil' ? '#4169E1' : '#000'} /><Text style={styles.tabText}>Perfil</Text></TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
@@ -377,9 +479,6 @@ const styles = StyleSheet.create({
   btnAtivo: { borderColor: '#4169E1', backgroundColor: '#4169E111' },
   txtAcaoCard: { fontSize: 11, fontWeight: 'bold', color: '#333', marginTop: 5 },
   itemListaPaciente: { flexDirection: 'row', backgroundColor: '#FFF', padding: 15, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E1E8ED' },
-  telaPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 80 },
-
-  // --- ESTILOS DO CALENDÁRIO DINÂMICO ---
   subAbaAtividade: { marginTop: 10, backgroundColor: '#F8F9FA', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: '#E1E8ED' },
   subAbaHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   subAbaTitulo: { fontSize: 14, fontWeight: 'bold', color: '#4169E1' },
@@ -398,8 +497,32 @@ const styles = StyleSheet.create({
   textArea: { backgroundColor: '#FFF', padding: 10, borderRadius: 6, fontSize: 13, textAlignVertical: 'top', borderWidth: 1, borderColor: '#E1E8ED', color: '#000', minHeight: 70 },
   btnSalvarNota: { backgroundColor: '#4169E1', padding: 12, borderRadius: 6, alignItems: 'center', marginTop: 10 },
   btnSalvarNotaTexto: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
-
   bottomTab: { flexDirection: 'row', backgroundColor: '#FFF', paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#E1E8ED', justifyContent: 'space-around' },
   tabItem: { alignItems: 'center', flex: 1 },
-  tabText: { fontSize: 11, color: '#000', marginTop: 4 }
+  tabText: { fontSize: 11, color: '#000', marginTop: 4 },
+  containerHistoricoLabels: { marginTop: 20, borderTopWidth: 1, borderTopColor: '#E1E8ED', paddingTop: 15 },
+  tituloLinhaTempo: { fontSize: 14, fontWeight: 'bold', color: '#333', marginBottom: 12 },
+  cardLabelHistorico: { backgroundColor: '#F8F9FA', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#E1E8ED', borderLeftWidth: 4, marginBottom: 10 },
+  labelHeaderHistorico: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  labelTagIcon: { flexDirection: 'row', alignItems: 'center' },
+  txtTagLabel: { fontSize: 11, fontWeight: 'bold', marginLeft: 6 },
+  btnEditarLabel: { padding: 4 },
+  txtConteudoLabel: { fontSize: 13, color: '#222', lineHeight: 18 },
+
+  // --- NOVOS ESTILOS EXCLUSIVOS DA TELA DE PERFIL ---
+  headerPerfil: { flexDirection: 'row', backgroundColor: '#FFF', padding: 20, borderRadius: 15, borderWidth: 1, borderColor: '#E1E8ED', alignItems: 'center', marginBottom: 15 },
+  avatarEsquerda: { width: 75, height: 75, borderRadius: 37.5, backgroundColor: '#4169E115', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#4169E133' },
+  infoDireitaPerfil: { marginLeft: 20, flex: 1 },
+  nomeCuidador: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+  subtituloCuidador: { fontSize: 13, color: '#666', marginTop: 2, marginBottom: 8 },
+  btnEditarPerfil: { flexDirection: 'row', backgroundColor: '#4169E1', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6, alignItems: 'center', alignSelf: 'flex-start' },
+  txtBtnEditarPerfil: { color: '#FFF', fontSize: 11, fontWeight: 'bold', marginLeft: 4 },
+  cardSecaoPerfil: { backgroundColor: '#FFF', padding: 15, borderRadius: 12, borderWidth: 1, borderColor: '#E1E8ED', marginBottom: 15 },
+  tituloSecaoPerfilContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, borderBottomWidth: 1, borderBottomColor: '#F1F3F5', paddingBottom: 6 },
+  tituloSecaoPerfil: { fontSize: 14, fontWeight: 'bold', color: '#333', marginLeft: 8 },
+  conteudoTextoPerfil: { fontSize: 13, color: '#555', lineHeight: 20, marginBottom: 4 },
+  itemExperiencia: { marginBottom: 12, borderBottomWidth: 1, borderBottomColor: '#F8F9FA', paddingBottom: 8 },
+  cargoExperiencia: { fontSize: 13, fontWeight: 'bold', color: '#4169E1' },
+  periodoExperiencia: { fontSize: 11, color: '#999', marginVertical: 2 },
+  detalheExperiencia: { fontSize: 12, color: '#555', lineHeight: 16 }
 });
