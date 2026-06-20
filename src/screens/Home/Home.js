@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import {StyleSheet, Text, View, TouchableOpacity, Image} from "react-native";
-import styles from "../Home/HomeStyle"
+import styles from "../Home/Style"
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 

@@ -120,6 +120,22 @@ const styles = StyleSheet.create({
   modalOpcaoTxt: {
     fontSize: 16,
     color: '#444',
+  },
+  containerScroll: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  contentScroll: {
+    flexGrow: 1,
+    backgroundColor: '#ffffff',
+  },
+  viewPrincipal: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 40,
+    alignItems: 'center',
   }
 });
 

@@ -3,8 +3,7 @@ import Home from '../screens/Home/Home';
 import Cuidador from '../screens/Cuidador/Cuidador';
 import Idoso from '../screens/Idoso/Idoso';
 import Familiar from '../screens/Familiar/Familiar';
-// 1. IMPORTANTE: Importe a sua nova tela (ajuste o caminho da pasta se necessário)
-import HomeCuidador from '../screens/Cuidador/home_Cuidador'; 
+import HomeCuidador from '../screens/Cuidador/HomeCuidador/Home'; 
 
 const Stack = createNativeStackNavigator();
 
@@ -19,8 +18,8 @@ export default function StackRoutes() {
       <Stack.Screen name="Idoso" component={Idoso} />
       <Stack.Screen name="Familiar" component={Familiar} />
       
-      {/* 2. REGISTRE A NOVA TELA AQUI */}
-      <Stack.Screen name="home_Cuidador" component={HomeCuidador} />
+      
+      <Stack.Screen name="HomeCuidador" component={HomeCuidador} />
     </Stack.Navigator>
   );
 }

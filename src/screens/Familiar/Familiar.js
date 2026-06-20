@@ -6,7 +6,7 @@ import {
   Image,
   TextInput
 } from "react-native";
-import styles from "../Familiar/FamiliarStyle";
+import styles from "../Familiar/Style";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useState } from "react";
