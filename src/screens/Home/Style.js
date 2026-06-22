@@ -106,6 +106,33 @@ const styles = StyleSheet.create({
     height: 100,
     alignSelf: 'center'
   },
+
+  gridSelecao: {
+    width: '100%',
+    gap: 16,
+    marginTop: 10,
+  },
+  cardPerfil: {
+    backgroundColor: '#FFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  iconContainer: {
+    width: 55,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textoContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
 });
 
 export default styles;

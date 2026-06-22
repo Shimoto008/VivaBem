@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as IntentLauncher from 'expo-intent-launcher'; 
 import styles from "../HomeCuidador/Style";
 
 export function PainelPaciente({ idoso, controlador }) {
@@ -17,6 +18,21 @@ export function PainelPaciente({ idoso, controlador }) {
     nomesDosMeses, mesAtual, diaSelecionado,
     alternarDiaCalendario, anoAtual
   } = controlador;
+
+  const abrirDespertadorNativo = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        await IntentLauncher.startActivityAsync('android.intent.action.SHOW_ALARMS');
+      } else if (Platform.OS === 'ios') {
+        await Linking.openURL('clock-alarm://');
+      }
+    } catch (error) {
+      Alert.alert(
+        'Aviso', 
+        'Não foi possível abrir o despertador automaticamente. Por favor, abra o aplicativo de Relógio do seu celular manualmente.'
+      );
+    }
+  };
 
   // --- SUB-COMPONENTE INTERNO: CALENDÁRIO ---
   const renderCalendario = () => {
@@ -84,9 +100,52 @@ export function PainelPaciente({ idoso, controlador }) {
       );
     }
 
+    if (subAtividadeAtiva === 'medicaçao') {
+      return (
+        <View style={styles.subAbaAtividade}>
+          <View style={styles.subAbaHeader}>
+            <Text style={styles.subAbaTitulo}>Nova Medicação</Text>
+            <TouchableOpacity onPress={() => setSubAtividadeAtiva(null)}>
+              <MaterialIcons name="cancel" size={22} color="#FF6347" />
+            </TouchableOpacity>
+          </View>
+          
+          <TextInput 
+            style={styles.textArea} 
+            placeholder="Nome do remédio, dosagem e instruções..." 
+            multiline 
+            value={textoMedicao} 
+            onChangeText={setTextoMedicao} 
+          />
+
+          <View style={{ marginTop: 14, marginBottom: 6 }}>
+            <Text style={[styles.legendaInputTitulo, { marginBottom: 6 }]}>Precisa programar um alarme?</Text>
+            <TouchableOpacity 
+              style={[styles.btnSalvarNota, { backgroundColor: '#4169E1', height: 46, justifyContent: 'center', marginTop: 0 }]} 
+              onPress={abrirDespertadorNativo}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <MaterialIcons name="alarm" size={20} color="#FFF" style={{ marginRight: 8 }} />
+                <Text style={styles.btnSalvarNotaTexto}>Configurar no meu Celular</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity 
+            style={[styles.btnSalvarNota, { marginTop: 12 }]} 
+            onPress={async () => {
+              await handleSalvarAtividade('medicaçao', textoMedicao);
+              Alert.alert('Sucesso', 'Medicação registrada no histórico!');
+            }}
+          >
+            <Text style={styles.btnSalvarNotaTexto}>Salvar Registro no Histórico</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
     let config = { titulo: '', placeholder: '', valor: '', setValor: () => {} };
     if (subAtividadeAtiva === 'relatorios') config = { titulo: 'Relatório Diário', placeholder: 'Evolução...', valor: textoRelatorio, setValor: setTextoRelatorio };
-    if (subAtividadeAtiva === 'medicaçao') config = { titulo: 'Nova Medicação', placeholder: 'Remédios...', valor: textoMedicao, setValor: setTextoMedicao };
     if (subAtividadeAtiva === 'observaçao') config = { titulo: 'Observação', placeholder: 'Avisos...', valor: textoObservacao, setValor: setTextoObservacao };
 
     return (
@@ -161,21 +220,31 @@ export function PainelPaciente({ idoso, controlador }) {
   };
 
   return (
-    <View style={styles.containerAcoes}>
-      <View style={styles.topoAcoes}>
-        <Text style={styles.tituloAcoes}>Painel do Paciente - {idoso.nome}</Text>
-        <TouchableOpacity onPress={() => { setPacienteSelecionado(null); setSubAtividadeAtiva(null); }}>
-          <MaterialIcons name="close" size={20} color="#666" />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.gridAcoes}>
-        <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'agenda' && styles.btnAtivo]} onPress={() => handleAbrirSubAtividade('agenda', idoso)}><MaterialIcons name="event" size={24} color="#4169E1" /><Text style={styles.txtAcaoCard}>Agenda</Text></TouchableOpacity>
-        <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'relatorios' && styles.btnAtivo]} onPress={() => handleAbrirSubAtividade('relatorios', idoso)}><MaterialIcons name="assessment" size={24} color="#4169E1" /><Text style={styles.txtAcaoCard}>Relatórios</Text></TouchableOpacity>
-        <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'medicaçao' && styles.btnAtivo]} onPress={() => handleAbrirSubAtividade('medicaçao', idoso)}><MaterialIcons name="healing" size={24} color="#4169E1" /><Text style={styles.txtAcaoCard}>Medicação</Text></TouchableOpacity>
-        <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'observaçao' && styles.btnAtivo]} onPress={() => handleAbrirSubAtividade('observaçao', idoso)}><MaterialIcons name="notification-important" size={24} color="#FF6347" /><Text style={styles.txtAcaoCard}>Observação</Text></TouchableOpacity>
-      </View>
-      {renderFormAtividade()}
-      {renderHistoricoLabels()}
-    </View>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined} // Desativa o comportamento de ajuste no Android para evitar o "quique"
+    >
+      <ScrollView 
+        style={styles.containerAcoes}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled" // Permite clicar nos botões de primeira sem travar a rolagem
+      >
+        <View style={styles.topoAcoes}>
+          <Text style={styles.tituloAcoes}>Painel do Assistido - {idoso.nome}</Text>
+          <TouchableOpacity onPress={() => { setPacienteSelecionado(null); setSubAtividadeAtiva(null); }}>
+            <MaterialIcons name="close" size={20} color="#666" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.gridAcoes}>
+          <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'agenda' && styles.btnAtivo]} onPress={() => handleAbrirSubAtividade('agenda', idoso)}><MaterialIcons name="event" size={24} color="#4169E1" /><Text style={styles.txtAcaoCard}>Agenda</Text></TouchableOpacity>
+          <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'relatorios' && styles.btnAtivo]} onPress={() => handleAbrirSubAtividade('relatorios', idoso)}><MaterialIcons name="assessment" size={24} color="#4169E1" /><Text style={styles.txtAcaoCard}>Relatórios</Text></TouchableOpacity>
+          <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'medicaçao' && styles.btnAtivo]} onPress={() => handleAbrirSubAtividade('medicaçao', idoso)}><MaterialIcons name="healing" size={24} color="#4169E1" /><Text style={styles.txtAcaoCard}>Medicação</Text></TouchableOpacity>
+          <TouchableOpacity style={[styles.btnAcaoCard, subAtividadeAtiva === 'observaçao' && styles.btnAtivo]} onPress={() => handleAbrirSubAtividade('observaçao', idoso)}><MaterialIcons name="notification-important" size={24} color="#FF6347" /><Text style={styles.txtAcaoCard}>Observação</Text></TouchableOpacity>
+        </View>
+        {renderFormAtividade()}
+        {renderHistoricoLabels()}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

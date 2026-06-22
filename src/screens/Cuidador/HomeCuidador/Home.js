@@ -37,7 +37,7 @@ export default function HomeCuidador() {
           </TouchableOpacity>
           <TouchableOpacity style={styles.tabItem} onPress={() => setAbaAtiva('paciente')}>
             <FontAwesome5 name="user-injured" size={22} color={abaAtiva === 'paciente' ? '#4169E1' : '#000'} />
-            <Text style={styles.tabText}>Paciente</Text>
+            <Text style={styles.tabText}>Idoso(a)</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.tabItem} onPress={() => setAbaAtiva('perfil')}>
             <MaterialIcons name="account-circle" size={28} color={abaAtiva === 'perfil' ? '#4169E1' : '#000'} />
