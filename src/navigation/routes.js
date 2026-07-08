@@ -1,25 +1,34 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Home from '../screens/Home/Home';
-import Cuidador from '../screens/Cuidador/Cuidador';
-import Idoso from '../screens/Idoso/Idoso';
-import Familiar from '../screens/Familiar/Familiar';
-import HomeCuidador from '../screens/Cuidador/HomeCuidador/Home'; 
+import { ROUTES } from '../constants/routeNames';
+
+import SplashScreen from '../screens/Splash/SplashScreen';
+import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
+import HomeScreen from '../screens/Home/HomeScreen';
+import CadastroCuidadorScreen from '../screens/Cuidador/CadastroCuidadorScreen';
+import HomeCuidadorScreen from '../screens/Cuidador/HomeCuidador/HomeCuidadorScreen';
+import CadastroFamiliarScreen from '../screens/Familiar/CadastroFamiliarScreen';
+import HomeFamiliarScreen from '../screens/Familiar/HomeFamiliar/HomeFamiliarScreen';
+import IdosoScreen from '../screens/Idoso/IdosoScreen';
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * Antes a Splash e o Onboarding viviam como uma máquina de estados manual
+ * dentro de App.js, FORA do React Navigation — duas fontes de verdade para
+ * "em qual tela eu estou". Agora são rotas normais do Stack, como qualquer
+ * outra tela (podem usar goBack, deep link, etc.).
+ */
 export default function StackRoutes() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}>
-      <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="Cuidador" component={Cuidador} />
-      <Stack.Screen name="Idoso" component={Idoso} />
-      <Stack.Screen name="Familiar" component={Familiar} />
-      
-      
-      <Stack.Screen name="HomeCuidador" component={HomeCuidador} />
+    <Stack.Navigator initialRouteName={ROUTES.SPLASH} screenOptions={{ headerShown: false }}>
+      <Stack.Screen name={ROUTES.SPLASH} component={SplashScreen} />
+      <Stack.Screen name={ROUTES.ONBOARDING} component={OnboardingScreen} />
+      <Stack.Screen name={ROUTES.HOME} component={HomeScreen} />
+      <Stack.Screen name={ROUTES.CADASTRO_CUIDADOR} component={CadastroCuidadorScreen} />
+      <Stack.Screen name={ROUTES.HOME_CUIDADOR} component={HomeCuidadorScreen} />
+      <Stack.Screen name={ROUTES.CADASTRO_FAMILIAR} component={CadastroFamiliarScreen} />
+      <Stack.Screen name={ROUTES.HOME_FAMILIAR} component={HomeFamiliarScreen} />
+      <Stack.Screen name={ROUTES.IDOSO} component={IdosoScreen} />
     </Stack.Navigator>
   );
 }
