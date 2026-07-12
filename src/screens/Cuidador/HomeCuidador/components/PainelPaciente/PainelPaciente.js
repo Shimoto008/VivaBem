@@ -11,6 +11,8 @@ import { ATIVIDADE_TIPOS, ATIVIDADE_CONFIG } from '../../../../../constants/ativ
 import { paraISODate } from '../../../../../utils/dateUtils';
 import { abrirDespertadorNativo } from '../../../../../utils/nativeAlarm';
 import { colors } from '../../../../../theme';
+import { useNavigation } from '@react-navigation/native';
+import { ROUTES } from '../../../../../constants/routeNames';
 
 /**
  * Orquestrador do painel de um paciente. Antes era um único arquivo de
@@ -22,16 +24,26 @@ import { colors } from '../../../../../theme';
  */
 export function PainelPaciente({ idoso, cuidadorId, onFechar }) {
   const {
-    atividades, carregando, processando, erro,
-    itemEmEdicao, iniciarEdicao, cancelarEdicao,
-    buscarAgendaPorData, salvar,
+    atividades,
+    carregando,
+    processando,
+    erro,
+    itemEmEdicao,
+    iniciarEdicao,
+    cancelarEdicao,
+    buscarAgendaPorData,
+    salvar,
   } = useAtividadesPaciente(idoso.id, cuidadorId);
-
+  const navigation = useNavigation();
   const calendario = useCalendarioAgenda();
   const [subAtividadeAtiva, setSubAtividadeAtiva] = useState(null);
   const [conteudo, setConteudo] = useState('');
 
-  const dataReferenciaSelecionada = paraISODate(calendario.anoAtual, calendario.mesAtual, calendario.diaSelecionado);
+  const dataReferenciaSelecionada = paraISODate(
+    calendario.anoAtual,
+    calendario.mesAtual,
+    calendario.diaSelecionado
+  );
 
   const diasComAtividade = useMemo(() => {
     const dias = new Set();
@@ -85,7 +97,8 @@ export function PainelPaciente({ idoso, cuidadorId, onFechar }) {
       calendario.setDiaSelecionado(dia);
       // mês/ano do calendário só mudam se o usuário navegar; aqui mantemos o
       // dia em destaque já é suficiente para o caso comum (edição no mesmo mês).
-      void ano; void mes;
+      void ano;
+      void mes;
     }
   }
 
@@ -116,18 +129,34 @@ export function PainelPaciente({ idoso, cuidadorId, onFechar }) {
             <TouchableOpacity
               key={tipo}
               style={[styles.btnAcaoCard, ativo && styles.btnAtivo]}
-              onPress={() => abrirFormulario(tipo)}
-              accessibilityRole="button"
-              accessibilityLabel={config.titulo}
+              onPress={() => {
+                if (tipo === ATIVIDADE_TIPOS.MEDICACAO) {
+                  navigation.navigate(ROUTES.MEDICACAO, {
+                    idoso: idoso,
+                  });
+
+                  return;
+                }
+
+                abrirFormulario(tipo);
+              }}
             >
-              <MaterialIcons name={config.icone} size={22} color={ativo ? colors.primary : '#555'} />
+              <MaterialIcons
+                name={config.icone}
+                size={22}
+                color={ativo ? colors.primary : '#555'}
+              />
               <Text style={styles.txtAcaoCard}>{config.titulo}</Text>
             </TouchableOpacity>
           );
         })}
       </View>
 
-      {erro ? <Text style={{ color: colors.danger, marginTop: 8 }}>Não foi possível carregar as atividades.</Text> : null}
+      {erro ? (
+        <Text style={{ color: colors.danger, marginTop: 8 }}>
+          Não foi possível carregar as atividades.
+        </Text>
+      ) : null}
 
       {subAtividadeAtiva === ATIVIDADE_TIPOS.AGENDA && (
         <FormularioAtividade
@@ -172,11 +201,21 @@ export function PainelPaciente({ idoso, cuidadorId, onFechar }) {
           textoBotaoSalvar="Salvar Medicação"
           extraDepois={
             <TouchableOpacity
-              style={[styles.btnSalvarNota, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.primary, marginTop: 8 }]}
+              style={[
+                styles.btnSalvarNota,
+                {
+                  backgroundColor: colors.surface,
+                  borderWidth: 1,
+                  borderColor: colors.primary,
+                  marginTop: 8,
+                },
+              ]}
               onPress={abrirDespertadorNativo}
               accessibilityLabel="Configurar despertador para a medicação"
             >
-              <Text style={[styles.btnSalvarNotaTexto, { color: colors.primary }]}>Configurar Despertador</Text>
+              <Text style={[styles.btnSalvarNotaTexto, { color: colors.primary }]}>
+                Configurar Despertador
+              </Text>
             </TouchableOpacity>
           }
         />

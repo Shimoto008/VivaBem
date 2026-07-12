@@ -1,9 +1,5 @@
-export { Button } from './Button';
-export { Input } from './Input';
-export { Card } from './Card';
-export { Badge } from './Badge';
-export { Avatar } from './Avatar';
-export { EmptyState } from './EmptyState';
-export { ScreenHeader } from './ScreenHeader';
-export { SelectModal } from './SelectModal';
-export { BottomTabBar } from './BottomTabBar';
+import { registerRootComponent } from 'expo';
+
+import App from './App';
+
+registerRootComponent(App);

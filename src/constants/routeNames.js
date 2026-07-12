@@ -11,4 +11,6 @@ export const ROUTES = {
   CADASTRO_FAMILIAR: 'CadastroFamiliar',
   HOME_FAMILIAR: 'HomeFamiliar',
   IDOSO: 'Idoso',
+  MEDICACAO: 'Medicacao',
+  RELATORIO: 'Relatorio',
 };

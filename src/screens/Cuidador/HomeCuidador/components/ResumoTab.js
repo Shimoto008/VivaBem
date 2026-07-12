@@ -4,7 +4,9 @@ import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { styles } from '../HomeCuidador.styles';
 import { PainelPaciente } from './PainelPaciente/PainelPaciente';
 import { colors } from '../../../../theme';
+import { useNavigation } from '@react-navigation/native';
 import { EmptyState } from '../../../../components/ui';
+import { ROUTES } from '../../../../constants/routeNames';
 
 /**
  * Antes "renderHome.js" — renomeado para refletir o que de fato exibe
@@ -13,38 +15,72 @@ import { EmptyState } from '../../../../components/ui';
  * estavam importados sem nenhum uso no arquivo original).
  */
 export function ResumoTab({ controlador }) {
-  const { pacientes, pacienteSelecionado, selecionarPaciente, limparPacienteSelecionado, cuidadorId } = controlador;
+  const navigation = useNavigation();
+  const {
+    pacientes,
+    pacienteSelecionado,
+    selecionarPaciente,
+    limparPacienteSelecionado,
+    cuidadorId,
+  } = controlador;
 
   return (
     <View style={styles.containerAbas}>
       <View style={styles.grid}>
-        <View style={styles.card}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => {
+            if (!pacienteSelecionado) {
+              alert('Selecione um idoso primeiro.');
+              return;
+            }
+
+            navigation.navigate(ROUTES.MEDICACAO, {
+              idoso: pacienteSelecionado,
+            });
+          }}
+        >
           <View style={styles.cardTop}>
-            <MaterialIcons name="star-outline" size={24} color={colors.primary} />
-            <Text style={styles.statusBadge}>Painel</Text>
+            <Text style={styles.statusBadge}>Medicações</Text>
           </View>
           <View style={styles.iconContainer}>
             <MaterialIcons name="add-box" size={50} color={colors.primary} />
           </View>
           <Text style={styles.cardTitle}>Medicações</Text>
-        </View>
+        </TouchableOpacity>
 
-        <View style={styles.card}>
+        <TouchableOpacity
+          style={styles.card}
+          style={styles.card}
+          onPress={() => {
+            if (!pacienteSelecionado) {
+              alert('Selecione um idoso primeiro.');
+              return;
+            }
+
+            navigation.navigate(ROUTES.RELATORIO, {
+              idoso: pacienteSelecionado,
+            });
+          }}
+        >
           <View style={styles.cardTop}>
-            <MaterialIcons name="star-outline" size={24} color={colors.primary} />
-            <Text style={styles.statusBadge}>Segurança</Text>
+            <Text style={styles.statusBadge}>Relatorios</Text>
           </View>
           <View style={styles.iconContainer}>
-            <FontAwesome5 name="accessible-icon" size={45} color={colors.primary} />
+            <FontAwesome5 name="file-medical" size={45} color={colors.primary} />
           </View>
-          <Text style={styles.cardTitle}>Risco Engasgo</Text>
-        </View>
+          <Text style={styles.cardTitle}>Relatorios</Text>
+        </TouchableOpacity>
       </View>
 
       <Text style={styles.secaoTitulo}>Idosos Ativos</Text>
 
       {pacientes.length === 0 ? (
-        <EmptyState icon="elderly" title="Nenhum idoso cadastrado." description="Cadastre na aba “Idoso(a)”." />
+        <EmptyState
+          icon="elderly"
+          title="Nenhum idoso cadastrado."
+          description="Cadastre na aba “Idoso(a)”."
+        />
       ) : (
         pacientes.map((idoso) => (
           <View key={idoso.id} style={styles.wrapperPaciente}>
@@ -67,7 +103,11 @@ export function ResumoTab({ controlador }) {
             </TouchableOpacity>
 
             {pacienteSelecionado?.id === idoso.id && (
-              <PainelPaciente idoso={pacienteSelecionado} cuidadorId={cuidadorId} onFechar={limparPacienteSelecionado} />
+              <PainelPaciente
+                idoso={pacienteSelecionado}
+                cuidadorId={cuidadorId}
+                onFechar={limparPacienteSelecionado}
+              />
             )}
           </View>
         ))

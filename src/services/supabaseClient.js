@@ -1,5 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
+console.log('URL:', supabaseUrl);
+console.log('KEY:', supabaseAnonKey?.substring(0, 20));
+
 /**
  * Credenciais lidas de variáveis de ambiente (suporte nativo do Expo a
  * variáveis prefixadas com EXPO_PUBLIC_, sem necessidade de libs extras).

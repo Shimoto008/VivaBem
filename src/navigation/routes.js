@@ -10,6 +10,9 @@ import CadastroFamiliarScreen from '../screens/Familiar/CadastroFamiliarScreen';
 import HomeFamiliarScreen from '../screens/Familiar/HomeFamiliar/HomeFamiliarScreen';
 import IdosoScreen from '../screens/Idoso/IdosoScreen';
 
+import MedicacaoScreen from '../screens/Cuidador/HomeCuidador/components/PainelPaciente/Medicacao/MedicacaoScreen';
+import RelatorioScreen from '../screens/Cuidador/HomeCuidador/components/PainelPaciente/Relatorio/RelatorioScreen';
+
 const Stack = createNativeStackNavigator();
 
 /**
@@ -29,6 +32,9 @@ export default function StackRoutes() {
       <Stack.Screen name={ROUTES.CADASTRO_FAMILIAR} component={CadastroFamiliarScreen} />
       <Stack.Screen name={ROUTES.HOME_FAMILIAR} component={HomeFamiliarScreen} />
       <Stack.Screen name={ROUTES.IDOSO} component={IdosoScreen} />
+
+      <Stack.Screen name={ROUTES.MEDICACAO} component={MedicacaoScreen} />
+      <Stack.Screen name={ROUTES.RELATORIO} component={RelatorioScreen} />  
     </Stack.Navigator>
   );
 }
