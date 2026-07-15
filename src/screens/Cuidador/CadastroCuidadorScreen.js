@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import { styles } from './CadastroCuidador.styles';
@@ -7,6 +14,7 @@ import { useCuidadorCadastro } from '../../hooks/useCuidadorCadastro';
 import { Input, Button, ScreenHeader, SelectModal } from '../../components/ui';
 import { LISTA_ESPECIALIDADES } from '../../constants/especialidades';
 import { colors } from '../../theme';
+import { useSession } from '../../contexts/SessionContext';
 
 /**
  * Tela "burra" por design: só lê o que o hook devolve e desenha a UI.
@@ -14,10 +22,22 @@ import { colors } from '../../theme';
  */
 export default function CadastroCuidadorScreen() {
   const navigation = useNavigation();
+  const { setCuidador } = useSession();
   const {
-    nome, telefone, cpf, especialidade, outraEspecialidade, erros, enviando,
-    modalEspecialidadeVisivel, setModalEspecialidadeVisivel,
-    alterarNome, alterarCpf, alterarTelefone, alterarOutraEspecialidade, selecionarEspecialidade,
+    nome,
+    telefone,
+    cpf,
+    especialidade,
+    outraEspecialidade,
+    erros,
+    enviando,
+    modalEspecialidadeVisivel,
+    setModalEspecialidadeVisivel,
+    alterarNome,
+    alterarCpf,
+    alterarTelefone,
+    alterarOutraEspecialidade,
+    selecionarEspecialidade,
     salvar,
   } = useCuidadorCadastro();
 
@@ -31,7 +51,11 @@ export default function CadastroCuidadorScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.viewPrincipal}>
-          <ScreenHeader title="Área de Cadastro" subtitle="Cuidador" onBack={() => navigation.goBack()} />
+          <ScreenHeader
+            title="Área de Cadastro"
+            subtitle="Cuidador"
+            onBack={() => navigation.goBack()}
+          />
           <Image style={styles.img} source={require('../../../assets/VivaBem.png')} />
 
           <Input
@@ -62,10 +86,17 @@ export default function CadastroCuidadorScreen() {
             error={erros.telefone}
           />
 
-          <Text style={{ alignSelf: 'flex-start', fontWeight: '600', marginBottom: 8 }}>Especialidade</Text>
+          <Text style={{ alignSelf: 'flex-start', fontWeight: '600', marginBottom: 8 }}>
+            Especialidade
+          </Text>
           {especialidade !== 'Outros' ? (
-            <TouchableOpacity style={styles.seletor} onPress={() => setModalEspecialidadeVisivel(true)}>
-              <Text style={especialidade ? styles.seletorTextoPreenchido : styles.seletorTextoVazio}>
+            <TouchableOpacity
+              style={styles.seletor}
+              onPress={() => setModalEspecialidadeVisivel(true)}
+            >
+              <Text
+                style={especialidade ? styles.seletorTextoPreenchido : styles.seletorTextoVazio}
+              >
                 {especialidade || 'Selecione uma opção...'}
               </Text>
             </TouchableOpacity>
@@ -77,9 +108,22 @@ export default function CadastroCuidadorScreen() {
               autoFocus
             />
           )}
-          {erros.especialidade ? <Text style={{ color: colors.danger, marginBottom: 8 }}>{erros.especialidade}</Text> : null}
+          {erros.especialidade ? (
+            <Text style={{ color: colors.danger, marginBottom: 8 }}>{erros.especialidade}</Text>
+          ) : null}
 
-          <Button title="Cadastrar" onPress={salvar} loading={enviando} style={{ width: '100%', marginTop: 12 }} />
+          <Button
+            title="Cadastrar"
+            onPress={async () => {
+              const cuidadorCriado = await salvar();
+
+              if (cuidadorCriado) {
+                setCuidador(cuidadorCriado);
+                navigation.replace('HomeCuidador');
+              }
+            }}
+            loading={enviando}
+          />
         </View>
       </TouchableWithoutFeedback>
 

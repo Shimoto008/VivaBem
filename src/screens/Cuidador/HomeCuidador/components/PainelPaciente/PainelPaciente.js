@@ -9,7 +9,6 @@ import { useAtividadesPaciente } from '../../../../../hooks/useAtividadesPacient
 import { useCalendarioAgenda } from '../../../../../hooks/useCalendarioAgenda';
 import { ATIVIDADE_TIPOS, ATIVIDADE_CONFIG } from '../../../../../constants/atividadeTipos';
 import { paraISODate } from '../../../../../utils/dateUtils';
-import { abrirDespertadorNativo } from '../../../../../utils/nativeAlarm';
 import { colors } from '../../../../../theme';
 import { useNavigation } from '@react-navigation/native';
 import { ROUTES } from '../../../../../constants/routeNames';
@@ -55,6 +54,10 @@ export function PainelPaciente({ idoso, cuidadorId, onFechar }) {
       });
     return dias;
   }, [atividades, calendario.anoAtual, calendario.mesAtual]);
+
+  const tiposVisiveis = Object.values(ATIVIDADE_TIPOS).filter(
+    (tipo) => tipo !== ATIVIDADE_TIPOS.MEDICACAO && tipo !== ATIVIDADE_TIPOS.RELATORIO
+  );
 
   function abrirFormulario(tipo) {
     if (subAtividadeAtiva === tipo) {
@@ -122,30 +125,24 @@ export function PainelPaciente({ idoso, cuidadorId, onFechar }) {
       </View>
 
       <View style={styles.gridAcoes}>
-        {Object.values(ATIVIDADE_TIPOS).map((tipo) => {
+        {tiposVisiveis.map((tipo) => {
           const config = ATIVIDADE_CONFIG[tipo];
           const ativo = subAtividadeAtiva === tipo;
+
           return (
             <TouchableOpacity
               key={tipo}
               style={[styles.btnAcaoCard, ativo && styles.btnAtivo]}
-              onPress={() => {
-                if (tipo === ATIVIDADE_TIPOS.MEDICACAO) {
-                  navigation.navigate(ROUTES.MEDICACAO, {
-                    idoso: idoso,
-                  });
-
-                  return;
-                }
-
-                abrirFormulario(tipo);
-              }}
+              onPress={() => abrirFormulario(tipo)}
+              accessibilityRole="button"
+              accessibilityLabel={config.titulo}
             >
               <MaterialIcons
                 name={config.icone}
                 size={22}
                 color={ativo ? colors.primary : '#555'}
               />
+
               <Text style={styles.txtAcaoCard}>{config.titulo}</Text>
             </TouchableOpacity>
           );
@@ -173,50 +170,6 @@ export function PainelPaciente({ idoso, cuidadorId, onFechar }) {
               onSelecionarDia={selecionarDiaNoCalendario}
               diasComAtividade={diasComAtividade}
             />
-          }
-        />
-      )}
-
-      {subAtividadeAtiva === ATIVIDADE_TIPOS.RELATORIO && (
-        <FormularioAtividade
-          titulo={itemEmEdicao ? 'Editar Relatório' : ATIVIDADE_CONFIG.relatorio.titulo}
-          placeholder={ATIVIDADE_CONFIG.relatorio.placeholder}
-          conteudo={conteudo}
-          onChangeConteudo={setConteudo}
-          onSalvar={handleSalvar}
-          onCancelar={fecharFormulario}
-          processando={processando}
-        />
-      )}
-
-      {subAtividadeAtiva === ATIVIDADE_TIPOS.MEDICACAO && (
-        <FormularioAtividade
-          titulo={itemEmEdicao ? 'Editar Medicação' : ATIVIDADE_CONFIG.medicacao.titulo}
-          placeholder={ATIVIDADE_CONFIG.medicacao.placeholder}
-          conteudo={conteudo}
-          onChangeConteudo={setConteudo}
-          onSalvar={handleSalvar}
-          onCancelar={fecharFormulario}
-          processando={processando}
-          textoBotaoSalvar="Salvar Medicação"
-          extraDepois={
-            <TouchableOpacity
-              style={[
-                styles.btnSalvarNota,
-                {
-                  backgroundColor: colors.surface,
-                  borderWidth: 1,
-                  borderColor: colors.primary,
-                  marginTop: 8,
-                },
-              ]}
-              onPress={abrirDespertadorNativo}
-              accessibilityLabel="Configurar despertador para a medicação"
-            >
-              <Text style={[styles.btnSalvarNotaTexto, { color: colors.primary }]}>
-                Configurar Despertador
-              </Text>
-            </TouchableOpacity>
           }
         />
       )}

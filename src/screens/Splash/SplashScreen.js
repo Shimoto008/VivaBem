@@ -8,11 +8,6 @@ const { height } = Dimensions.get('window');
 const DURACAO_SUBIDA_LOGO_MS = 1500;
 const DURACAO_TOTAL_SPLASH_MS = 5500;
 
-/**
- * Antes esta tela vivia como estado "splash" dentro de App.js, fora do
- * React Navigation. Movida para uma rota normal do Stack — agora pode
- * receber deep link, voltar, etc. como qualquer outra tela.
- */
 export default function SplashScreen() {
   const navigation = useNavigation();
   const posicaoLogo = useRef(new Animated.Value(height)).current;
@@ -33,9 +28,18 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.container}>
-      <Animated.View style={{ transform: [{ translateY: posicaoLogo }], alignItems: 'center' }}>
+      <Animated.View
+        style={{
+          transform: [{ translateY: posicaoLogo }],
+          alignItems: 'center',
+        }}
+      >
         <Image
-          style={{ width: 140, height: 140, resizeMode: 'contain' }}
+          style={{
+            width: 140,
+            height: 140,
+            resizeMode: 'contain',
+          }}
           source={require('../../../assets/VivaBem.png')}
         />
       </Animated.View>

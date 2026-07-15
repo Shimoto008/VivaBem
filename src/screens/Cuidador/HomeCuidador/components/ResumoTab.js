@@ -24,19 +24,33 @@ export function ResumoTab({ controlador }) {
     cuidadorId,
   } = controlador;
 
+  console.log("cuidador da home:", cuidadorId);
+  
+  const pacienteDev = {
+    id: '787d17a0-e5e1-4c1d-bee7-0239aa6ade37',
+    nome: 'neymar',
+    idade: 85,
+  };
+
+  const pacientesExibidos = __DEV__ && pacientes.length === 0 ? [pacienteDev] : pacientes;
+
+  const idosoAtual =
+    pacienteSelecionado ?? (__DEV__ && pacientesExibidos.length > 0 ? pacientesExibidos[0] : null);
+
   return (
     <View style={styles.containerAbas}>
       <View style={styles.grid}>
         <TouchableOpacity
           style={styles.card}
           onPress={() => {
-            if (!pacienteSelecionado) {
+            if (!idosoAtual) {
               alert('Selecione um idoso primeiro.');
               return;
             }
 
             navigation.navigate(ROUTES.MEDICACAO, {
               idoso: pacienteSelecionado,
+              cuidadorId: cuidadorId,
             });
           }}
         >
@@ -53,13 +67,14 @@ export function ResumoTab({ controlador }) {
           style={styles.card}
           style={styles.card}
           onPress={() => {
-            if (!pacienteSelecionado) {
+            if (!idosoAtual) {
               alert('Selecione um idoso primeiro.');
               return;
             }
 
             navigation.navigate(ROUTES.RELATORIO, {
-              idoso: pacienteSelecionado,
+                idoso: pacienteSelecionado,
+                cuidadorId: cuidadorId,
             });
           }}
         >
@@ -75,14 +90,14 @@ export function ResumoTab({ controlador }) {
 
       <Text style={styles.secaoTitulo}>Idosos Ativos</Text>
 
-      {pacientes.length === 0 ? (
+      {pacientesExibidos.length === 0 ? (
         <EmptyState
           icon="elderly"
           title="Nenhum idoso cadastrado."
           description="Cadastre na aba “Idoso(a)”."
         />
       ) : (
-        pacientes.map((idoso) => (
+        pacientesExibidos.map((idoso) => (
           <View key={idoso.id} style={styles.wrapperPaciente}>
             <TouchableOpacity
               style={styles.cardPacienteHome}
