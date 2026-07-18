@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../../../../../../theme';
 
-export function MedicacaoCard({ medicacao, onLembrete, onEditar }) {
+export function MedicacaoCard({ medicacao, onLembrete, onEditar, onExcluir }) {
   return (
     <View
       style={{
@@ -18,7 +18,7 @@ export function MedicacaoCard({ medicacao, onLembrete, onEditar }) {
         style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: 'flex-start',
         }}
       >
         <View>
@@ -50,7 +50,20 @@ export function MedicacaoCard({ medicacao, onLembrete, onEditar }) {
           </Text>
         </View>
 
-        <MaterialIcons name="medication" size={35} color={colors.primary} />
+        <View
+          style={{
+            flexDirection: 'row',
+            gap: 12,
+          }}
+        >
+          <TouchableOpacity onPress={onEditar}>
+            <MaterialIcons name="edit" size={24} color={colors.primary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={onExcluir}>
+            <MaterialIcons name="delete-outline" size={24} color="#D32F2F" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View
@@ -63,41 +76,50 @@ export function MedicacaoCard({ medicacao, onLembrete, onEditar }) {
         <TouchableOpacity
           onPress={onLembrete}
           style={{
-            flex: 1,
-            padding: 10,
+            padding: 12,
             borderRadius: 8,
             backgroundColor: colors.primary,
             alignItems: 'center',
           }}
         >
-          <Text
+          <View
             style={{
-              color: '#fff',
-              fontWeight: 'bold',
+              flexDirection: 'row',
+              alignItems: 'center',
             }}
           >
-            🔔 Lembrete
-          </Text>
+            <MaterialIcons name="notifications-active" size={20} color="#fff" />
+
+            <Text
+              style={{
+                color: '#fff',
+                fontWeight: 'bold',
+                marginLeft: 8,
+              }}
+            >
+              Configurar lembrete
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={onEditar}
+          onPress={onExcluir}
           style={{
             flex: 1,
             padding: 10,
             borderRadius: 8,
             borderWidth: 1,
-            borderColor: colors.primary,
+            borderColor: colors.danger,
             alignItems: 'center',
           }}
         >
           <Text
             style={{
-              color: colors.primary,
+              color: colors.danger,
               fontWeight: 'bold',
             }}
           >
-            Editar
+            Excluir
           </Text>
         </TouchableOpacity>
       </View>

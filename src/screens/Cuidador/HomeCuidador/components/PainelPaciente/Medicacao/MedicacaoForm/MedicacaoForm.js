@@ -4,12 +4,16 @@ import { useState } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export function MedicacaoForm({
+  titulo,
+  textoBotao,
+
   nome,
   quantidade,
   horario,
   setNome,
   setQuantidade,
   setHorario,
+
   onSalvar,
   onCancelar,
   processando,
@@ -18,21 +22,32 @@ export function MedicacaoForm({
 
   return (
     <View
-      style={{
-        marginTop: 20,
-        padding: 15,
-        borderRadius: 12,
-        backgroundColor: '#fff',
-      }}
-    >
-      <Text
-        style={{
-          fontWeight: 'bold',
-          marginBottom: 5,
-        }}
-      >
-        Nome do medicamento
-      </Text>
+  style={{
+    marginTop: 20,
+    padding: 15,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+  }}
+>
+
+  <Text
+    style={{
+      fontSize: 22,
+      fontWeight: 'bold',
+      marginBottom: 20,
+    }}
+  >
+    {titulo}
+  </Text>
+
+  <Text
+    style={{
+      fontWeight: 'bold',
+      marginBottom: 5,
+    }}
+  >
+    Nome do medicamento
+  </Text>
 
       <TextInput
         placeholder="Ex: Dipirona"
@@ -126,7 +141,7 @@ export function MedicacaoForm({
             fontWeight: 'bold',
           }}
         >
-          {processando ? 'Salvando...' : 'Salvar Medicação'}
+          {processando ? 'Salvando...' : textoBotao}
         </Text>
       </TouchableOpacity>
 

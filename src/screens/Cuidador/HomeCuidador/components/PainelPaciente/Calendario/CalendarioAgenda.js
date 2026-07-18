@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { styles } from '../../HomeCuidador.styles';
-import { colors } from '../../../../../theme';
+import { styles } from '../../../HomeCuidador.styles';
+import { colors } from '../../../../../../theme';
 
 /**
  * Extraído de PainelPaciente.js (estava como função interna "renderCalendario").

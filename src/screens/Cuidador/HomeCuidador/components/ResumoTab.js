@@ -49,7 +49,7 @@ export function ResumoTab({ controlador }) {
             }
 
             navigation.navigate(ROUTES.MEDICACAO, {
-              idoso: pacienteSelecionado,
+              idoso: idosoAtual,
               cuidadorId: cuidadorId,
             });
           }}
@@ -73,7 +73,7 @@ export function ResumoTab({ controlador }) {
             }
 
             navigation.navigate(ROUTES.RELATORIO, {
-                idoso: pacienteSelecionado,
+                idoso: idosoAtual,
                 cuidadorId: cuidadorId,
             });
           }}
@@ -87,6 +87,40 @@ export function ResumoTab({ controlador }) {
           <Text style={styles.cardTitle}>Relatorios</Text>
         </TouchableOpacity>
       </View>
+
+      <TouchableOpacity
+  style={styles.card}
+  onPress={() => {
+    if (!idosoAtual) {
+      alert('Selecione um idoso primeiro.');
+      return;
+    }
+
+    navigation.navigate(ROUTES.CALENDARIO, {
+      idoso: idosoAtual,
+      cuidadorId: cuidadorId,
+    });
+  }}
+>
+  <View style={styles.cardTop}>
+    <Text style={styles.statusBadge}>
+      Calendário
+    </Text>
+  </View>
+
+  <View style={styles.iconContainer}>
+    <MaterialIcons
+      name="calendar-month"
+      size={50}
+      color={colors.primary}
+    />
+  </View>
+
+  <Text style={styles.cardTitle}>
+    Calendário
+  </Text>
+
+</TouchableOpacity>
 
       <Text style={styles.secaoTitulo}>Idosos Ativos</Text>
 

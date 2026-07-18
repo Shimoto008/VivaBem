@@ -13,4 +13,5 @@ export const ROUTES = {
   IDOSO: 'Idoso',
   MEDICACAO: 'Medicacao',
   RELATORIO: 'Relatorio',
+  CALENDARIO: 'Calendario',
 };

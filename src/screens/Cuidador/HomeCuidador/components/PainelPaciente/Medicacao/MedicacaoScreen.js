@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { FormularioAtividade } from '../../../components/PainelPaciente/FormularioAtividade';
 import { useAtividadesPaciente } from '../../../../../../hooks/useAtividadesPaciente';
 import { ATIVIDADE_TIPOS } from '../../../../../../constants/atividadeTipos';
 import { MedicacaoForm } from './MedicacaoForm/MedicacaoForm';
 import { interpretarMedicacao } from '../../../../../../utils/MedicacaoUtils';
 import { MedicacaoCard } from './MedicacaoCard/MedicacaoCard';
+
 
 export default function MedicacaoScreen({ route }) {
   const idoso = route?.params?.idoso;
@@ -30,10 +31,38 @@ export default function MedicacaoScreen({ route }) {
     );
   }
 
-  const { atividades, processando, salvar, iniciarEdicao } = useAtividadesPaciente(
-    idoso.id,
-    cuidadorId
+  const { atividades, processando, salvar, iniciarEdicao, itemEmEdicao, cancelarEdicao, excluir } =
+    useAtividadesPaciente(idoso.id, cuidadorId);
+
+  function editarMedicacao(item) {
+    setNomeMedicacao(item.nome);
+    setQuantidade(item.quantidade);
+    setHorario(item.horario);
+
+    iniciarEdicao(item.original);
+
+    setNovaMedicacao(true);
+  }
+
+  function excluirMedicacao(item) {
+  Alert.alert(
+    'Excluir medicação',
+    `Deseja excluir ${item.nome}?`,
+    [
+      {
+        text: 'Cancelar',
+        style: 'cancel',
+      },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          await excluir(item.original.id);
+        },
+      },
+    ]
   );
+}
 
   async function handleSalvarMedicacao() {
     if (!nomeMedicacao.trim() || !quantidade.trim() || !horario.trim()) {
@@ -48,6 +77,7 @@ export default function MedicacaoScreen({ route }) {
 
     await salvar(ATIVIDADE_TIPOS.MEDICACAO, medicacao, null);
 
+    cancelarEdicao();
     setNomeMedicacao('');
     setQuantidade('');
     setHorario('');
@@ -104,6 +134,8 @@ export default function MedicacaoScreen({ route }) {
       </TouchableOpacity>
       {novaMedicacao && (
         <MedicacaoForm
+          titulo={itemEmEdicao ? 'Editar Medicação' : 'Nova Medicação'}
+          textoBotao={itemEmEdicao ? 'Salvar Alterações' : 'Salvar Medicação'}
           nome={nomeMedicacao}
           quantidade={quantidade}
           horario={horario}
@@ -112,6 +144,8 @@ export default function MedicacaoScreen({ route }) {
           setHorario={setHorario}
           onSalvar={handleSalvarMedicacao}
           onCancelar={() => {
+            cancelarEdicao();
+
             setNovaMedicacao(false);
             setNomeMedicacao('');
             setQuantidade('');
@@ -137,9 +171,8 @@ export default function MedicacaoScreen({ route }) {
           onLembrete={() => {
             console.log('Abrir lembrete', medicacao);
           }}
-          onEditar={() => {
-            console.log('Editar', medicacao);
-          }}
+          onEditar={() => editarMedicacao(medicacao)}
+          onExcluir={() => excluirMedicacao(medicacao)}
         />
       ))}
     </View>

@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { ATIVIDADE_TIPOS } from '../constants/atividadeTipos';
 import {
   listarAtividadesPorPaciente,
   criarAtividade,
   atualizarAtividade,
-} from '../services/atividadeService';
-import { ATIVIDADE_TIPOS } from '../constants/atividadeTipos';
+  removerAtividade,
+} from '../services/atividadeService';  
 
 /**
  * Dados + regras de "agenda / relatórios / medicação / observação" de um
@@ -64,9 +66,27 @@ export function useAtividadesPaciente(pacienteId, cuidadorId) {
     }
   }, [itemEmEdicao, pacienteId, cuidadorId, recarregar]);
 
+  const excluir = useCallback(
+  async (atividadeId) => {
+    setProcessando(true);
+    setErro(null);
+
+    try {
+      await removerAtividade(atividadeId);
+      await recarregar();
+    } catch (err) {
+      setErro(err);
+      throw err;
+    } finally {
+      setProcessando(false);
+    }
+  },
+  [recarregar]
+);
+
   return {
     atividades, carregando, processando, erro,
     itemEmEdicao, iniciarEdicao, cancelarEdicao,
-    buscarAgendaPorData, salvar, recarregar,
+    buscarAgendaPorData, salvar, recarregar, excluir,
   };
 }
