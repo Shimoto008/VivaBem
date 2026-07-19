@@ -1,12 +1,11 @@
-import React, { useMemo, useEffect, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
 import { ATIVIDADE_TIPOS } from '../constants/atividadeTipos';
 import {
   listarAtividadesPorPaciente,
   criarAtividade,
   atualizarAtividade,
   removerAtividade,
-} from '../services/atividadeService';  
+} from '../services/atividadeService';
 
 /**
  * Dados + regras de "agenda / relatórios / medicação / observação" de um
@@ -40,53 +39,67 @@ export function useAtividadesPaciente(pacienteId, cuidadorId) {
 
   /** Para o tipo "agenda": retorna a atividade já salva para uma data, se existir. */
   const buscarAgendaPorData = useCallback(
-    (dataReferencia) => atividades.find((a) => a.tipo === ATIVIDADE_TIPOS.AGENDA && a.data_referencia === dataReferencia) ?? null,
+    (dataReferencia) =>
+      atividades.find(
+        (a) => a.tipo === ATIVIDADE_TIPOS.AGENDA && a.data_referencia === dataReferencia
+      ) ?? null,
     [atividades]
   );
 
   const iniciarEdicao = useCallback((atividade) => setItemEmEdicao(atividade), []);
   const cancelarEdicao = useCallback(() => setItemEmEdicao(null), []);
 
-  const salvar = useCallback(async (tipo, conteudo, dataReferencia = null) => {
-    setProcessando(true);
-    setErro(null);
-    try {
-      if (itemEmEdicao) {
-        await atualizarAtividade(itemEmEdicao.id, conteudo);
-      } else {
-        await criarAtividade({ pacienteId, cuidadorId, tipo, conteudo, dataReferencia });
+  const salvar = useCallback(
+    async (tipo, conteudo, dataReferencia = null) => {
+      setProcessando(true);
+      setErro(null);
+      try {
+        if (itemEmEdicao) {
+          await atualizarAtividade(itemEmEdicao.id, conteudo);
+        } else {
+          await criarAtividade({ pacienteId, cuidadorId, tipo, conteudo, dataReferencia });
+        }
+        setItemEmEdicao(null);
+        await recarregar();
+      } catch (err) {
+        setErro(err);
+        throw err;
+      } finally {
+        setProcessando(false);
       }
-      setItemEmEdicao(null);
-      await recarregar();
-    } catch (err) {
-      setErro(err);
-      throw err;
-    } finally {
-      setProcessando(false);
-    }
-  }, [itemEmEdicao, pacienteId, cuidadorId, recarregar]);
+    },
+    [itemEmEdicao, pacienteId, cuidadorId, recarregar]
+  );
 
   const excluir = useCallback(
-  async (atividadeId) => {
-    setProcessando(true);
-    setErro(null);
+    async (atividadeId) => {
+      setProcessando(true);
+      setErro(null);
 
-    try {
-      await removerAtividade(atividadeId);
-      await recarregar();
-    } catch (err) {
-      setErro(err);
-      throw err;
-    } finally {
-      setProcessando(false);
-    }
-  },
-  [recarregar]
-);
+      try {
+        await removerAtividade(atividadeId);
+        await recarregar();
+      } catch (err) {
+        setErro(err);
+        throw err;
+      } finally {
+        setProcessando(false);
+      }
+    },
+    [recarregar]
+  );
 
   return {
-    atividades, carregando, processando, erro,
-    itemEmEdicao, iniciarEdicao, cancelarEdicao,
-    buscarAgendaPorData, salvar, recarregar, excluir,
+    atividades,
+    carregando,
+    processando,
+    erro,
+    itemEmEdicao,
+    iniciarEdicao,
+    cancelarEdicao,
+    buscarAgendaPorData,
+    salvar,
+    recarregar,
+    excluir,
   };
 }

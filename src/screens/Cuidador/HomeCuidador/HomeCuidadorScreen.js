@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text } from 'react-native';
+import { SafeAreaView, ScrollView, View } from 'react-native';
 import { styles } from './HomeCuidador.styles';
 import { ResumoTab } from './components/ResumoTab';
 import { PacientesTab } from './components/PacientesTab';

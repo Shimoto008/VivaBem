@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
-import { FormularioAtividade } from '../../../components/PainelPaciente/FormularioAtividade';
 import { useAtividadesPaciente } from '../../../../../../hooks/useAtividadesPaciente';
 import { ATIVIDADE_TIPOS } from '../../../../../../constants/atividadeTipos';
 import { MedicacaoForm } from './MedicacaoForm/MedicacaoForm';

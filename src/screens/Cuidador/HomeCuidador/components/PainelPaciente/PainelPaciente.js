@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { styles } from '../../HomeCuidador.styles';
-import { colors } from '../../../../../theme';
 import { useAtividadesPaciente } from '../../../../../hooks/useAtividadesPaciente';
 import { ATIVIDADE_TIPOS } from '../../../../../constants/atividadeTipos';
 

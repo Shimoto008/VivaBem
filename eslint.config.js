@@ -1,14 +1,24 @@
-// Configuração pronta para uso, mas as dependências não foram instaladas
-// automaticamente (sem acesso à rede no ambiente em que esta refatoração
-// foi feita). Para ativar: `npx expo install eslint eslint-config-expo --dev`
-// e depois `npx eslint .`.
 const expoConfig = require('eslint-config-expo/flat');
+const unusedImports = require('eslint-plugin-unused-imports');
 
 module.exports = [
   ...expoConfig,
   {
+    plugins: {
+      'unused-imports': unusedImports,
+    },
     rules: {
-      'no-unused-vars': 'warn',
+      'no-unused-vars': 'off', // Desativa a regra padrão para o plugin assumir
+      'unused-imports/no-unused-imports': 'error', // Apaga imports mortos ao salvar
+      'unused-imports/no-unused-vars': [
+        'warn',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+        },
+      ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
