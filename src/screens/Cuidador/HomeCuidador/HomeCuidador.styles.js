@@ -1,7 +1,5 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { colors, radius, typography } from '../../../theme';
-
-const { width } = Dimensions.get('window');
 
 /**
  * Estilos da área HomeCuidador — portados do Style.js original para usar

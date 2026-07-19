@@ -19,7 +19,7 @@ export async function abrirDespertadorNativo() {
     } else {
       Alert.alert('Não foi possível abrir o despertador', 'Abra o app Relógio manualmente para configurar o alarme.');
     }
-  } catch (erro) {
+  } catch {
     Alert.alert('Não foi possível abrir o despertador', 'Abra o app de relógio/alarme manualmente.');
   }
 }

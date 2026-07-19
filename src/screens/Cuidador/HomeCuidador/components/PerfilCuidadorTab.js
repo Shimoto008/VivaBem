@@ -35,7 +35,7 @@ export function PerfilCuidadorTab() {
       }
       const resultado = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
       if (!resultado.canceled) setFoto(resultado.assets[0].uri);
-    } catch (erro) {
+    } catch {
       Alert.alert('Não foi possível abrir a galeria', 'Tente novamente em alguns instantes.');
     }
   }
@@ -49,7 +49,7 @@ export function PerfilCuidadorTab() {
       });
       setCuidador(atualizado);
       setEditando(false);
-    } catch (erro) {
+    } catch {
       Alert.alert('Erro', 'Não foi possível salvar as alterações.');
     } finally {
       setSalvando(false);

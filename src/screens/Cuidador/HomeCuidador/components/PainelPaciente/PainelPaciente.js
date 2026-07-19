@@ -9,19 +9,13 @@ import { ATIVIDADE_TIPOS } from '../../../../../constants/atividadeTipos';
 export function PainelPaciente({ idoso, cuidadorId, onFechar }) {
   const { atividades } = useAtividadesPaciente(idoso.id, cuidadorId);
 
- const resumo = useMemo(() => {
-  return {
-    medicacoes: atividades.filter(
-      (item) => item.tipo === ATIVIDADE_TIPOS.MEDICACAO
-    ).length,
-
-    relatorios: atividades.filter(
-      (item) => item.tipo === ATIVIDADE_TIPOS.RELATORIO
-    ).length,
-
-    totalAtividades: atividades.length,
-  };
-}, [atividades]);
+  const resumo = useMemo(() => {
+    return {
+      medicacoes: atividades.filter((item) => item.tipo === ATIVIDADE_TIPOS.MEDICACAO).length,
+      relatorios: atividades.filter((item) => item.tipo === ATIVIDADE_TIPOS.RELATORIO).length,
+      totalAtividades: atividades.length,
+    };
+  }, [atividades]);
 
   return (
     <View style={styles.containerAcoes}>
@@ -40,21 +34,11 @@ export function PainelPaciente({ idoso, cuidadorId, onFechar }) {
           borderRadius: 12,
         }}
       >
-        <Text
-          style={{
-            fontSize: 20,
-            fontWeight: 'bold',
-          }}
-        >
-          {idoso.nome}
-        </Text>
+        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>{idoso.nome}</Text>
 
         <Text style={{ marginTop: 8 }}>Idade: {idoso.idade} anos</Text>
-
         <Text style={{ marginTop: 8 }}>💊 Medicações: {resumo.medicacoes}</Text>
-
         <Text style={{ marginTop: 8 }}>📄 Relatórios: {resumo.relatorios}</Text>
-
         <Text style={{ marginTop: 8 }}>📅 Atividades registradas: {resumo.totalAtividades}</Text>
       </View>
     </View>
