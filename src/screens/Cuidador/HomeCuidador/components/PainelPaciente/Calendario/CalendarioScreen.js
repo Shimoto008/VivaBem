@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 
 import { CalendarioAgenda } from './CalendarioAgenda';
+import { AgendaForm } from './AgendaForm/AgendaForm';
+import { AgendaCard } from './AgendaCard/AgendaCard';
 
 import { useAtividadesPaciente } from '../../../../../../hooks/useAtividadesPaciente';
-
 import { ATIVIDADE_TIPOS } from '../../../../../../constants/atividadeTipos';
 
 export default function CalendarioScreen({ route }) {
@@ -14,17 +15,14 @@ export default function CalendarioScreen({ route }) {
   const hoje = new Date();
 
   const [mesAtual, setMesAtual] = useState(hoje.getMonth());
-
   const [anoAtual, setAnoAtual] = useState(hoje.getFullYear());
 
   const dataHoje = hoje.toISOString().split('T')[0];
 
   const [dataSelecionada, setDataSelecionada] = useState(dataHoje);
-
   const [diaSelecionado, setDiaSelecionado] = useState(hoje.getDate());
 
   const [novaAtividade, setNovaAtividade] = useState(false);
-
   const [conteudo, setConteudo] = useState('');
 
   const meses = [
@@ -44,24 +42,46 @@ export default function CalendarioScreen({ route }) {
 
   if (!idoso) {
     return (
-      <View>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <Text>Nenhum paciente selecionado.</Text>
       </View>
     );
   }
 
-  const { atividades, salvar } = useAtividadesPaciente(idoso.id, cuidadorId);
+  const {
+    atividades,
+    salvar,
+    excluir,
+    iniciarEdicao,
+    cancelarEdicao,
+    itemEmEdicao,
+    processando,
+  } = useAtividadesPaciente(idoso.id, cuidadorId);
 
   const agenda = useMemo(() => {
-    return atividades.filter((item) => item.tipo === ATIVIDADE_TIPOS.AGENDA);
+    return atividades.filter(
+      (item) => item.tipo === ATIVIDADE_TIPOS.AGENDA
+    );
   }, [atividades]);
 
-  const quantidadeDiasNoMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
+  const quantidadeDiasNoMes = new Date(
+    anoAtual,
+    mesAtual + 1,
+    0
+  ).getDate();
 
   function selecionarDia(dia) {
     setDiaSelecionado(dia);
 
-    const novaData = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+    const novaData = `${anoAtual}-${String(
+      mesAtual + 1
+    ).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
 
     setDataSelecionada(novaData);
   }
@@ -69,21 +89,57 @@ export default function CalendarioScreen({ route }) {
   function irParaMesAnterior() {
     if (mesAtual === 0) {
       setMesAtual(11);
-
-      setAnoAtual(anoAtual - 1);
+      setAnoAtual((valor) => valor - 1);
     } else {
-      setMesAtual(mesAtual - 1);
+      setMesAtual((valor) => valor - 1);
     }
   }
 
   function irParaMesSeguinte() {
     if (mesAtual === 11) {
       setMesAtual(0);
-
-      setAnoAtual(anoAtual + 1);
+      setAnoAtual((valor) => valor + 1);
     } else {
-      setMesAtual(mesAtual + 1);
+      setMesAtual((valor) => valor + 1);
     }
+  }
+
+  function abrirNovaAtividade() {
+    cancelarEdicao();
+
+    setConteudo('');
+
+    setNovaAtividade(true);
+  }
+
+  function editarAtividade(item) {
+    iniciarEdicao(item);
+
+    setConteudo(item.conteudo);
+
+    setDataSelecionada(item.data_referencia);
+
+    setNovaAtividade(true);
+  }
+
+  async function excluirAtividade(item) {
+    Alert.alert(
+      'Excluir atividade',
+      'Deseja realmente excluir esta atividade?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            await excluir(item.id);
+          },
+        },
+      ]
+    );
   }
 
   async function salvarAtividade() {
@@ -91,14 +147,19 @@ export default function CalendarioScreen({ route }) {
       return;
     }
 
-    await salvar(ATIVIDADE_TIPOS.AGENDA, conteudo.trim(), dataSelecionada);
+    await salvar(
+      ATIVIDADE_TIPOS.AGENDA,
+      conteudo.trim(),
+      dataSelecionada
+    );
+
+    cancelarEdicao();
 
     setConteudo('');
 
     setNovaAtividade(false);
   }
-
-  return (
+    return (
     <View
       style={{
         flex: 1,
@@ -114,30 +175,39 @@ export default function CalendarioScreen({ route }) {
         Calendário
       </Text>
 
-      <Text>Paciente: {idoso.nome}</Text>
+      <Text
+        style={{
+          fontSize: 16,
+          color: '#666',
+          marginTop: 4,
+          marginBottom: 20,
+        }}
+      >
+        Paciente: {idoso.nome}
+      </Text>
 
       <Text
         style={{
-          marginTop: 10,
           color: '#666',
+          marginBottom: 15,
         }}
       >
         Data selecionada: {dataSelecionada}
       </Text>
 
       <TouchableOpacity
-        onPress={() => setNovaAtividade(true)}
+        onPress={abrirNovaAtividade}
         style={{
           backgroundColor: '#0e40ca',
           padding: 15,
           borderRadius: 10,
-          marginTop: 20,
+          alignItems: 'center',
+          marginBottom: 20,
         }}
       >
         <Text
           style={{
             color: '#fff',
-            textAlign: 'center',
             fontWeight: 'bold',
           }}
         >
@@ -161,84 +231,61 @@ export default function CalendarioScreen({ route }) {
               .filter((item) => {
                 const data = item.data_referencia.split('-');
 
-                return Number(data[0]) === anoAtual && Number(data[1]) === mesAtual + 1;
+                return (
+                  Number(data[0]) === anoAtual &&
+                  Number(data[1]) === mesAtual + 1
+                );
               })
-              .map((item) => Number(item.data_referencia.split('-')[2]))
+              .map((item) =>
+                Number(item.data_referencia.split('-')[2])
+              )
           )
         }
       />
 
       {novaAtividade && (
-        <View
-          style={{
-            marginTop: 20,
+        <AgendaForm
+          titulo={
+            itemEmEdicao
+              ? 'Editar Atividade'
+              : 'Nova Atividade'
+          }
+          textoBotao={
+            itemEmEdicao
+              ? 'Salvar Alterações'
+              : 'Salvar Atividade'
+          }
+          conteudo={conteudo}
+          setConteudo={setConteudo}
+          data={dataSelecionada}
+          processando={processando}
+          onSalvar={salvarAtividade}
+          onCancelar={() => {
+            cancelarEdicao();
+
+            setConteudo('');
+
+            setNovaAtividade(false);
           }}
-        >
-          <Text>Criar atividade para:</Text>
-
-          <Text
-            style={{
-              fontWeight: 'bold',
-            }}
-          >
-            {dataSelecionada}
-          </Text>
-
-          <TextInput
-            placeholder="Descrição da atividade"
-            value={conteudo}
-            onChangeText={setConteudo}
-            style={{
-              borderWidth: 1,
-
-              borderColor: '#ccc',
-
-              borderRadius: 10,
-
-              padding: 12,
-
-              marginTop: 10,
-            }}
-          />
-
-          <TouchableOpacity
-            onPress={salvarAtividade}
-            style={{
-              backgroundColor: '#0e40ca',
-
-              padding: 15,
-
-              borderRadius: 10,
-
-              marginTop: 10,
-            }}
-          >
-            <Text
-              style={{
-                color: '#fff',
-                textAlign: 'center',
-              }}
-            >
-              Salvar
-            </Text>
-          </TouchableOpacity>
-        </View>
+        />
       )}
 
       <Text
         style={{
-          marginTop: 25,
           fontWeight: 'bold',
           fontSize: 18,
+          marginTop: 25,
+          marginBottom: 10,
         }}
       >
         Atividades do dia
       </Text>
 
-      {agenda.filter((item) => item.data_referencia === dataSelecionada).length === 0 ? (
+      {agenda.filter(
+        (item) => item.data_referencia === dataSelecionada
+      ).length === 0 ? (
         <Text
           style={{
-            marginTop: 10,
             color: '#777',
           }}
         >
@@ -246,56 +293,17 @@ export default function CalendarioScreen({ route }) {
         </Text>
       ) : (
         agenda
-          .filter((item) => item.data_referencia === dataSelecionada)
+          .filter(
+            (item) =>
+              item.data_referencia === dataSelecionada
+          )
           .map((item) => (
-            <View
+            <AgendaCard
               key={item.id}
-              style={{
-                backgroundColor: '#fff',
-
-                padding: 15,
-
-                marginTop: 10,
-
-                borderRadius: 12,
-
-                elevation: 3,
-
-                shadowColor: '#000',
-
-                shadowOpacity: 0.1,
-
-                shadowRadius: 5,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: 'bold',
-                }}
-              >
-                📅 Atividade
-              </Text>
-
-              <Text
-                style={{
-                  marginTop: 8,
-                  color: '#555',
-                }}
-              >
-                {item.conteudo}
-              </Text>
-
-              <Text
-                style={{
-                  marginTop: 8,
-                  fontSize: 12,
-                  color: '#888',
-                }}
-              >
-                {item.data_referencia}
-              </Text>
-            </View>
+              atividade={item}
+              onEditar={() => editarAtividade(item)}
+              onExcluir={() => excluirAtividade(item)}
+            />
           ))
       )}
     </View>

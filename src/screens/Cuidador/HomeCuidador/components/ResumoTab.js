@@ -86,9 +86,8 @@ export function ResumoTab({ controlador }) {
           </View>
           <Text style={styles.cardTitle}>Relatorios</Text>
         </TouchableOpacity>
-      </View>
 
-      <TouchableOpacity
+         <TouchableOpacity
   style={styles.card}
   onPress={() => {
     if (!idosoAtual) {
@@ -121,6 +120,43 @@ export function ResumoTab({ controlador }) {
   </Text>
 
 </TouchableOpacity>
+
+<TouchableOpacity
+  style={styles.card}
+  onPress={() => {
+    if (!idosoAtual) {
+      alert('Selecione um idoso primeiro.');
+      return;
+    }
+
+    navigation.navigate(ROUTES.OBSERVACOES, {
+      idoso: idosoAtual,
+      cuidadorId: cuidadorId,
+    });
+  }}
+>
+  <View style={styles.cardTop}>
+    <Text style={styles.statusBadge}>
+      Observações
+    </Text>
+  </View>
+
+  <View style={styles.iconContainer}>
+    <MaterialIcons
+      name="note-alt"
+      size={50}
+      color={colors.primary}
+    />
+  </View>
+
+  <Text style={styles.cardTitle}>
+    Observações
+  </Text>
+
+</TouchableOpacity>
+      </View>
+
+     
 
       <Text style={styles.secaoTitulo}>Idosos Ativos</Text>
 

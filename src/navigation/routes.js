@@ -13,6 +13,7 @@ import IdosoScreen from '../screens/Idoso/IdosoScreen';
 import MedicacaoScreen from '../screens/Cuidador/HomeCuidador/components/PainelPaciente/Medicacao/MedicacaoScreen';
 import RelatorioScreen from '../screens/Cuidador/HomeCuidador/components/PainelPaciente/Relatorio/RelatorioScreen';
 import CalendarioScreen from '../screens/Cuidador/HomeCuidador/components/PainelPaciente/Calendario/CalendarioScreen';
+import ObservacoesScreen from '../screens/Cuidador/HomeCuidador/components/PainelPaciente/Observacoes/ObservacoesScreen';
 const Stack = createNativeStackNavigator();
 
 /**
@@ -36,6 +37,7 @@ export default function StackRoutes() {
       <Stack.Screen name={ROUTES.MEDICACAO} component={MedicacaoScreen} />
       <Stack.Screen name={ROUTES.RELATORIO} component={RelatorioScreen} />
       <Stack.Screen name={ROUTES.CALENDARIO} component={CalendarioScreen} />
+      <Stack.Screen name={ROUTES.OBSERVACOES} component={ObservacoesScreen} />
     </Stack.Navigator>
   );
 }
