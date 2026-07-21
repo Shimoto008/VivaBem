@@ -8,6 +8,7 @@ import { AtividadesFamiliarList } from '../Atividades/AtividadesFamiliarList';
 
 // 2. IMPORT DAS OUTRAS ABAS (Idosos e Perfil)
 import IdososScreen from '../Idosos/IdososScreen';
+import PerfilFamiliarTab from '../PerfilFamiliarTab'; // Corrigido o caminho do import
 // Se a aba de perfil não existir ainda, criamos um mock simples ou importamos a certa:
 // import { PerfilFamiliarTab } from '../Perfil/PerfilFamiliarTab'; 
 
@@ -52,11 +53,7 @@ export default function HomeFamiliarScreen() {
             {abaAtiva === 'idosos' && <IdososScreen />}
 
             {/* ABA 3: PERFIL DO FAMILIAR */}
-            {abaAtiva === 'perfil' && (
-              <View style={{ padding: 20 }}>
-                {/* Substitua pelo seu componente de Perfil quando estiver pronto */}
-              </View>
-            )}
+            {abaAtiva === 'perfil' && <PerfilFamiliarTab />}
 
           </ScrollView>
 

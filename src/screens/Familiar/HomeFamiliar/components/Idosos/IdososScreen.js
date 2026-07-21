@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Alert, ActivityIndicator, TextInput } from 'react-native';
+import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 
 import { colors } from '../../../../../theme';
 import { ScreenHeader } from '../../../../../components/ui';
@@ -8,36 +8,124 @@ import { ScreenHeader } from '../../../../../components/ui';
 import { CadastroIdosoForm } from './CadastroIdosoForm/CadastroIdosoForm';
 import { useCadastroPacienteForm } from '../../../../../hooks/useCadastroPacienteForm';
 import { useSession } from '../../../../../contexts/SessionContext';
+import { supabase } from '../../../../../services/supabaseClient';
 
 export default function IdososScreen() {
   const { familiar } = useSession();
 
-  // Estado para armazenar a lista de idosos para teste local
-  const [idosos, setIdosos] = useState([
-    { id: '1', nome: 'Idoso de Teste', idade: '78', cpf: '123.456.789-00' }
-  ]);
+  const [idosos, setIdosos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
   const [idosoSelecionado, setIdosoSelecionado] = useState(null);
+  const [formularioAberto, setFormularioAberto] = useState(false);
 
-  // Função executada ao clicar no botão "Cadastrar Idoso" do formulário
-  const handleCadastrarIdoso = async (dadosIdoso) => {
+  // Estados para edição/detalhes de saúde do idoso selecionado
+  const [editandoSaude, setEditandoSaude] = useState(false);
+  const [alergias, setAlergias] = useState('');
+  const [tipoSanguineo, setTipoSanguineo] = useState('');
+  const [contatoEmergencia, setContatoEmergencia] = useState('');
+  const [observacoesMedicas, setObservacoesMedicas] = useState('');
+  const [salvandoDetalhes, setSalvandoDetalhes] = useState(false);
+
+  // 1. BUSCAR IDOSOS NO SUPABASE
+  const buscarIdososDoBanco = async () => {
+    if (!familiar?.id) return;
+
     try {
-      const novoIdoso = {
-        id: String(Date.now()),
-        nome: dadosIdoso.nome || nome,
-        idade: dadosIdoso.idade || idade,
-        cpf: dadosIdoso.cpf || cpf,
-        familiar_id: familiar?.id,
-      };
+      setCarregando(true);
+      const { data, error } = await supabase
+        .from('pacientes')
+        .select('*')
+        .eq('familiar_id', familiar.id)
+        .order('created_at', { ascending: false });
 
-      // Adiciona na lista local na hora para você testar sem depender do banco
-      setIdosos((prev) => [...prev, novoIdoso]);
-      Alert.alert('Sucesso', 'Idoso cadastrado com sucesso!');
-    } catch (error) {
-      Alert.alert('Erro', 'Erro ao cadastrar idoso');
+      if (error) throw error;
+      if (data) setIdosos(data);
+    } catch (err) {
+      console.error('Erro ao buscar idosos:', err.message);
+    } finally {
+      setCarregando(false);
     }
   };
 
-  // Instancia o hook de cadastro exatamente como usávamos no ResumoTab
+  useEffect(() => {
+    buscarIdososDoBanco();
+  }, [familiar?.id]);
+
+  // Carrega as informações adicionais de saúde ao selecionar o idoso
+  const selecionarPaciente = (idoso) => {
+    if (idosoSelecionado?.id === idoso.id) {
+      setIdosoSelecionado(null);
+      setEditandoSaude(false);
+    } else {
+      setIdosoSelecionado(idoso);
+      setAlergias(idoso.alergias || '');
+      setTipoSanguineo(idoso.tipo_sanguineo || '');
+      setContatoEmergencia(idoso.contato_emergencia || '');
+      setObservacoesMedicas(idoso.observacoes_medicas || '');
+      setEditandoSaude(false);
+    }
+  };
+
+  // 2. SALVAR INFORMAÇÕES ADICIONAIS DE SAÚDE
+  const handleSalvarDetalhesSaude = async () => {
+    if (!idosoSelecionado?.id) return;
+
+    try {
+      setSalvandoDetalhes(true);
+      const { error } = await supabase
+        .from('pacientes')
+        .update({
+          alergias,
+          tipo_sanguineo: tipoSanguineo,
+          contato_emergencia: contatoEmergencia,
+          observacoes_medicas: observacoesMedicas,
+        })
+        .eq('id', idosoSelecionado.id);
+
+      if (error) throw error;
+
+      Alert.alert('Sucesso', 'Informações de saúde atualizadas!');
+      setEditandoSaude(false);
+      await buscarIdososDoBanco();
+    } catch (err) {
+      Alert.alert('Erro', 'Não foi possível salvar as informações de saúde.');
+    } finally {
+      setSalvandoDetalhes(false);
+    }
+  };
+
+  // 3. CADASTRAR NOVO IDOSO
+  const handleCadastrarIdoso = async (dadosIdoso) => {
+    if (!familiar?.id) {
+      Alert.alert('Erro', 'Sessão do familiar não encontrada.');
+      return;
+    }
+
+    try {
+      const payload = {
+        nome: dadosIdoso.nome,
+        idade: Number(dadosIdoso.idade),
+        cpf: dadosIdoso.cpf,
+        familiar_id: familiar.id,
+      };
+
+      const { data, error } = await supabase
+        .from('pacientes')
+        .insert([payload])
+        .select();
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        await buscarIdososDoBanco();
+        setFormularioAberto(false);
+        Alert.alert('Sucesso', 'Idoso cadastrado com sucesso!');
+      }
+    } catch (err) {
+      Alert.alert('Erro ao Salvar', err.message || 'Falha ao salvar no banco.');
+    }
+  };
+
   const {
     nome,
     setNome,
@@ -50,15 +138,6 @@ export default function IdososScreen() {
     salvar,
   } = useCadastroPacienteForm(handleCadastrarIdoso);
 
-  // Alterna a seleção do idoso ao clicar na lista (igual ao ResumoTab)
-  const selecionarPaciente = (idoso) => {
-    if (idosoSelecionado?.id === idoso.id) {
-      setIdosoSelecionado(null); // Fecha se já estiver aberto
-    } else {
-      setIdosoSelecionado(idoso); // Abre os detalhes
-    }
-  };
-
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background || '#F5F5F5' }}
@@ -66,87 +145,221 @@ export default function IdososScreen() {
       showsVerticalScrollIndicator={false}
     >
       <ScreenHeader
-        title="Cadastro de Idosos"
-        subtitle="Cadastre o idoso e acompanhe as informações"
+        title="Gestão de Idosos"
+        subtitle="Acompanhe e gerencie os idosos cadastrados"
       />
 
-      {/* 1. FORMULÁRIO DE CADASTRO SEMPRE VISÍVEL PARA TESTAR */}
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginTop: 15, marginBottom: 5 }}>
-        Novo Cadastro
-      </Text>
-      
-      <CadastroIdosoForm
-        nome={nome}
-        setNome={setNome}
-        idade={idade}
-        setIdade={setIdade}
-        cpf={cpf}
-        alterarCpf={alterarCpf}
-        erros={erros}
-        enviando={enviando}
-        onSalvar={salvar}
-      />
-
-      {/* 2. LISTA DE IDOSOS NO ESTILO DO RESUMOTAB */}
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginTop: 25, marginBottom: 15 }}>
-        Idosos Cadastrados ({idosos.length})
-      </Text>
-
-      {idosos.map((idoso) => (
-        <View
-          key={idoso.id}
+      {/* BOTÃO EXPANSÍVEL (TRANCEJADO) DE CADASTRO */}
+      <TouchableOpacity
+        onPress={() => setFormularioAberto(!formularioAberto)}
+        activeOpacity={0.7}
+        style={{
+          borderWidth: 1.5,
+          borderStyle: 'dashed',
+          borderColor: colors.primary || '#3B82F6',
+          borderRadius: 15,
+          paddingVertical: 18,
+          paddingHorizontal: 20,
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: '#FFF',
+          marginTop: 15,
+          marginBottom: formularioAberto ? 10 : 20,
+        }}
+      >
+        <MaterialIcons
+          name={formularioAberto ? 'remove-circle-outline' : 'add-circle-outline'}
+          size={26}
+          color={colors.primary || '#3B82F6'}
+        />
+        <Text
           style={{
-            backgroundColor: '#FFF',
-            borderRadius: 12,
-            marginBottom: 10,
-            overflow: 'hidden',
-            elevation: 2,
+            marginLeft: 12,
+            fontSize: 16,
+            fontWeight: 'bold',
+            color: colors.primary || '#3B82F6',
           }}
         >
-          {/* Item da Lista Clicável */}
-          <TouchableOpacity
-            style={{
-              padding: 15,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-            onPress={() => selecionarPaciente(idoso)}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-              <FontAwesome5 name="user-injured" size={24} color={colors.primary} />
-              <View style={{ marginLeft: 15 }}>
-                <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{idoso.nome}</Text>
-                <Text style={{ color: '#666', fontSize: 13 }}>
-                  {idoso.idade ? `${idoso.idade} anos` : 'Idade não informada'}
-                </Text>
-              </View>
-            </View>
+          {formularioAberto ? 'Fechar Cadastro' : 'Cadastrar Novo Idoso'}
+        </Text>
+      </TouchableOpacity>
 
-            <MaterialIcons
-              name={idosoSelecionado?.id === idoso.id ? 'expand-less' : 'expand-more'}
-              size={24}
-              color={colors.primary}
-            />
-          </TouchableOpacity>
+      {/* FORMULÁRIO DE CADASTRO */}
+      {formularioAberto && (
+        <View style={{ marginBottom: 20 }}>
+          <CadastroIdosoForm
+            nome={nome}
+            setNome={setNome}
+            idade={idade}
+            setIdade={setIdade}
+            cpf={cpf}
+            alterarCpf={alterarCpf}
+            erros={erros}
+            enviando={enviando}
+            onSalvar={salvar}
+          />
+        </View>
+      )}
 
-          {/* Conteúdo Expandido (Painel do Idoso ao Clicar) */}
-          {idosoSelecionado?.id === idoso.id && (
+      {/* LISTA DE IDOSOS ATIVOS */}
+      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>
+        Idosos Ativos ({idosos.length})
+      </Text>
+
+      {carregando ? (
+        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 20 }} />
+      ) : idosos.length > 0 ? (
+        idosos.map((idoso) => {
+          const estaExpandido = idosoSelecionado?.id === idoso.id;
+
+          return (
             <View
+              key={idoso.id}
               style={{
-                padding: 15,
-                backgroundColor: '#F9F9F9',
-                borderTopWidth: 1,
-                borderTopColor: '#EEE',
+                backgroundColor: '#FFF',
+                borderRadius: 15,
+                marginBottom: 12,
+                overflow: 'hidden',
+                elevation: 2,
+                borderWidth: 1,
+                borderColor: '#EAEAEA',
               }}
             >
-              <Text style={{ fontWeight: 'bold', color: '#444' }}>Dados do Paciente:</Text>
-              <Text style={{ color: '#666', marginTop: 4 }}>CPF: {idoso.cpf || 'Não informado'}</Text>
-              <Text style={{ color: '#666', marginTop: 2 }}>ID do Registro: {idoso.id}</Text>
+              {/* CABEÇALHO DO CARD */}
+              <TouchableOpacity
+                style={{
+                  padding: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+                onPress={() => selecionarPaciente(idoso)}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <FontAwesome5 name="user-circle" size={32} color={colors.primary || '#3B82F6'} />
+                  <View style={{ marginLeft: 15 }}>
+                    <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{idoso.nome}</Text>
+                    <Text style={{ color: '#666', fontSize: 13 }}>
+                      {idoso.idade ? `${idoso.idade} anos` : 'Idade não informada'}
+                    </Text>
+                  </View>
+                </View>
+
+                <MaterialIcons
+                  name={estaExpandido ? 'expand-less' : 'expand-more'}
+                  size={26}
+                  color={colors.primary || '#3B82F6'}
+                />
+              </TouchableOpacity>
+
+              {/* CONTEÚDO EXPANDIDO - DETALHES DE SAÚDE E CUIDADOS */}
+              {estaExpandido && (
+                <View
+                  style={{
+                    padding: 16,
+                    backgroundColor: '#F9FAFB',
+                    borderTopWidth: 1,
+                    borderTopColor: '#EEE',
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <Text style={{ fontWeight: 'bold', fontSize: 15, color: '#333' }}>
+                      Ficha do Paciente
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setEditandoSaude(!editandoSaude)}
+                      style={{ flexDirection: 'row', alignItems: 'center' }}
+                    >
+                      <Ionicons name={editandoSaude ? "close" : "pencil"} size={16} color={colors.primary || '#3B82F6'} />
+                      <Text style={{ color: colors.primary || '#3B82F6', fontWeight: 'bold', marginLeft: 4, fontSize: 13 }}>
+                        {editandoSaude ? 'Cancelar' : 'Editar'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text style={{ color: '#555', fontSize: 13, marginBottom: 8 }}>
+                    <Text style={{ fontWeight: 'bold' }}>CPF:</Text> {idoso.cpf || 'Não informado'}
+                  </Text>
+
+                  {/* MODO VISUALIZAÇÃO OU MODO EDIÇÃO DAS INFORMAÇÕES DE SAÚDE */}
+                  {!editandoSaude ? (
+                    <View style={{ marginTop: 5 }}>
+                      <Text style={{ fontSize: 13, color: '#555', marginBottom: 4 }}>
+                        <Text style={{ fontWeight: 'bold' }}>Alergias:</Text> {idoso.alergias || 'Nenhuma informada'}
+                      </Text>
+                      <Text style={{ fontSize: 13, color: '#555', marginBottom: 4 }}>
+                        <Text style={{ fontWeight: 'bold' }}>Tipo Sanguíneo:</Text> {idoso.tipo_sanguineo || 'Não informado'}
+                      </Text>
+                      <Text style={{ fontSize: 13, color: '#555', marginBottom: 4 }}>
+                        <Text style={{ fontWeight: 'bold' }}>Contato de Emergência:</Text> {idoso.contato_emergencia || 'Não informado'}
+                      </Text>
+                      <Text style={{ fontSize: 13, color: '#555' }}>
+                        <Text style={{ fontWeight: 'bold' }}>Obs. Médicas:</Text> {idoso.observacoes_medicas || 'Nenhuma'}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={{ marginTop: 10 }}>
+                      <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#666', marginBottom: 2 }}>Alergias</Text>
+                      <TextInput
+                        value={alergias}
+                        onChangeText={setAlergias}
+                        placeholder="Ex: Dipirona, Penicilina"
+                        style={{ backgroundColor: '#FFF', borderRadius: 8, padding: 8, borderWidth: 1, borderColor: '#DDD', marginBottom: 10 }}
+                      />
+
+                      <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#666', marginBottom: 2 }}>Tipo Sanguíneo</Text>
+                      <TextInput
+                        value={tipoSanguineo}
+                        onChangeText={setTipoSanguineo}
+                        placeholder="Ex: O+, A-"
+                        style={{ backgroundColor: '#FFF', borderRadius: 8, padding: 8, borderWidth: 1, borderColor: '#DDD', marginBottom: 10 }}
+                      />
+
+                      <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#666', marginBottom: 2 }}>Contato de Emergência</Text>
+                      <TextInput
+                        value={contatoEmergencia}
+                        onChangeText={setContatoEmergencia}
+                        placeholder="(11) 99999-9999"
+                        keyboardType="phone-pad"
+                        style={{ backgroundColor: '#FFF', borderRadius: 8, padding: 8, borderWidth: 1, borderColor: '#DDD', marginBottom: 10 }}
+                      />
+
+                      <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#666', marginBottom: 2 }}>Observações Médicas</Text>
+                      <TextInput
+                        value={observacoesMedicas}
+                        onChangeText={setObservacoesMedicas}
+                        placeholder="Ex: Diabético, hipertensão..."
+                        multiline
+                        numberOfLines={3}
+                        style={{ backgroundColor: '#FFF', borderRadius: 8, padding: 8, borderWidth: 1, borderColor: '#DDD', marginBottom: 12, textAlignVertical: 'top' }}
+                      />
+
+                      <TouchableOpacity
+                        onPress={handleSalvarDetalhesSaude}
+                        disabled={salvandoDetalhes}
+                        style={{
+                          backgroundColor: colors.primary || '#3B82F6',
+                          padding: 12,
+                          borderRadius: 8,
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{ color: '#FFF', fontWeight: 'bold' }}>
+                          {salvandoDetalhes ? 'Salvando...' : 'Salvar Informações'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
-          )}
+          );
+        })
+      ) : (
+        <View style={{ padding: 20, backgroundColor: '#FFF', borderRadius: 12, alignItems: 'center' }}>
+          <Text style={{ color: '#888' }}>Nenhum idoso cadastrado ainda.</Text>
         </View>
-      ))}
+      )}
     </ScrollView>
   );
 }
