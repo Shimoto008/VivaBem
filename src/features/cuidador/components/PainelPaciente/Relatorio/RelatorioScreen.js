@@ -3,8 +3,8 @@ import { View, Text, TouchableOpacity, Alert } from 'react-native';
 
 import { RelatorioCard } from './RelatorioCard/RelatorioCard';
 import { RelatorioForm } from './RelatorioForm/RelatorioForm';
-import { useAtividadesPaciente } from '../../../../../../hooks/useAtividadesPaciente';
-import { ATIVIDADE_TIPOS } from '../../../../../../constants/atividadeTipos';
+import { useAtividadesPaciente } from '../../../hooks/useAtividadesPaciente';
+import { ATIVIDADE_TIPOS } from '../../../../../constants/atividadeTipos';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
 
 export default function RelatorioScreen({ route }) {

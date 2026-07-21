@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { criarFamiliar } from '../services/familiarService';
-import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../utils/masks';
-import { validarNomeCompleto, validarCPFObrigatorio, validarTelefoneObrigatorio } from '../utils/validators';
-import { ROUTES } from '../constants/routeNames';
-import { useSession } from '../contexts/SessionContext';
+import { criarFamiliar } from '../../../services/familiarService';
+import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../../../utils/masks';
+import { validarNomeCompleto, validarCPFObrigatorio, validarTelefoneObrigatorio } from '../../../utils/validators';
+import { ROUTES } from '../../../constants/routeNames';
+import { useSession } from '../../../contexts/SessionContext';
 
 /**
  * Antes esta tela (Familiar.js) não tinha NENHUMA lógica de envio — o botão

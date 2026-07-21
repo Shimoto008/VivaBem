@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 
-import { useAtividadesPaciente } from '../../../../../../hooks/useAtividadesPaciente';
-import { ATIVIDADE_TIPOS } from '../../../../../../constants/atividadeTipos';
-import { interpretarMedicacao } from '../../../../../../utils/MedicacaoUtils';
+import { useAtividadesPaciente } from '../../../hooks/useAtividadesPaciente';
+import { ATIVIDADE_TIPOS } from '../../../../../constants/atividadeTipos';
+import { interpretarMedicacao } from '../../../../../utils/MedicacaoUtils';
 import { MedicacaoForm } from './MedicacaoForm/MedicacaoForm';
 import { MedicacaoCard } from './MedicacaoCard/MedicacaoCard';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { aplicarMascaraCPF } from '../utils/masks';
-import { validarNomeCompleto, validarIdadeObrigatoria, validarCPFObrigatorio } from '../utils/validators';
+import { aplicarMascaraCPF } from '../../../utils/masks';
+import { validarNomeCompleto, validarIdadeObrigatoria, validarCPFObrigatorio } from '../../../utils/validators';
 
 /**
  * Antes o cadastro de idoso (RenderPaciente.js) não tinha NENHUMA

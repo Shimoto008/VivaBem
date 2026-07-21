@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, ActivityIndicator, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { styles } from '../Home/HomeFamiliar.styles';
-import { Card, Badge, Button } from '../../../../../components/ui';
-import { colors } from '../../../../../theme';
-import { useConexaoFamiliarContext } from '../../../../../contexts/ConexaoFamiliarContext';
+import { styles } from '../screens/HomeFamiliar.styles';
+import { Card, Badge, Button } from '../../../components/ui';
+import { colors } from '../../../theme';
+import { useConexaoFamiliarContext } from '../../../contexts/ConexaoFamiliarContext';
 import { ConectarCuidadorModal } from './ConectarCuidadorModal';
 
 /**

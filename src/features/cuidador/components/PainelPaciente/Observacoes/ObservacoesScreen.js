@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 
-import { useAtividadesPaciente } from '../../../../../../hooks/useAtividadesPaciente';
-import { ATIVIDADE_TIPOS } from '../../../../../../constants/atividadeTipos';
+import { useAtividadesPaciente } from '../../../hooks/useAtividadesPaciente';
+import { ATIVIDADE_TIPOS } from '../../../../../constants/atividadeTipos';
 import { ObservacaoForm } from './ObservacoesForm/ObservacoesForm';
 import { ObservacaoCard } from './ObservacoesCard/ObservacoesCard';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';

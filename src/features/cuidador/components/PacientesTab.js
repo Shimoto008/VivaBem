@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
-import { styles } from '../HomeCuidador.styles';
+import { styles } from '../screens/HomeCuidador.styles';
 import { PainelPaciente } from './PainelPaciente/PainelPaciente';
-import { colors } from '../../../../theme';
+import { colors } from '../../../theme';
 
 /**
  * Aba de Pacientes do Cuidador.
@@ -52,10 +52,12 @@ export function PacientesTab({ controlador }) {
           </View>
         ))
       ) : (
-        /* Aviso caso o cuidador ainda não tenha nenhum idoso cadastrado pelo familiar */
+        /* O cuidador não cadastra pacientes — eles aparecem aqui somente
+           depois que um familiar os cadastra e se conecta a este cuidador. */
         <View style={{ padding: 20, alignItems: 'center' }}>
           <Text style={{ color: colors.gray || '#666', textAlign: 'center' }}>
-            Nenhum paciente vinculado no momento.
+            Nenhum paciente vinculado no momento. Assim que um familiar cadastrar um idoso
+            e se conectar ao seu código, ele aparecerá aqui.
           </Text>
         </View>
       )}

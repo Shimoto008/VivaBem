@@ -1,15 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert, ActivityIndicator, TextInput } from 'react-native';
 import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 
-import { colors } from '../../../../../theme';
-import { ScreenHeader } from '../../../../../components/ui';
+import { colors } from '../../../theme';
+import { ScreenHeader } from '../../../components/ui';
 
-import { CadastroIdosoForm } from './CadastroIdosoForm/CadastroIdosoForm';
-import { useCadastroPacienteForm } from '../../../../../hooks/useCadastroPacienteForm';
-import { useSession } from '../../../../../contexts/SessionContext';
-import { supabase } from '../../../../../services/supabaseClient';
+import { CadastroIdosoForm } from '../components/CadastroIdosoForm';
+import { useCadastroPacienteForm } from '../hooks/useCadastroPacienteForm';
+import { useSession } from '../../../contexts/SessionContext';
+import {
+  criarPaciente,
+  listarPacientesPorFamiliar,
+  atualizarSaudePaciente,
+} from '../../../services/pacienteService';
 
+/**
+ * Tela de cadastro e acompanhamento dos idosos (pacientes) do Familiar.
+ * Todo o acesso ao Supabase passa por `pacienteService` — a tela não faz
+ * chamadas diretas ao banco.
+ */
 export default function IdososScreen() {
   const { familiar } = useSession();
 
@@ -26,30 +35,24 @@ export default function IdososScreen() {
   const [observacoesMedicas, setObservacoesMedicas] = useState('');
   const [salvandoDetalhes, setSalvandoDetalhes] = useState(false);
 
-  // 1. BUSCAR IDOSOS NO SUPABASE
-  const buscarIdososDoBanco = async () => {
+  // 1. BUSCAR IDOSOS CADASTRADOS POR ESTE FAMILIAR
+  const buscarIdososDoBanco = useCallback(async () => {
     if (!familiar?.id) return;
 
     try {
       setCarregando(true);
-      const { data, error } = await supabase
-        .from('pacientes')
-        .select('*')
-        .eq('familiar_id', familiar.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      if (data) setIdosos(data);
+      const lista = await listarPacientesPorFamiliar(familiar.id);
+      setIdosos(lista ?? []);
     } catch (err) {
       console.error('Erro ao buscar idosos:', err.message);
     } finally {
       setCarregando(false);
     }
-  };
+  }, [familiar?.id]);
 
   useEffect(() => {
     buscarIdososDoBanco();
-  }, [familiar?.id]);
+  }, [buscarIdososDoBanco]);
 
   // Carrega as informações adicionais de saúde ao selecionar o idoso
   const selecionarPaciente = (idoso) => {
@@ -72,58 +75,41 @@ export default function IdososScreen() {
 
     try {
       setSalvandoDetalhes(true);
-      const { error } = await supabase
-        .from('pacientes')
-        .update({
-          alergias,
-          tipo_sanguineo: tipoSanguineo,
-          contato_emergencia: contatoEmergencia,
-          observacoes_medicas: observacoesMedicas,
-        })
-        .eq('id', idosoSelecionado.id);
-
-      if (error) throw error;
+      await atualizarSaudePaciente(idosoSelecionado.id, {
+        alergias,
+        tipoSanguineo,
+        contatoEmergencia,
+        observacoesMedicas,
+      });
 
       Alert.alert('Sucesso', 'Informações de saúde atualizadas!');
       setEditandoSaude(false);
       await buscarIdososDoBanco();
-    } catch (err) {
+    } catch {
       Alert.alert('Erro', 'Não foi possível salvar as informações de saúde.');
     } finally {
       setSalvandoDetalhes(false);
     }
   };
 
-  // 3. CADASTRAR NOVO IDOSO
+  // 3. CADASTRAR NOVO IDOSO (paciente) — regra de negócio: só o Familiar cadastra.
+  // Erros são propagados de propósito: useCadastroPacienteForm.salvar() já
+  // trata sucesso/erro (Alert + limpeza do form) — duplicar isso aqui geraria
+  // alertas contraditórios.
   const handleCadastrarIdoso = async (dadosIdoso) => {
     if (!familiar?.id) {
-      Alert.alert('Erro', 'Sessão do familiar não encontrada.');
-      return;
+      throw new Error('Sessão do familiar não encontrada.');
     }
 
-    try {
-      const payload = {
-        nome: dadosIdoso.nome,
-        idade: Number(dadosIdoso.idade),
-        cpf: dadosIdoso.cpf,
-        familiar_id: familiar.id,
-      };
+    await criarPaciente({
+      familiarId: familiar.id,
+      nome: dadosIdoso.nome,
+      idade: dadosIdoso.idade,
+      cpf: dadosIdoso.cpf,
+    });
 
-      const { data, error } = await supabase
-        .from('pacientes')
-        .insert([payload])
-        .select();
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        await buscarIdososDoBanco();
-        setFormularioAberto(false);
-        Alert.alert('Sucesso', 'Idoso cadastrado com sucesso!');
-      }
-    } catch (err) {
-      Alert.alert('Erro ao Salvar', err.message || 'Falha ao salvar no banco.');
-    }
+    await buscarIdososDoBanco();
+    setFormularioAberto(false);
   };
 
   const {

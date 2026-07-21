@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Switch, Alert, StyleSheet } from 'react-native';
 import { FontAwesome5, MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-import { colors } from '../../../../theme'; // Ajuste o caminho do seu arquivo de tema
-import { useSession } from '../../../../contexts/SessionContext';
-import { useConexaoFamiliar } from '../../../../contexts/ConexaoFamiliarContext';
+import { useSession } from '../../../contexts/SessionContext';
+import { useConexaoFamiliarContext } from '../../../contexts/ConexaoFamiliarContext';
+import { ROUTES } from '../../../constants/routeNames';
 
+/**
+ * Antes usava dados de conexão fixos (`conectado = false`, `cuidador = null`)
+ * e um `logout` que não existe no SessionContext — nunca refletia a conexão
+ * real do familiar. Agora lê o estado real do ConexaoFamiliarContext (o
+ * mesmo usado pelo card da Home) e implementa "sair" limpando a sessão.
+ */
 export default function PerfilFamiliarTab() {
-  const { familiar, logout } = useSession();
-    const conectado = false; 
-  const cuidador = null;
+  const navigation = useNavigation();
+  const { familiar, setFamiliar } = useSession();
+  const { conexao } = useConexaoFamiliarContext();
+  const conectado = !!conexao;
+  const cuidador = conexao?.cuidadores ?? null;
+
   // Estados de Personalização
   const [modoEscuro, setModoEscuro] = useState(false);
   const [corTema, setCorTema] = useState('#3B82F6'); // Azul padrão
@@ -31,7 +41,10 @@ export default function PerfilFamiliarTab() {
         {
           text: 'Sair',
           style: 'destructive',
-          onPress: () => logout && logout(),
+          onPress: () => {
+            setFamiliar(null);
+            navigation.reset({ index: 0, routes: [{ name: ROUTES.HOME }] });
+          },
         },
       ]
     );
@@ -81,7 +94,7 @@ export default function PerfilFamiliarTab() {
               </Text>
               <Text style={{ color: '#888', fontSize: 12, marginTop: 2 }}>
                 {conectado
-                  ? `Ativo • ${cuidador?.telefone || 'Sem contato'}`
+                  ? `Ativo • ${cuidador?.especialidade || 'Sem especialidade informada'}`
                   : 'Vincule um cuidador usando o código de 6 dígitos'}
               </Text>
             </View>

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { criarCuidador } from '../services/cuidadorService';
-import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../utils/masks';
-import { validarNomeCompleto, validarCPFObrigatorio, validarTelefoneObrigatorio } from '../utils/validators';
-import { ROUTES } from '../constants/routeNames';
-import { useSession } from '../contexts/SessionContext';
+import { criarCuidador } from '../../../services/cuidadorService';
+import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../../../utils/masks';
+import { validarNomeCompleto, validarCPFObrigatorio, validarTelefoneObrigatorio } from '../../../utils/validators';
+import { ROUTES } from '../../../constants/routeNames';
+import { useSession } from '../../../contexts/SessionContext';
 
 /**
  * Toda a regra de negócio do cadastro de Cuidador (validação + chamada de

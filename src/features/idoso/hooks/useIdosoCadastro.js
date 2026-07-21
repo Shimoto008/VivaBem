@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { criarIdoso } from '../services/idosoService';
-import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../utils/masks';
-import { validarNomeCompleto, validarCPFObrigatorio, validarTelefoneObrigatorio } from '../utils/validators';
+import { criarIdoso } from '../../../services/idosoService';
+import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../../../utils/masks';
+import { validarNomeCompleto, validarCPFObrigatorio, validarTelefoneObrigatorio } from '../../../utils/validators';
 
 /**
  * Extrai a lógica que antes não existia (o botão "CADASTRAR" do Idoso.js

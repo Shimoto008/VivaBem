@@ -10,19 +10,18 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import { styles } from './CadastroCuidador.styles';
-import { useCuidadorCadastro } from '../../hooks/useCuidadorCadastro';
-import { Input, Button, ScreenHeader, SelectModal } from '../../components/ui';
-import { LISTA_ESPECIALIDADES } from '../../constants/especialidades';
-import { colors } from '../../theme';
-import { useSession } from '../../contexts/SessionContext';
+import { useCuidadorCadastro } from '../hooks/useCuidadorCadastro';
+import { Input, Button, ScreenHeader, SelectModal } from '../../../components/ui';
+import { LISTA_ESPECIALIDADES } from '../../../constants/especialidades';
+import { colors } from '../../../theme';
 
 /**
  * Tela "burra" por design: só lê o que o hook devolve e desenha a UI.
- * Toda validação, máscara e chamada de API está em useCuidadorCadastro.
+ * Toda validação, máscara, chamada de API e navegação pós-cadastro estão
+ * em useCuidadorCadastro — a tela não duplica essa lógica.
  */
 export default function CadastroCuidadorScreen() {
   const navigation = useNavigation();
-  const { setCuidador } = useSession();
   const {
     nome,
     telefone,
@@ -56,7 +55,7 @@ export default function CadastroCuidadorScreen() {
             subtitle="Cuidador"
             onBack={() => navigation.goBack()}
           />
-          <Image style={styles.img} source={require('../../../assets/VivaBem.png')} />
+          <Image style={styles.img} source={require('../../../../assets/VivaBem.png')} />
 
           <Input
             label="Nome Completo"
@@ -112,18 +111,7 @@ export default function CadastroCuidadorScreen() {
             <Text style={{ color: colors.danger, marginBottom: 8 }}>{erros.especialidade}</Text>
           ) : null}
 
-          <Button
-            title="Cadastrar"
-            onPress={async () => {
-              const cuidadorCriado = await salvar();
-
-              if (cuidadorCriado) {
-                setCuidador(cuidadorCriado);
-                navigation.replace('HomeCuidador');
-              }
-            }}
-            loading={enviando}
-          />
+          <Button title="Cadastrar" onPress={salvar} loading={enviando} />
         </View>
       </TouchableWithoutFeedback>
 

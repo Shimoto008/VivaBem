@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
-import { styles } from '../HomeCuidador.styles';
-import { Input, Button } from '../../../../components/ui';
-import { colors } from '../../../../theme';
-import { useSession } from '../../../../contexts/SessionContext';
-import { atualizarPerfilCuidador } from '../../../../services/cuidadorService';
+import { styles } from '../screens/HomeCuidador.styles';
+import { Input, Button } from '../../../components/ui';
+import { colors } from '../../../theme';
+import { useSession } from '../../../contexts/SessionContext';
+import { atualizarPerfilCuidador } from '../../../services/cuidadorService';
 
 /**
  * Antes "RenderPerfilCuidador.js": usava um nome fixo no código

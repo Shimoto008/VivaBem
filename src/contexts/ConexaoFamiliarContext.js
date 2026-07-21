@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import { useConexaoFamiliar } from '../hooks/useConexaoFamiliar';
+import { useConexaoFamiliar } from '../features/familiar/hooks/useConexaoFamiliar';
 
 /**
  * Expõe o estado de conexão Familiar↔Cuidador para toda a subárvore da

@@ -3,19 +3,17 @@ import { SafeAreaView, ScrollView, View } from 'react-native';
 import { styles } from './HomeFamiliar.styles';
 
 // 1. IMPORT DOS COMPONENTES LOCAIS DA HOME
-import { ConexaoCuidadorCard } from '../ConexaoCuidador/ConexaoCuidadorCard';
-import { AtividadesFamiliarList } from '../Atividades/AtividadesFamiliarList';
+import { ConexaoCuidadorCard } from '../components/ConexaoCuidadorCard';
+import { AtividadesFamiliarList } from '../components/AtividadesFamiliarList';
 
 // 2. IMPORT DAS OUTRAS ABAS (Idosos e Perfil)
-import IdososScreen from '../Idosos/IdososScreen';
-import PerfilFamiliarTab from '../PerfilFamiliarTab'; // Corrigido o caminho do import
-// Se a aba de perfil não existir ainda, criamos um mock simples ou importamos a certa:
-// import { PerfilFamiliarTab } from '../Perfil/PerfilFamiliarTab'; 
+import IdososScreen from './IdososScreen';
+import PerfilFamiliarTab from '../components/PerfilFamiliarTab';
 
 // 3. COMPONENTES UI E CONTEXTO
-import { BottomTabBar, ScreenHeader } from '../../../../../components/ui';
-import { useSession } from '../../../../../contexts/SessionContext';
-import { ConexaoFamiliarProvider } from '../../../../../contexts/ConexaoFamiliarContext';
+import { BottomTabBar, ScreenHeader } from '../../../components/ui';
+import { useSession } from '../../../contexts/SessionContext';
+import { ConexaoFamiliarProvider } from '../../../contexts/ConexaoFamiliarContext';
 
 const ABAS = [
   { key: 'home', label: 'Início', icon: 'home', iconFamily: 'MaterialIcons' },

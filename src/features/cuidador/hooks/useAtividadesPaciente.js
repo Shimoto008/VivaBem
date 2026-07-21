@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
-import { ATIVIDADE_TIPOS } from '../constants/atividadeTipos';
+import { ATIVIDADE_TIPOS } from '../../../constants/atividadeTipos';
 import {
   listarAtividadesPorPaciente,
   criarAtividade,
   atualizarAtividade,
   removerAtividade,
-} from '../services/atividadeService';
+} from '../../../services/atividadeService';
 
 /**
  * Dados + regras de "agenda / relatórios / medicação / observação" de um

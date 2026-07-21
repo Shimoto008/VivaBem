@@ -4,7 +4,7 @@ import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { styles } from './Home.styles';
 import { PERFIL_OPTIONS } from './perfilOptions';
-import { Card } from '../../components/ui';
+import { Card } from '../../../components/ui';
 
 const FAMILIAS_DE_ICONE = { MaterialIcons, FontAwesome5 };
 
@@ -13,7 +13,7 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <Image style={styles.img} source={require('../../../assets/VivaBem.png')} />
+      <Image style={styles.img} source={require('../../../../assets/VivaBem.png')} />
       <Text style={styles.titulo}>Área de Login</Text>
       <Text style={styles.subtitulo}>Auxiliar cuidadores de idoso</Text>
       <Text style={styles.selecionar}>Selecione seu perfil</Text>

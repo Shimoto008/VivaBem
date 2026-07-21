@@ -3,9 +3,9 @@ import {
   buscarConexaoAtivaDoFamiliar,
   conectarComCuidador,
   desconectarDoCuidador,
-} from '../services/conexaoService';
-import { buscarCuidadorPorCodigo } from '../services/cuidadorService';
-import { DomainError } from '../services/errors';
+} from '../../../services/conexaoService';
+import { buscarCuidadorPorCodigo } from '../../../services/cuidadorService';
+import { DomainError } from '../../../services/errors';
 
 /**
  * Toda a regra de "Familiar só pode estar conectado a um Cuidador por vez"

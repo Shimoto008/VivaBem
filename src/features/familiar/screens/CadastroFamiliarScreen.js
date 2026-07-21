@@ -4,9 +4,9 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { styles } from './CadastroFamiliar.styles';
-import { useFamiliarCadastro } from '../../hooks/useFamiliarCadastro';
-import { Input, Button, Card, ScreenHeader } from '../../components/ui';
-import { colors } from '../../theme';
+import { useFamiliarCadastro } from '../hooks/useFamiliarCadastro';
+import { Input, Button, Card, ScreenHeader } from '../../../components/ui';
+import { colors } from '../../../theme';
 
 /**
  * Antes (Familiar.js): tela "burra" de verdade, mas no sentido errado —

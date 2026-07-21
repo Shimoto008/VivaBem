@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { listarAtividadesPorCuidador } from '../services/atividadeService';
+import { listarAtividadesPorCuidador } from '../../../services/atividadeService';
 
 /**
  * Atividades publicadas pelo cuidador ao qual o familiar está conectado.

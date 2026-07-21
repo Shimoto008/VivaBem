@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { Text, View, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
 import { styles } from './Idoso.styles';
-import { useIdosoCadastro } from '../../hooks/useIdosoCadastro';
+import { useIdosoCadastro } from '../hooks/useIdosoCadastro';
 
 /**
  * Visual 100% preservado por instrução explícita (mesma estrutura, mesmos
@@ -14,7 +14,7 @@ export default function IdosoScreen() {
 
   return (
     <View style={styles.container}>
-      <Image style={styles.img} source={require('../../../assets/VivaBem.png')} />
+      <Image style={styles.img} source={require('../../../../assets/VivaBem.png')} />
       <Text style={styles.titulo}>ÁREA DE CADASTRO</Text>
 
       <Text style={styles.txt}>Nome Completo</Text>

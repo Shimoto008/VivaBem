@@ -3,11 +3,11 @@ import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-import { styles } from '../HomeCuidador.styles';
+import { styles } from '../screens/HomeCuidador.styles';
 import { PainelPaciente } from './PainelPaciente/PainelPaciente';
-import { colors } from '../../../../theme';
-import { EmptyState } from '../../../../components/ui';
-import { ROUTES } from '../../../../constants/routeNames';
+import { colors } from '../../../theme';
+import { EmptyState } from '../../../components/ui';
+import { ROUTES } from '../../../constants/routeNames';
 
 const PACIENTE_DEV = {
   id: '787d17a0-e5e1-4c1d-bee7-0239aa6ade37',
@@ -98,8 +98,8 @@ export function ResumoTab({ controlador }) {
       {pacientesExibidos.length === 0 ? (
         <EmptyState
           icon="elderly"
-          title="Nenhum idoso cadastrado."
-          description="Cadastre na aba “Idoso(a)”."
+          title="Nenhum idoso vinculado ainda."
+          description="Peça para um familiar cadastrar o idoso e conectar-se ao seu código para que ele apareça aqui."
         />
       ) : (
         pacientesExibidos.map((idoso) => (

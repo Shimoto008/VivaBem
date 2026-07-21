@@ -4,8 +4,8 @@ import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { CalendarioAgenda } from './CalendarioAgenda';
 import { AgendaForm } from './AgendaForm/AgendaForm';
 import { AgendaCard } from './AgendaCard/AgendaCard';
-import { useAtividadesPaciente } from '../../../../../../hooks/useAtividadesPaciente';
-import { ATIVIDADE_TIPOS } from '../../../../../../constants/atividadeTipos';
+import { useAtividadesPaciente } from '../../../hooks/useAtividadesPaciente';
+import { ATIVIDADE_TIPOS } from '../../../../../constants/atividadeTipos';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
 
 const MESES = [

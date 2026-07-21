@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 
-import { Input, Button } from '../../../../../../components/ui';
+import { Input, Button } from '../../../components/ui';
 
 export function CadastroIdosoForm({
   nome,

@@ -1,19 +1,19 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ROUTES } from '../constants/routeNames';
 
-import SplashScreen from '../screens/Splash/SplashScreen';
-import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
-import HomeScreen from '../screens/Home/HomeScreen';
-import CadastroCuidadorScreen from '../screens/Cuidador/CadastroCuidadorScreen';
-import HomeCuidadorScreen from '../screens/Cuidador/HomeCuidador/HomeCuidadorScreen';
-import CadastroFamiliarScreen from '../screens/Familiar/CadastroFamiliarScreen';
-import HomeFamiliarScreen from '../screens/Familiar/HomeFamiliar/components/Home/HomeFamiliarScreen';
-import IdosoScreen from '../screens/Idoso/IdosoScreen';
+import SplashScreen from '../features/splash/screens/SplashScreen';
+import OnboardingScreen from '../features/onboarding/screens/OnboardingScreen';
+import HomeScreen from '../features/home/screens/HomeScreen';
+import CadastroCuidadorScreen from '../features/cuidador/screens/CadastroCuidadorScreen';
+import HomeCuidadorScreen from '../features/cuidador/screens/HomeCuidadorScreen';
+import CadastroFamiliarScreen from '../features/familiar/screens/CadastroFamiliarScreen';
+import HomeFamiliarScreen from '../features/familiar/screens/HomeFamiliarScreen';
+import IdosoScreen from '../features/idoso/screens/IdosoScreen';
 
-import MedicacaoScreen from '../screens/Cuidador/HomeCuidador/components/PainelPaciente/Medicacao/MedicacaoScreen';
-import RelatorioScreen from '../screens/Cuidador/HomeCuidador/components/PainelPaciente/Relatorio/RelatorioScreen';
-import CalendarioScreen from '../screens/Cuidador/HomeCuidador/components/PainelPaciente/Calendario/CalendarioScreen';
-import ObservacoesScreen from '../screens/Cuidador/HomeCuidador/components/PainelPaciente/Observacoes/ObservacoesScreen';
+import MedicacaoScreen from '../features/cuidador/components/PainelPaciente/Medicacao/MedicacaoScreen';
+import RelatorioScreen from '../features/cuidador/components/PainelPaciente/Relatorio/RelatorioScreen';
+import CalendarioScreen from '../features/cuidador/components/PainelPaciente/Calendario/CalendarioScreen';
+import ObservacoesScreen from '../features/cuidador/components/PainelPaciente/Observacoes/ObservacoesScreen';
 const Stack = createNativeStackNavigator();
 
 /**

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Animated, Dimensions, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { styles } from './Splash.styles';
-import { ROUTES } from '../../constants/routeNames';
+import { ROUTES } from '../../../constants/routeNames';
 
 const { height } = Dimensions.get('window');
 const DURACAO_SUBIDA_LOGO_MS = 1500;
@@ -40,7 +40,7 @@ export default function SplashScreen() {
             height: 140,
             resizeMode: 'contain',
           }}
-          source={require('../../../assets/VivaBem.png')}
+          source={require('../../../../assets/VivaBem.png')}
         />
       </Animated.View>
     </View>

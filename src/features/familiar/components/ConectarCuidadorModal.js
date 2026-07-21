@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { styles } from '../Home/HomeFamiliar.styles';
-import { Input, Button } from '../../../../../components/ui';
-import { useConexaoFamiliarContext } from '../../../../../contexts/ConexaoFamiliarContext';
+import { styles } from '../screens/HomeFamiliar.styles';
+import { Input, Button } from '../../../components/ui';
+import { useConexaoFamiliarContext } from '../../../contexts/ConexaoFamiliarContext';
 
 /**
  * Modal de conexão com um cuidador via código. A regra "só pode haver UMA

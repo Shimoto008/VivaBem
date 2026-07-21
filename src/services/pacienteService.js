@@ -153,6 +153,42 @@ export async function atualizarPaciente(
 
 
 /**
+ * Atualiza a ficha de saúde de um paciente (alergias, tipo sanguíneo,
+ * contato de emergência, observações médicas). Separado de
+ * `atualizarPaciente` porque é preenchido pelo familiar em um momento
+ * diferente do cadastro básico (nome/idade/cpf).
+ */
+export async function atualizarSaudePaciente(
+  pacienteId,
+  {
+    alergias,
+    tipoSanguineo,
+    contatoEmergencia,
+    observacoesMedicas,
+  }
+) {
+
+  const { data, error } = await supabase
+    .from(TABELA)
+    .update({
+      alergias,
+      tipo_sanguineo: tipoSanguineo,
+      contato_emergencia: contatoEmergencia,
+      observacoes_medicas: observacoesMedicas,
+    })
+    .eq('id', pacienteId)
+    .select()
+    .single();
+
+
+  if (error) throw error;
+
+  return data;
+}
+
+
+
+/**
  * Remove um paciente
  */
 export async function excluirPaciente(pacienteId) {

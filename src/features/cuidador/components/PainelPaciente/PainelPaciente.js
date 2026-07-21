@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-import { styles } from '../../HomeCuidador.styles';
-import { useAtividadesPaciente } from '../../../../../hooks/useAtividadesPaciente';
-import { ATIVIDADE_TIPOS } from '../../../../../constants/atividadeTipos';
+import { styles } from '../../screens/HomeCuidador.styles';
+import { useAtividadesPaciente } from '../../hooks/useAtividadesPaciente';
+import { ATIVIDADE_TIPOS } from '../../../../constants/atividadeTipos';
 
 export function PainelPaciente({ idoso, cuidadorId, onFechar }) {
   const { atividades } = useAtividadesPaciente(idoso.id, cuidadorId);

@@ -1,11 +1,11 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View } from 'react-native';
 import { styles } from './HomeCuidador.styles';
-import { ResumoTab } from './components/ResumoTab';
-import { PacientesTab } from './components/PacientesTab';
-import { PerfilCuidadorTab } from './components/PerfilCuidadorTab';
+import { ResumoTab } from '../components/ResumoTab';
+import { PacientesTab } from '../components/PacientesTab';
+import { PerfilCuidadorTab } from '../components/PerfilCuidadorTab';
 import { BottomTabBar } from '../../../components/ui';
-import { useHomeCuidador } from '../../../hooks/useHomeCuidador';
+import { useHomeCuidador } from '../hooks/useHomeCuidador';
 import { useSession } from '../../../contexts/SessionContext';
 
 const ABAS = [

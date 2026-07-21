@@ -4,8 +4,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { styles } from './Onboarding.styles';
 import { ONBOARDING_STEPS } from './onboardingSteps';
-import { Button } from '../../components/ui';
-import { ROUTES } from '../../constants/routeNames';
+import { Button } from '../../../components/ui';
+import { ROUTES } from '../../../constants/routeNames';
 
 export default function OnboardingScreen() {
   const navigation = useNavigation();

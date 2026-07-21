@@ -1,4 +1,4 @@
-import { ROUTES } from '../../constants/routeNames';
+import { ROUTES } from '../../../constants/routeNames';
 
 /** Dados das 3 opções de perfil — extraído da tela para facilitar manutenção. */
 export const PERFIL_OPTIONS = [
