@@ -21,6 +21,28 @@ export async function buscarConexaoAtivaDoFamiliar(familiarId) {
   return data; // null se não houver conexão ativa
 }
 
+export async function buscarCuidadorPorCodigo(codigo) {
+
+  const { data, error } = await supabase
+    .from('cuidadores')
+    .select('id, nome, especialidade, codigo')
+    .eq('codigo', codigo)
+    .single();
+
+  if(error) throw error;
+
+  return data;
+
+  const cuidador = await buscarCuidadorPorCodigo(codigo);
+
+await conectarComCuidador(
+   familiarId,
+   cuidador.id
+);
+}
+
+
+
 /**
  * Regra de negócio: um Familiar só pode estar conectado a UM cuidador por
  * vez. Antes de criar a nova conexão, valida no servidor se já existe uma

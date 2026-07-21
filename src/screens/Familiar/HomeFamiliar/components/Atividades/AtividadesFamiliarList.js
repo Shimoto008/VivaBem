@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
-import { styles } from '../HomeFamiliar.styles';
-import { Card, EmptyState } from '../../../../components/ui';
-import { colors } from '../../../../theme';
-import { useConexaoFamiliarContext } from '../../../../contexts/ConexaoFamiliarContext';
-import { useAtividadesDoFamiliar } from '../../../../hooks/useAtividadesDoFamiliar';
-import { ATIVIDADE_CONFIG } from '../../../../constants/atividadeTipos';
-import { formatarDataPtBR } from '../../../../utils/dateUtils';
+import { styles } from '../Home/HomeFamiliar.styles';
+import { Card, EmptyState } from '../../../../../components/ui';
+import { colors } from '../../../../../theme';
+import { useConexaoFamiliarContext } from '../../../../../contexts/ConexaoFamiliarContext';
+import { useAtividadesDoFamiliar } from '../../../../../hooks/useAtividadesDoFamiliar';
+import { ATIVIDADE_CONFIG } from '../../../../../constants/atividadeTipos';
+import { formatarDataPtBR } from '../../../../../utils/dateUtils';
 
 /**
  * Regra de negócio: "um Familiar desconectado não tem acesso a nenhuma

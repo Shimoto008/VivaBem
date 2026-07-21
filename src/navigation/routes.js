@@ -7,7 +7,7 @@ import HomeScreen from '../screens/Home/HomeScreen';
 import CadastroCuidadorScreen from '../screens/Cuidador/CadastroCuidadorScreen';
 import HomeCuidadorScreen from '../screens/Cuidador/HomeCuidador/HomeCuidadorScreen';
 import CadastroFamiliarScreen from '../screens/Familiar/CadastroFamiliarScreen';
-import HomeFamiliarScreen from '../screens/Familiar/HomeFamiliar/HomeFamiliarScreen';
+import HomeFamiliarScreen from '../screens/Familiar/HomeFamiliar/components/Home/HomeFamiliarScreen';
 import IdosoScreen from '../screens/Idoso/IdosoScreen';
 
 import MedicacaoScreen from '../screens/Cuidador/HomeCuidador/components/PainelPaciente/Medicacao/MedicacaoScreen';
