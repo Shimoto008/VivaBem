@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { styles } from '../../../screens/HomeCuidador.styles';
-import { colors } from '../../../../../theme';
+import { getStyles } from '../../../screens/HomeCuidador.styles';
+import { useTheme } from '../../../../../contexts/ThemeContext';
 
 /**
  * Extraído de PainelPaciente.js (estava como função interna "renderCalendario").
@@ -12,17 +12,19 @@ export function CalendarioAgenda({
   mesAtual, anoAtual, diaSelecionado, nomesDosMeses, quantidadeDiasNoMes,
   irParaMesAnterior, irParaMesSeguinte, onSelecionarDia, diasComAtividade,
 }) {
+  const { themeColors } = useTheme();
+  const styles = getStyles(themeColors);
   const dias = Array.from({ length: quantidadeDiasNoMes }, (_, i) => i + 1);
 
   return (
     <View style={styles.calendarioContainer}>
       <View style={styles.calendarioHeaderNavegacao}>
         <TouchableOpacity onPress={irParaMesAnterior} style={styles.btnSetas} accessibilityLabel="Mês anterior">
-          <MaterialIcons name="chevron-left" size={28} color={colors.primary} />
+          <MaterialIcons name="chevron-left" size={28} color={themeColors.primary} />
         </TouchableOpacity>
         <Text style={styles.mesTitulo}>{nomesDosMeses[mesAtual]} {anoAtual}</Text>
         <TouchableOpacity onPress={irParaMesSeguinte} style={styles.btnSetas} accessibilityLabel="Próximo mês">
-          <MaterialIcons name="chevron-right" size={28} color={colors.primary} />
+          <MaterialIcons name="chevron-right" size={28} color={themeColors.primary} />
         </TouchableOpacity>
       </View>
 

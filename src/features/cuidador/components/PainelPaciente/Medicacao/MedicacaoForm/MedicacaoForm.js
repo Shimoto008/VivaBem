@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTheme } from '../../../../../../contexts/ThemeContext';
 
 export function MedicacaoForm({
   titulo,
@@ -18,47 +19,52 @@ export function MedicacaoForm({
   onCancelar,
   processando,
 }) {
+  const { themeColors: colors } = useTheme();
   const [mostrarHorario, setMostrarHorario] = useState(false);
 
   return (
     <View
-  style={{
-    marginTop: 20,
-    padding: 15,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-  }}
->
+      style={{
+        marginTop: 20,
+        padding: 15,
+        borderRadius: 12,
+        backgroundColor: colors.surface,
+      }}
+    >
 
-  <Text
-    style={{
-      fontSize: 22,
-      fontWeight: 'bold',
-      marginBottom: 20,
-    }}
-  >
-    {titulo}
-  </Text>
+      <Text
+        style={{
+          fontSize: 22,
+          fontWeight: 'bold',
+          marginBottom: 20,
+          color: colors.textPrimary,
+        }}
+      >
+        {titulo}
+      </Text>
 
-  <Text
-    style={{
-      fontWeight: 'bold',
-      marginBottom: 5,
-    }}
-  >
-    Nome do medicamento
-  </Text>
+      <Text
+        style={{
+          fontWeight: 'bold',
+          marginBottom: 5,
+          color: colors.textPrimary,
+        }}
+      >
+        Nome do medicamento
+      </Text>
 
       <TextInput
         placeholder="Ex: Dipirona"
+        placeholderTextColor={colors.placeholder}
         value={nome}
         onChangeText={setNome}
         style={{
           borderWidth: 1,
-          borderColor: '#ccc',
+          borderColor: colors.border,
           borderRadius: 8,
           padding: 12,
           marginBottom: 15,
+          color: colors.textPrimary,
         }}
       />
 
@@ -66,6 +72,7 @@ export function MedicacaoForm({
         style={{
           fontWeight: 'bold',
           marginBottom: 5,
+          color: colors.textPrimary,
         }}
       >
         Quantidade
@@ -73,14 +80,16 @@ export function MedicacaoForm({
 
       <TextInput
         placeholder="Ex: 500mg"
+        placeholderTextColor={colors.placeholder}
         value={quantidade}
         onChangeText={setQuantidade}
         style={{
           borderWidth: 1,
-          borderColor: '#ccc',
+          borderColor: colors.border,
           borderRadius: 8,
           padding: 12,
           marginBottom: 15,
+          color: colors.textPrimary,
         }}
       />
 
@@ -88,6 +97,7 @@ export function MedicacaoForm({
         style={{
           fontWeight: 'bold',
           marginBottom: 5,
+          color: colors.textPrimary,
         }}
       >
         Horário
@@ -96,14 +106,14 @@ export function MedicacaoForm({
       <TouchableOpacity
         style={{
           borderWidth: 1,
-          borderColor: '#ccc',
+          borderColor: colors.border,
           borderRadius: 8,
           padding: 12,
           marginBottom: 15,
         }}
         onPress={() => setMostrarHorario(true)}
       >
-        <Text>{horario || 'Selecionar horário'}</Text>
+        <Text style={{ color: horario ? colors.textPrimary : colors.placeholder }}>{horario || 'Selecionar horário'}</Text>
       </TouchableOpacity>
 
       {mostrarHorario && (
@@ -129,7 +139,7 @@ export function MedicacaoForm({
         onPress={onSalvar}
         disabled={processando}
         style={{
-          backgroundColor: '#2E7D32',
+          backgroundColor: colors.success,
           padding: 14,
           borderRadius: 10,
           alignItems: 'center',
@@ -137,7 +147,7 @@ export function MedicacaoForm({
       >
         <Text
           style={{
-            color: '#fff',
+            color: colors.textOnPrimary,
             fontWeight: 'bold',
           }}
         >
@@ -154,7 +164,7 @@ export function MedicacaoForm({
       >
         <Text
           style={{
-            color: '#666',
+            color: colors.textSecondary,
           }}
         >
           Cancelar

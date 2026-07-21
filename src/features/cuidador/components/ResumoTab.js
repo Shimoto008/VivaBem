@@ -3,9 +3,9 @@ import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-import { styles } from '../screens/HomeCuidador.styles';
+import { getStyles } from '../screens/HomeCuidador.styles';
 import { PainelPaciente } from './PainelPaciente/PainelPaciente';
-import { colors } from '../../../theme';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { EmptyState } from '../../../components/ui';
 import { ROUTES } from '../../../constants/routeNames';
 
@@ -52,6 +52,8 @@ const CARDS_ATALHO = [
 
 export function ResumoTab({ controlador }) {
   const navigation = useNavigation();
+  const { themeColors: colors } = useTheme();
+  const styles = getStyles(colors);
   const {
     pacientes,
     pacienteSelecionado,

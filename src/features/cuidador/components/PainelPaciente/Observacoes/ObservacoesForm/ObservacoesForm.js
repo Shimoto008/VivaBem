@@ -5,7 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
 } from 'react-native';
-
+import { useTheme } from '../../../../../../contexts/ThemeContext';
 
 export function ObservacaoForm({
   categoria,
@@ -16,6 +16,7 @@ export function ObservacaoForm({
   onCancelar,
   processando,
 }) {
+  const { themeColors: colors } = useTheme();
 
   const categorias = [
     'Saúde',
@@ -29,19 +30,20 @@ export function ObservacaoForm({
   return (
     <View
       style={{
-        backgroundColor:'#fff',
-        padding:16,
-        borderRadius:12,
-        elevation:3,
-        marginBottom:20,
+        backgroundColor: colors.surface,
+        padding: 16,
+        borderRadius: 12,
+        elevation: 3,
+        marginBottom: 20,
       }}
     >
 
       <Text
         style={{
-          fontSize:20,
-          fontWeight:'bold',
-          marginBottom:15,
+          fontSize: 20,
+          fontWeight: 'bold',
+          marginBottom: 15,
+          color: colors.textPrimary,
         }}
       >
         Nova Observação
@@ -50,8 +52,8 @@ export function ObservacaoForm({
 
       <Text
         style={{
-          marginBottom:10,
-          color:'#666'
+          marginBottom: 10,
+          color: colors.textSecondary,
         }}
       >
         Categoria
@@ -60,26 +62,26 @@ export function ObservacaoForm({
 
       <View
         style={{
-          flexDirection:'row',
-          flexWrap:'wrap',
-          gap:8,
-          marginBottom:15
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: 8,
+          marginBottom: 15,
         }}
       >
 
-        {categorias.map((item)=>(
+        {categorias.map((item) => (
 
           <TouchableOpacity
             key={item}
-            onPress={()=>setCategoria(item)}
+            onPress={() => setCategoria(item)}
             style={{
-              paddingHorizontal:12,
-              paddingVertical:8,
-              borderRadius:20,
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 20,
               backgroundColor:
                 categoria === item
-                ? '#0e40ca'
-                : '#eee'
+                  ? colors.primary
+                  : colors.divider,
             }}
           >
 
@@ -87,8 +89,8 @@ export function ObservacaoForm({
               style={{
                 color:
                   categoria === item
-                  ? '#fff'
-                  : '#333'
+                    ? colors.textOnPrimary
+                    : colors.textPrimary,
               }}
             >
               {item}
@@ -103,32 +105,34 @@ export function ObservacaoForm({
 
       <TextInput
         placeholder="Digite a observação..."
+        placeholderTextColor={colors.placeholder}
         value={texto}
         onChangeText={setTexto}
         multiline
         style={{
-          borderWidth:1,
-          borderColor:'#ddd',
-          borderRadius:10,
-          padding:12,
-          minHeight:120,
-          textAlignVertical:'top'
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 10,
+          padding: 12,
+          minHeight: 120,
+          textAlignVertical: 'top',
+          color: colors.textPrimary,
         }}
       />
 
 
       <View
         style={{
-          flexDirection:'row',
-          justifyContent:'space-between',
-          marginTop:15
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          marginTop: 15,
         }}
       >
 
         <TouchableOpacity
           onPress={onCancelar}
         >
-          <Text>
+          <Text style={{ color: colors.textPrimary }}>
             Cancelar
           </Text>
         </TouchableOpacity>
@@ -138,17 +142,17 @@ export function ObservacaoForm({
           onPress={onSalvar}
           disabled={processando}
           style={{
-            backgroundColor:'#0e40ca',
-            paddingHorizontal:25,
-            paddingVertical:12,
-            borderRadius:10
+            backgroundColor: colors.primary,
+            paddingHorizontal: 25,
+            paddingVertical: 12,
+            borderRadius: 10,
           }}
         >
 
           <Text
             style={{
-              color:'#fff',
-              fontWeight:'bold'
+              color: colors.textOnPrimary,
+              fontWeight: 'bold',
             }}
           >
             {processando ? 'Salvando...' : 'Salvar'}

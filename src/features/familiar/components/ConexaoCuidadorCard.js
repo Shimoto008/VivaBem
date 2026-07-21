@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, ActivityIndicator, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { styles } from '../screens/HomeFamiliar.styles';
+import { getStyles } from '../screens/HomeFamiliar.styles';
 import { Card, Badge, Button } from '../../../components/ui';
-import { colors } from '../../../theme';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { useConexaoFamiliarContext } from '../../../contexts/ConexaoFamiliarContext';
 import { ConectarCuidadorModal } from './ConectarCuidadorModal';
 
@@ -15,6 +15,8 @@ import { ConectarCuidadorModal } from './ConectarCuidadorModal';
  */
 export function ConexaoCuidadorCard() {
   const { conexao, carregando, processando, desconectar } = useConexaoFamiliarContext();
+  const { themeColors } = useTheme();
+  const styles = getStyles(themeColors);
   const [modalVisivel, setModalVisivel] = useState(false);
 
   function confirmarDesconexao() {
@@ -31,7 +33,7 @@ export function ConexaoCuidadorCard() {
   if (carregando) {
     return (
       <Card style={styles.conexaoCard}>
-        <ActivityIndicator color={colors.primary} />
+        <ActivityIndicator color={themeColors.primary} />
       </Card>
     );
   }
@@ -41,7 +43,7 @@ export function ConexaoCuidadorCard() {
       <>
         <Card style={styles.conexaoCard}>
           <View style={{ alignItems: 'center' }}>
-            <MaterialIcons name="link-off" size={32} color={colors.textTertiary} />
+            <MaterialIcons name="link-off" size={32} color={themeColors.textTertiary} />
             <Text style={styles.conexaoVazioTitulo}>Nenhum cuidador conectado</Text>
             <Text style={styles.conexaoVazioTexto}>
               Conecte-se a um cuidador usando o código de 6 caracteres que ele recebeu no cadastro.
@@ -58,7 +60,7 @@ export function ConexaoCuidadorCard() {
     <Card style={styles.conexaoCard}>
       <View style={styles.conexaoConectadaTopo}>
         <View style={styles.conexaoIconWrap}>
-          <MaterialIcons name="how-to-reg" size={24} color={colors.primary} />
+          <MaterialIcons name="how-to-reg" size={24} color={themeColors.primary} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.conexaoNome}>{conexao.cuidadores.nome}</Text>

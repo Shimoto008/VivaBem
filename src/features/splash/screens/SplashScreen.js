@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, Dimensions, Image } from 'react-native';
+import { Animated, Dimensions, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { styles } from './Splash.styles';
+import { getStyles } from './Splash.styles';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { ROUTES } from '../../../constants/routeNames';
 
 const { height } = Dimensions.get('window');
@@ -10,6 +12,8 @@ const DURACAO_TOTAL_SPLASH_MS = 5500;
 
 export default function SplashScreen() {
   const navigation = useNavigation();
+  const { themeColors } = useTheme();
+  const styles = getStyles(themeColors);
   const posicaoLogo = useRef(new Animated.Value(height)).current;
 
   useEffect(() => {
@@ -27,7 +31,7 @@ export default function SplashScreen() {
   }, [navigation, posicaoLogo]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Animated.View
         style={{
           transform: [{ translateY: posicaoLogo }],
@@ -43,6 +47,6 @@ export default function SplashScreen() {
           source={require('../../../../assets/VivaBem.png')}
         />
       </Animated.View>
-    </View>
+    </SafeAreaView>
   );
 }

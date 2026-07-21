@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useAtividadesPaciente } from '../../../hooks/useAtividadesPaciente';
 import { ATIVIDADE_TIPOS } from '../../../../../constants/atividadeTipos';
 import { interpretarMedicacao } from '../../../../../utils/MedicacaoUtils';
+import { useTheme } from '../../../../../contexts/ThemeContext';
 import { MedicacaoForm } from './MedicacaoForm/MedicacaoForm';
 import { MedicacaoCard } from './MedicacaoCard/MedicacaoCard';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
@@ -11,6 +12,7 @@ import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
 export default function MedicacaoScreen({ route }) {
   const idoso = route?.params?.idoso;
   const cuidadorId = route?.params?.cuidadorId;
+  const { themeColors } = useTheme();
 
   const [novaMedicacao, setNovaMedicacao] = useState(false);
   const [nomeMedicacao, setNomeMedicacao] = useState('');
@@ -80,24 +82,24 @@ export default function MedicacaoScreen({ route }) {
   }
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Medicações</Text>
+    <View style={{ flex: 1, padding: 20, backgroundColor: themeColors.background }}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', color: themeColors.textPrimary }}>Medicações</Text>
 
-      <Text style={{ fontSize: 16, color: '#666', marginTop: 4, marginBottom: 20 }}>
+      <Text style={{ fontSize: 16, color: themeColors.textSecondary, marginTop: 4, marginBottom: 20 }}>
         Paciente: {idoso.nome}
       </Text>
 
       <TouchableOpacity
         onPress={() => setNovaMedicacao(true)}
         style={{
-          backgroundColor: '#0e40ca',
+          backgroundColor: themeColors.primary,
           padding: 15,
           borderRadius: 10,
           alignItems: 'center',
           marginBottom: 20,
         }}
       >
-        <Text style={{ color: '#fff', fontWeight: 'bold' }}>+ Nova Medicação</Text>
+        <Text style={{ color: themeColors.textOnPrimary, fontWeight: 'bold' }}>+ Nova Medicação</Text>
       </TouchableOpacity>
 
       {novaMedicacao && (
@@ -116,7 +118,7 @@ export default function MedicacaoScreen({ route }) {
         />
       )}
 
-      <Text style={{ fontWeight: 'bold', marginBottom: 10 }}>Medicações cadastradas</Text>
+      <Text style={{ fontWeight: 'bold', marginBottom: 10, color: themeColors.textPrimary }}>Medicações cadastradas</Text>
 
       {medicacoes.map((medicacao) => (
         <MedicacaoCard

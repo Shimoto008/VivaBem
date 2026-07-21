@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { styles } from '../screens/HomeFamiliar.styles';
+import { getStyles } from '../screens/HomeFamiliar.styles';
 import { Input, Button } from '../../../components/ui';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { useConexaoFamiliarContext } from '../../../contexts/ConexaoFamiliarContext';
 
 /**
@@ -12,6 +13,8 @@ import { useConexaoFamiliarContext } from '../../../contexts/ConexaoFamiliarCont
  */
 export function ConectarCuidadorModal({ visible, onClose }) {
   const { conectarPorCodigo, processando } = useConexaoFamiliarContext();
+  const { themeColors } = useTheme();
+  const styles = getStyles(themeColors);
   const [codigo, setCodigo] = useState('');
   const [erroLocal, setErroLocal] = useState(null);
 

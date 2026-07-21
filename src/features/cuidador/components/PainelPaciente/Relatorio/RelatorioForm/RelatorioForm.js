@@ -1,29 +1,31 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-
+import { useTheme } from '../../../../../../contexts/ThemeContext';
 
 export function RelatorioForm({
   conteudo,
   setConteudo,
   onSalvar,
   onCancelar,
-  processando
+  processando,
 }) {
+  const { themeColors: colors } = useTheme();
 
   return (
     <View
       style={{
-        marginTop:20,
-        padding:15,
-        backgroundColor:'#fff',
-        borderRadius:12
+        marginTop: 20,
+        padding: 15,
+        backgroundColor: colors.surface,
+        borderRadius: 12,
       }}
     >
 
       <Text
         style={{
-          fontWeight:'bold',
-          marginBottom:8
+          fontWeight: 'bold',
+          marginBottom: 8,
+          color: colors.textPrimary,
         }}
       >
         Descrição do relatório
@@ -32,16 +34,18 @@ export function RelatorioForm({
 
       <TextInput
         placeholder="Digite as observações do paciente..."
+        placeholderTextColor={colors.placeholder}
         value={conteudo}
         onChangeText={setConteudo}
         multiline
         style={{
-          height:120,
-          borderWidth:1,
-          borderColor:'#ccc',
-          borderRadius:10,
-          padding:10,
-          textAlignVertical:'top'
+          height: 120,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 10,
+          padding: 10,
+          textAlignVertical: 'top',
+          color: colors.textPrimary,
         }}
       />
 
@@ -50,18 +54,18 @@ export function RelatorioForm({
         onPress={onSalvar}
         disabled={processando}
         style={{
-          backgroundColor:'#2E7D32',
-          padding:14,
-          borderRadius:10,
-          marginTop:15
+          backgroundColor: colors.success,
+          padding: 14,
+          borderRadius: 10,
+          marginTop: 15,
         }}
       >
 
         <Text
           style={{
-            color:'#fff',
-            textAlign:'center',
-            fontWeight:'bold'
+            color: colors.textOnPrimary,
+            textAlign: 'center',
+            fontWeight: 'bold',
           }}
         >
           {processando ? 'Salvando...' : 'Salvar Relatório'}
@@ -73,13 +77,13 @@ export function RelatorioForm({
       <TouchableOpacity
         onPress={onCancelar}
         style={{
-          marginTop:10
+          marginTop: 10,
         }}
       >
         <Text
           style={{
-            textAlign:'center',
-            color:'#666'
+            textAlign: 'center',
+            color: colors.textSecondary,
           }}
         >
           Cancelar

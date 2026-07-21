@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
-import { styles } from '../screens/HomeCuidador.styles';
+import { getStyles } from '../screens/HomeCuidador.styles';
 import { Input, Button } from '../../../components/ui';
-import { colors } from '../../../theme';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { useSession } from '../../../contexts/SessionContext';
 import { atualizarPerfilCuidador } from '../../../services/cuidadorService';
 
@@ -20,6 +20,8 @@ import { atualizarPerfilCuidador } from '../../../services/cuidadorService';
  */
 export function PerfilCuidadorTab() {
   const { cuidador, setCuidador } = useSession();
+  const { themeColors: colors } = useTheme();
+  const styles = getStyles(colors);
   const [foto, setFoto] = useState(null);
   const [editando, setEditando] = useState(false);
   const [telefoneEdicao, setTelefoneEdicao] = useState(cuidador?.telefone ?? '');

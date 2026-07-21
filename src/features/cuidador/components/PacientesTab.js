@@ -1,15 +1,17 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
-import { styles } from '../screens/HomeCuidador.styles';
+import { getStyles } from '../screens/HomeCuidador.styles';
 import { PainelPaciente } from './PainelPaciente/PainelPaciente';
-import { colors } from '../../../theme';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Aba de Pacientes do Cuidador.
  * Exibe a lista de idosos vinculados para acompanhamento e monitoramento.
  */
 export function PacientesTab({ controlador }) {
+  const { themeColors: colors } = useTheme();
+  const styles = getStyles(colors);
   const {
     pacientes,
     pacienteSelecionado,
@@ -55,7 +57,7 @@ export function PacientesTab({ controlador }) {
         /* O cuidador não cadastra pacientes — eles aparecem aqui somente
            depois que um familiar os cadastra e se conecta a este cuidador. */
         <View style={{ padding: 20, alignItems: 'center' }}>
-          <Text style={{ color: colors.gray || '#666', textAlign: 'center' }}>
+          <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
             Nenhum paciente vinculado no momento. Assim que um familiar cadastrar um idoso
             e se conectar ao seu código, ele aparecerá aqui.
           </Text>

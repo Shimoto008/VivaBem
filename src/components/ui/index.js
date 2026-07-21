@@ -7,3 +7,4 @@ export { EmptyState } from './EmptyState';
 export { ScreenHeader } from './ScreenHeader';
 export { SelectModal } from './SelectModal';
 export { BottomTabBar } from './BottomTabBar';
+export { SwipeableTabs } from './SwipeableTabs';

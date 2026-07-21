@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { useTheme } from '../../../../../../contexts/ThemeContext';
 
 export function AgendaForm({
   titulo,
@@ -11,10 +12,12 @@ export function AgendaForm({
   onCancelar,
   processando,
 }) {
+  const { themeColors: colors } = useTheme();
+
   return (
     <View
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 16,
         marginBottom: 20,
@@ -26,6 +29,7 @@ export function AgendaForm({
           fontSize: 20,
           fontWeight: 'bold',
           marginBottom: 15,
+          color: colors.textPrimary,
         }}
       >
         {titulo}
@@ -33,7 +37,7 @@ export function AgendaForm({
 
       <Text
         style={{
-          color: '#666',
+          color: colors.textSecondary,
           marginBottom: 10,
         }}
       >
@@ -44,6 +48,7 @@ export function AgendaForm({
         style={{
           marginBottom: 15,
           fontWeight: 'bold',
+          color: colors.textPrimary,
         }}
       >
         {data}
@@ -51,16 +56,18 @@ export function AgendaForm({
 
       <TextInput
         placeholder="Descrição da atividade"
+        placeholderTextColor={colors.placeholder}
         value={conteudo}
         onChangeText={setConteudo}
         multiline
         style={{
           borderWidth: 1,
-          borderColor: '#ddd',
+          borderColor: colors.border,
           borderRadius: 10,
           padding: 12,
           minHeight: 100,
           textAlignVertical: 'top',
+          color: colors.textPrimary,
         }}
       />
 
@@ -77,7 +84,7 @@ export function AgendaForm({
             padding: 15,
           }}
         >
-          <Text>
+          <Text style={{ color: colors.textPrimary }}>
             Cancelar
           </Text>
         </TouchableOpacity>
@@ -87,7 +94,7 @@ export function AgendaForm({
           onPress={onSalvar}
           disabled={processando}
           style={{
-            backgroundColor: '#0e40ca',
+            backgroundColor: colors.primary,
             paddingHorizontal: 25,
             paddingVertical: 15,
             borderRadius: 10,
@@ -95,7 +102,7 @@ export function AgendaForm({
         >
           <Text
             style={{
-              color: '#fff',
+              color: colors.textOnPrimary,
               fontWeight: 'bold',
             }}
           >

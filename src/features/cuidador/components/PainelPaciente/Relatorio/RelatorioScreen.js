@@ -5,11 +5,13 @@ import { RelatorioCard } from './RelatorioCard/RelatorioCard';
 import { RelatorioForm } from './RelatorioForm/RelatorioForm';
 import { useAtividadesPaciente } from '../../../hooks/useAtividadesPaciente';
 import { ATIVIDADE_TIPOS } from '../../../../../constants/atividadeTipos';
+import { useTheme } from '../../../../../contexts/ThemeContext';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
 
 export default function RelatorioScreen({ route }) {
   const idoso = route?.params?.idoso;
   const cuidadorId = route?.params?.cuidadorId;
+  const { themeColors } = useTheme();
 
   const [novoRelatorio, setNovoRelatorio] = useState(false);
   const [conteudo, setConteudo] = useState('');
@@ -62,21 +64,21 @@ export default function RelatorioScreen({ route }) {
   }
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Relatórios</Text>
+    <View style={{ flex: 1, padding: 20, backgroundColor: themeColors.background }}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', color: themeColors.textPrimary }}>Relatórios</Text>
 
-      <Text>Paciente: {idoso.nome}</Text>
+      <Text style={{ color: themeColors.textSecondary }}>Paciente: {idoso.nome}</Text>
 
       <TouchableOpacity
         onPress={() => setNovoRelatorio(true)}
         style={{
-          backgroundColor: '#0e40ca',
+          backgroundColor: themeColors.primary,
           padding: 15,
           borderRadius: 10,
           marginTop: 20,
         }}
       >
-        <Text style={{ color: '#fff', textAlign: 'center', fontWeight: 'bold' }}>
+        <Text style={{ color: themeColors.textOnPrimary, textAlign: 'center', fontWeight: 'bold' }}>
           + Novo Relatório
         </Text>
       </TouchableOpacity>
@@ -91,7 +93,7 @@ export default function RelatorioScreen({ route }) {
         />
       )}
 
-      <Text style={{ marginTop: 20, fontWeight: 'bold' }}>Relatórios cadastrados</Text>
+      <Text style={{ marginTop: 20, fontWeight: 'bold', color: themeColors.textPrimary }}>Relatórios cadastrados</Text>
 
       {relatorios.map((relatorio) => (
         <RelatorioCard

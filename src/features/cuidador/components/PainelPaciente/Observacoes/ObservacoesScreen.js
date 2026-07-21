@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Alert } from 'react-native';
 
 import { useAtividadesPaciente } from '../../../hooks/useAtividadesPaciente';
 import { ATIVIDADE_TIPOS } from '../../../../../constants/atividadeTipos';
+import { useTheme } from '../../../../../contexts/ThemeContext';
 import { ObservacaoForm } from './ObservacoesForm/ObservacoesForm';
 import { ObservacaoCard } from './ObservacoesCard/ObservacoesCard';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
@@ -10,6 +11,7 @@ import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
 export default function ObservacoesScreen({ route }) {
   const idoso = route?.params?.idoso;
   const cuidadorId = route?.params?.cuidadorId;
+  const { themeColors } = useTheme();
 
   const [novaObservacao, setNovaObservacao] = useState(false);
   const [categoria, setCategoria] = useState('');
@@ -89,24 +91,24 @@ export default function ObservacoesScreen({ route }) {
   }
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Observações</Text>
+    <View style={{ flex: 1, padding: 20, backgroundColor: themeColors.background }}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', color: themeColors.textPrimary }}>Observações</Text>
 
-      <Text style={{ marginTop: 5, marginBottom: 20, color: '#666' }}>
+      <Text style={{ marginTop: 5, marginBottom: 20, color: themeColors.textSecondary }}>
         Paciente: {idoso.nome}
       </Text>
 
       <TouchableOpacity
         onPress={abrirNovaObservacao}
         style={{
-          backgroundColor: '#0e40ca',
+          backgroundColor: themeColors.primary,
           padding: 15,
           borderRadius: 10,
           alignItems: 'center',
           marginBottom: 20,
         }}
       >
-        <Text style={{ color: '#fff', fontWeight: 'bold' }}>+ Nova Observação</Text>
+        <Text style={{ color: themeColors.textOnPrimary, fontWeight: 'bold' }}>+ Nova Observação</Text>
       </TouchableOpacity>
 
       {novaObservacao && (
@@ -121,12 +123,12 @@ export default function ObservacoesScreen({ route }) {
         />
       )}
 
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
+      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10, color: themeColors.textPrimary }}>
         Histórico de observações
       </Text>
 
       {observacoes.length === 0 ? (
-        <Text style={{ color: '#777' }}>Nenhuma observação cadastrada.</Text>
+        <Text style={{ color: themeColors.textTertiary }}>Nenhuma observação cadastrada.</Text>
       ) : (
         observacoes.map((item) => (
           <ObservacaoCard

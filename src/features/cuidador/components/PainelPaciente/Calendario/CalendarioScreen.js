@@ -6,6 +6,7 @@ import { AgendaForm } from './AgendaForm/AgendaForm';
 import { AgendaCard } from './AgendaCard/AgendaCard';
 import { useAtividadesPaciente } from '../../../hooks/useAtividadesPaciente';
 import { ATIVIDADE_TIPOS } from '../../../../../constants/atividadeTipos';
+import { useTheme } from '../../../../../contexts/ThemeContext';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
 
 const MESES = [
@@ -26,6 +27,7 @@ const MESES = [
 export default function CalendarioScreen({ route }) {
   const idoso = route?.params?.idoso;
   const cuidadorId = route?.params?.cuidadorId;
+  const { themeColors } = useTheme();
 
   const hoje = new Date();
   const dataHoje = hoje.toISOString().split('T')[0];
@@ -136,26 +138,26 @@ export default function CalendarioScreen({ route }) {
   }
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Calendário</Text>
+    <View style={{ flex: 1, padding: 20, backgroundColor: themeColors.background }}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', color: themeColors.textPrimary }}>Calendário</Text>
 
-      <Text style={{ fontSize: 16, color: '#666', marginTop: 4, marginBottom: 20 }}>
+      <Text style={{ fontSize: 16, color: themeColors.textSecondary, marginTop: 4, marginBottom: 20 }}>
         Paciente: {idoso.nome}
       </Text>
 
-      <Text style={{ color: '#666', marginBottom: 15 }}>Data selecionada: {dataSelecionada}</Text>
+      <Text style={{ color: themeColors.textSecondary, marginBottom: 15 }}>Data selecionada: {dataSelecionada}</Text>
 
       <TouchableOpacity
         onPress={abrirNovaAtividade}
         style={{
-          backgroundColor: '#0e40ca',
+          backgroundColor: themeColors.primary,
           padding: 15,
           borderRadius: 10,
           alignItems: 'center',
           marginBottom: 20,
         }}
       >
-        <Text style={{ color: '#fff', fontWeight: 'bold' }}>+ Nova Atividade</Text>
+        <Text style={{ color: themeColors.textOnPrimary, fontWeight: 'bold' }}>+ Nova Atividade</Text>
       </TouchableOpacity>
 
       <CalendarioAgenda
@@ -183,12 +185,12 @@ export default function CalendarioScreen({ route }) {
         />
       )}
 
-      <Text style={{ fontWeight: 'bold', fontSize: 18, marginTop: 25, marginBottom: 10 }}>
+      <Text style={{ fontWeight: 'bold', fontSize: 18, marginTop: 25, marginBottom: 10, color: themeColors.textPrimary }}>
         Atividades do dia
       </Text>
 
       {atividadesDoDia.length === 0 ? (
-        <Text style={{ color: '#777' }}>Nenhuma atividade cadastrada para este dia.</Text>
+        <Text style={{ color: themeColors.textTertiary }}>Nenhuma atividade cadastrada para este dia.</Text>
       ) : (
         atividadesDoDia.map((item) => (
           <AgendaCard

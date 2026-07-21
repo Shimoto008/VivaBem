@@ -1,13 +1,15 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors } from '../../../../../../theme';
+import { useTheme } from '../../../../../../contexts/ThemeContext';
 
 export function MedicacaoCard({ medicacao, onLembrete, onEditar, onExcluir }) {
+  const { themeColors: colors } = useTheme();
+
   return (
     <View
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
@@ -26,6 +28,7 @@ export function MedicacaoCard({ medicacao, onLembrete, onEditar, onExcluir }) {
             style={{
               fontSize: 18,
               fontWeight: 'bold',
+              color: colors.textPrimary,
             }}
           >
             💊 {medicacao.nome}
@@ -34,7 +37,7 @@ export function MedicacaoCard({ medicacao, onLembrete, onEditar, onExcluir }) {
           <Text
             style={{
               marginTop: 8,
-              color: '#666',
+              color: colors.textSecondary,
             }}
           >
             Quantidade: {medicacao.quantidade}
@@ -43,7 +46,7 @@ export function MedicacaoCard({ medicacao, onLembrete, onEditar, onExcluir }) {
           <Text
             style={{
               marginTop: 4,
-              color: '#666',
+              color: colors.textSecondary,
             }}
           >
             Horário: {medicacao.horario}
@@ -61,7 +64,7 @@ export function MedicacaoCard({ medicacao, onLembrete, onEditar, onExcluir }) {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={onExcluir}>
-            <MaterialIcons name="delete-outline" size={24} color="#D32F2F" />
+            <MaterialIcons name="delete-outline" size={24} color={colors.danger} />
           </TouchableOpacity>
         </View>
       </View>
@@ -88,11 +91,11 @@ export function MedicacaoCard({ medicacao, onLembrete, onEditar, onExcluir }) {
               alignItems: 'center',
             }}
           >
-            <MaterialIcons name="notifications-active" size={20} color="#fff" />
+            <MaterialIcons name="notifications-active" size={20} color={colors.textOnPrimary} />
 
             <Text
               style={{
-                color: '#fff',
+                color: colors.textOnPrimary,
                 fontWeight: 'bold',
                 marginLeft: 8,
               }}

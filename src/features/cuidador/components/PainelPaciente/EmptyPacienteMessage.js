@@ -1,16 +1,12 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-
-const emptyStateStyle = {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-};
+import { useTheme } from '../../../../contexts/ThemeContext';
 
 export function EmptyPacienteMessage() {
+  const { themeColors } = useTheme();
   return (
-    <View style={emptyStateStyle}>
-      <Text>Nenhum paciente selecionado.</Text>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: themeColors.background }}>
+      <Text style={{ color: themeColors.textSecondary }}>Nenhum paciente selecionado.</Text>
     </View>
   );
 }

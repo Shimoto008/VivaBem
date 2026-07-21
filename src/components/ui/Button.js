@@ -1,13 +1,14 @@
 import React, { useRef } from 'react';
 import { Animated, Pressable, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { colors, radius, spacing, typography } from '../../theme';
+import { radius, spacing, typography } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const VARIANTES = {
+const getVariantes = (colors) => ({
   primary: { backgroundColor: colors.primary, textColor: colors.textOnPrimary },
   secondary: { backgroundColor: colors.primarySoft, textColor: colors.primary },
   danger: { backgroundColor: colors.danger, textColor: colors.textOnPrimary },
   outline: { backgroundColor: 'transparent', textColor: colors.primary, borderColor: colors.primary },
-};
+});
 
 /**
  * Botão padrão do app — estados de pressionado (animação de escala),
@@ -24,8 +25,9 @@ export function Button({
   style,
   accessibilityLabel,
 }) {
+  const { themeColors } = useTheme();
   const escala = useRef(new Animated.Value(1)).current;
-  const aparenciaVariante = VARIANTES[variant] ?? VARIANTES.primary;
+  const aparenciaVariante = getVariantes(themeColors)[variant] ?? getVariantes(themeColors).primary;
   const estaDesabilitado = disabled || loading;
 
   const animarPara = (valor) => {

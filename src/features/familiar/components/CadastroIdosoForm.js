@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { Input, Button } from '../../../components/ui';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 export function CadastroIdosoForm({
   nome,
@@ -14,10 +15,12 @@ export function CadastroIdosoForm({
   enviando,
   onSalvar,
 }) {
+  const { themeColors } = useTheme();
+
   return (
     <View
       style={{
-        backgroundColor: '#FFF',
+        backgroundColor: themeColors.surface,
         padding: 20,
         borderRadius: 15,
         marginTop: 20,

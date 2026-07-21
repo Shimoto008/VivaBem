@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet } from 'react-native';
-import { colors, radius, spacing, typography } from '../../theme';
+import { radius, spacing, typography } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * Input padrão: foco elegante (borda muda de cor suavemente), mensagem de
@@ -8,9 +9,11 @@ import { colors, radius, spacing, typography } from '../../theme';
  * duplicados em cada tela.
  */
 export function Input({ label, error, value, onChangeText, style, ...rest }) {
+  const { themeColors } = useTheme();
+  const styles = getStyles(themeColors);
   const [focado, setFocado] = useState(false);
 
-  const corDaBorda = error ? colors.danger : focado ? colors.primary : colors.border;
+  const corDaBorda = error ? themeColors.danger : focado ? themeColors.primary : themeColors.border;
 
   return (
     <View style={styles.wrapper}>
@@ -20,7 +23,7 @@ export function Input({ label, error, value, onChangeText, style, ...rest }) {
         onChangeText={onChangeText}
         onFocus={() => setFocado(true)}
         onBlur={() => setFocado(false)}
-        placeholderTextColor={colors.placeholder}
+        placeholderTextColor={themeColors.placeholder}
         style={[
           styles.input,
           { borderColor: corDaBorda, borderWidth: focado || error ? 1.5 : 1 },
@@ -34,16 +37,17 @@ export function Input({ label, error, value, onChangeText, style, ...rest }) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { width: '100%', marginBottom: spacing.md },
-  label: { ...typography.bodyBold, color: colors.textPrimary, marginBottom: spacing.xs },
-  input: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    fontSize: 16,
-    color: colors.textPrimary,
-  },
-  erro: { ...typography.caption, color: colors.danger, marginTop: spacing.xs },
-});
+const getStyles = (colors) =>
+  StyleSheet.create({
+    wrapper: { width: '100%', marginBottom: spacing.md },
+    label: { ...typography.bodyBold, color: colors.textPrimary, marginBottom: spacing.xs },
+    input: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      fontSize: 16,
+      color: colors.textPrimary,
+    },
+    erro: { ...typography.caption, color: colors.danger, marginTop: spacing.xs },
+  });

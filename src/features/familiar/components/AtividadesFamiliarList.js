@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
-import { styles } from '../screens/HomeFamiliar.styles';
+import { getStyles } from '../screens/HomeFamiliar.styles';
 import { Card, EmptyState } from '../../../components/ui';
-import { colors } from '../../../theme';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { useConexaoFamiliarContext } from '../../../contexts/ConexaoFamiliarContext';
 import { useAtividadesDoFamiliar } from '../hooks/useAtividadesDoFamiliar';
 import { ATIVIDADE_CONFIG } from '../../../constants/atividadeTipos';
@@ -15,6 +15,8 @@ import { formatarDataPtBR } from '../../../utils/dateUtils';
  */
 export function AtividadesFamiliarList() {
   const { conexao } = useConexaoFamiliarContext();
+  const { themeColors } = useTheme();
+  const styles = getStyles(themeColors);
   const cuidadorId = conexao?.cuidadores?.id ?? null;
   const { atividades, carregando, erro } = useAtividadesDoFamiliar(cuidadorId);
 
@@ -28,7 +30,7 @@ export function AtividadesFamiliarList() {
     );
   }
 
-  if (carregando) return <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />;
+  if (carregando) return <ActivityIndicator color={themeColors.primary} style={{ marginTop: 20 }} />;
 
   if (erro) {
     return <EmptyState icon="error-outline" title="Não foi possível carregar as atividades" description="Tente novamente em alguns instantes." />;

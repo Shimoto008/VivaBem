@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { styles } from './Onboarding.styles';
+import { getStyles } from './Onboarding.styles';
 import { ONBOARDING_STEPS } from './onboardingSteps';
 import { Button } from '../../../components/ui';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { ROUTES } from '../../../constants/routeNames';
 
 export default function OnboardingScreen() {
   const navigation = useNavigation();
+  const { themeColors } = useTheme();
+  const styles = getStyles(themeColors);
   const [passo, setPasso] = useState(0);
   const passoAtual = ONBOARDING_STEPS[passo];
   const ehUltimoPasso = passo === ONBOARDING_STEPS.length - 1;
@@ -19,7 +23,7 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.conteudo}>
         <View style={styles.cardPasso}>
           <MaterialIcons name={passoAtual.icon} size={80} color={passoAtual.iconColor} />
@@ -42,6 +46,6 @@ export default function OnboardingScreen() {
           style={styles.botao}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }

@@ -1,44 +1,45 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors } from '../../../../../../theme';
-
+import { useTheme } from '../../../../../../contexts/ThemeContext';
 
 export function RelatorioCard({
   relatorio,
   onEditar,
   onExcluir,
 }) {
+  const { themeColors: colors } = useTheme();
 
   return (
     <View
       style={{
-        backgroundColor:'#fff',
-        padding:15,
-        borderRadius:12,
-        marginTop:12,
-        elevation:3,
+        backgroundColor: colors.surface,
+        padding: 15,
+        borderRadius: 12,
+        marginTop: 12,
+        elevation: 3,
       }}
     >
 
       <View
         style={{
-          flexDirection:'row',
-          justifyContent:'space-between',
-          alignItems:'center'
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
 
         <View
           style={{
-            flex:1
+            flex: 1,
           }}
         >
 
           <Text
             style={{
-              fontSize:18,
-              fontWeight:'bold'
+              fontSize: 18,
+              fontWeight: 'bold',
+              color: colors.textPrimary,
             }}
           >
             📄 Relatório
@@ -47,8 +48,8 @@ export function RelatorioCard({
 
           <Text
             style={{
-              marginTop:10,
-              color:'#555'
+              marginTop: 10,
+              color: colors.textSecondary,
             }}
           >
             {relatorio.conteudo}
@@ -60,8 +61,8 @@ export function RelatorioCard({
 
         <View
           style={{
-            flexDirection:'row',
-            gap:10
+            flexDirection: 'row',
+            gap: 10,
           }}
         >
 
@@ -78,7 +79,7 @@ export function RelatorioCard({
             <MaterialIcons
               name="delete-outline"
               size={24}
-              color="#D32F2F"
+              color={colors.danger}
             />
           </TouchableOpacity>
 

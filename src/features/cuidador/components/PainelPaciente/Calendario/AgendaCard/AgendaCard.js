@@ -1,17 +1,19 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors } from '../../../../../../theme';
+import { useTheme } from '../../../../../../contexts/ThemeContext';
 
 export function AgendaCard({
   atividade,
   onEditar,
   onExcluir,
 }) {
+  const { themeColors: colors } = useTheme();
+
   return (
     <View
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
@@ -30,6 +32,7 @@ export function AgendaCard({
             style={{
               fontSize: 18,
               fontWeight: 'bold',
+              color: colors.textPrimary,
             }}
           >
             📅 Atividade
@@ -38,7 +41,7 @@ export function AgendaCard({
           <Text
             style={{
               marginTop: 8,
-              color: '#666',
+              color: colors.textSecondary,
             }}
           >
             {atividade.conteudo}
@@ -47,7 +50,7 @@ export function AgendaCard({
           <Text
             style={{
               marginTop: 6,
-              color: '#888',
+              color: colors.textTertiary,
             }}
           >
             {atividade.data_referencia}
@@ -72,7 +75,7 @@ export function AgendaCard({
             <MaterialIcons
               name="delete-outline"
               size={24}
-              color="#D32F2F"
+              color={colors.danger}
             />
           </TouchableOpacity>
         </View>
