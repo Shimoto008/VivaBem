@@ -1,5 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 
 import { CalendarioAgenda } from './CalendarioAgenda';
 import { AgendaForm } from './AgendaForm/AgendaForm';
@@ -7,30 +19,25 @@ import { AgendaCard } from './AgendaCard/AgendaCard';
 import { useAtividadesPaciente } from '../../../hooks/useAtividadesPaciente';
 import { ATIVIDADE_TIPOS } from '../../../../../constants/atividadeTipos';
 import { useTheme } from '../../../../../contexts/ThemeContext';
+import { ScreenHeader } from '../../../../../components/ui';
+import { radius, spacing, typography } from '../../../../../theme';
+import {
+  NOMES_DOS_MESES,
+  diasNoMes,
+  formatarISODatePtBR,
+  paraISODate,
+} from '../../../../../utils/dateUtils';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
-
-const MESES = [
-  'Janeiro',
-  'Fevereiro',
-  'Março',
-  'Abril',
-  'Maio',
-  'Junho',
-  'Julho',
-  'Agosto',
-  'Setembro',
-  'Outubro',
-  'Novembro',
-  'Dezembro',
-];
 
 export default function CalendarioScreen({ route }) {
   const idoso = route?.params?.idoso;
   const cuidadorId = route?.params?.cuidadorId;
+  const navigation = useNavigation();
   const { themeColors } = useTheme();
+  const styles = getStyles(themeColors);
 
   const hoje = new Date();
-  const dataHoje = hoje.toISOString().split('T')[0];
+  const dataHoje = paraISODate(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
 
   const [mesAtual, setMesAtual] = useState(hoje.getMonth());
   const [anoAtual, setAnoAtual] = useState(hoje.getFullYear());
@@ -39,14 +46,22 @@ export default function CalendarioScreen({ route }) {
   const [novaAtividade, setNovaAtividade] = useState(false);
   const [conteudo, setConteudo] = useState('');
 
-  const { atividades, salvar, excluir, iniciarEdicao, cancelarEdicao, itemEmEdicao, processando } =
-    useAtividadesPaciente(idoso?.id, cuidadorId);
+  const {
+    atividades,
+    carregando,
+    salvar,
+    excluir,
+    iniciarEdicao,
+    cancelarEdicao,
+    itemEmEdicao,
+    processando,
+  } = useAtividadesPaciente(idoso?.id, cuidadorId);
 
   const agenda = useMemo(() => {
     return atividades.filter((item) => item.tipo === ATIVIDADE_TIPOS.AGENDA);
   }, [atividades]);
 
-  const quantidadeDiasNoMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
+  const quantidadeDiasNoMes = diasNoMes(anoAtual, mesAtual);
 
   const diasComAtividade = useMemo(() => {
     return new Set(
@@ -70,9 +85,7 @@ export default function CalendarioScreen({ route }) {
 
   function selecionarDia(dia) {
     setDiaSelecionado(dia);
-
-    const novaData = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-    setDataSelecionada(novaData);
+    setDataSelecionada(paraISODate(anoAtual, mesAtual, dia));
   }
 
   function irParaMesAnterior() {
@@ -138,69 +151,104 @@ export default function CalendarioScreen({ route }) {
   }
 
   return (
-    <View style={{ flex: 1, padding: 20, backgroundColor: themeColors.background }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', color: themeColors.textPrimary }}>Calendário</Text>
-
-      <Text style={{ fontSize: 16, color: themeColors.textSecondary, marginTop: 4, marginBottom: 20 }}>
-        Paciente: {idoso.nome}
-      </Text>
-
-      <Text style={{ color: themeColors.textSecondary, marginBottom: 15 }}>Data selecionada: {dataSelecionada}</Text>
-
-      <TouchableOpacity
-        onPress={abrirNovaAtividade}
-        style={{
-          backgroundColor: themeColors.primary,
-          padding: 15,
-          borderRadius: 10,
-          alignItems: 'center',
-          marginBottom: 20,
-        }}
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <KeyboardAvoidingView
+        style={styles.fluxo}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Text style={{ color: themeColors.textOnPrimary, fontWeight: 'bold' }}>+ Nova Atividade</Text>
-      </TouchableOpacity>
-
-      <CalendarioAgenda
-        mesAtual={mesAtual}
-        anoAtual={anoAtual}
-        diaSelecionado={diaSelecionado}
-        nomesDosMeses={MESES}
-        quantidadeDiasNoMes={quantidadeDiasNoMes}
-        irParaMesAnterior={irParaMesAnterior}
-        irParaMesSeguinte={irParaMesSeguinte}
-        onSelecionarDia={selecionarDia}
-        diasComAtividade={diasComAtividade}
-      />
-
-      {novaAtividade && (
-        <AgendaForm
-          titulo={itemEmEdicao ? 'Editar Atividade' : 'Nova Atividade'}
-          textoBotao={itemEmEdicao ? 'Salvar Alterações' : 'Salvar Atividade'}
-          conteudo={conteudo}
-          setConteudo={setConteudo}
-          data={dataSelecionada}
-          processando={processando}
-          onSalvar={salvarAtividade}
-          onCancelar={cancelarFormulario}
+        <ScreenHeader
+          title="Calendário"
+          subtitle={`Paciente: ${idoso.nome}`}
+          onBack={() => navigation.goBack()}
         />
-      )}
 
-      <Text style={{ fontWeight: 'bold', fontSize: 18, marginTop: 25, marginBottom: 10, color: themeColors.textPrimary }}>
-        Atividades do dia
-      </Text>
+        <ScrollView contentContainerStyle={styles.conteudo} keyboardShouldPersistTaps="handled">
+          <Text style={styles.dataSelecionada}>
+            Data selecionada: {formatarISODatePtBR(dataSelecionada)}
+          </Text>
 
-      {atividadesDoDia.length === 0 ? (
-        <Text style={{ color: themeColors.textTertiary }}>Nenhuma atividade cadastrada para este dia.</Text>
-      ) : (
-        atividadesDoDia.map((item) => (
-          <AgendaCard
-            key={item.id}
-            atividade={item}
-            onEditar={() => editarAtividade(item)}
-            onExcluir={() => excluirAtividade(item)}
-          />
-        ))
-      )}
-    </View>
+          <TouchableOpacity
+            onPress={abrirNovaAtividade}
+            accessibilityRole="button"
+            accessibilityLabel="Adicionar nova atividade"
+            style={styles.botaoNova}
+          >
+            <Text style={styles.textoBotaoNova}>+ Nova Atividade</Text>
+          </TouchableOpacity>
+
+          {carregando ? (
+            <View style={styles.areaCarregando}>
+              <ActivityIndicator size="large" color={themeColors.primary} />
+            </View>
+          ) : (
+            <>
+              <CalendarioAgenda
+                mesAtual={mesAtual}
+                anoAtual={anoAtual}
+                diaSelecionado={diaSelecionado}
+                nomesDosMeses={NOMES_DOS_MESES}
+                quantidadeDiasNoMes={quantidadeDiasNoMes}
+                irParaMesAnterior={irParaMesAnterior}
+                irParaMesSeguinte={irParaMesSeguinte}
+                onSelecionarDia={selecionarDia}
+                diasComAtividade={diasComAtividade}
+              />
+
+              {novaAtividade && (
+                <AgendaForm
+                  titulo={itemEmEdicao ? 'Editar Atividade' : 'Nova Atividade'}
+                  textoBotao={itemEmEdicao ? 'Salvar Alterações' : 'Salvar Atividade'}
+                  conteudo={conteudo}
+                  setConteudo={setConteudo}
+                  data={dataSelecionada}
+                  processando={processando}
+                  onSalvar={salvarAtividade}
+                  onCancelar={cancelarFormulario}
+                />
+              )}
+
+              <Text style={styles.tituloSecao}>Atividades do dia</Text>
+
+              {atividadesDoDia.length === 0 ? (
+                <Text style={styles.textoVazio}>Nenhuma atividade cadastrada para este dia.</Text>
+              ) : (
+                atividadesDoDia.map((item) => (
+                  <AgendaCard
+                    key={item.id}
+                    atividade={item}
+                    onEditar={() => editarAtividade(item)}
+                    onExcluir={() => excluirAtividade(item)}
+                  />
+                ))
+              )}
+            </>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
+
+const getStyles = (colors) =>
+  StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: colors.background },
+    fluxo: { flex: 1 },
+    conteudo: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxxl },
+    dataSelecionada: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.md },
+    botaoNova: {
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.lg,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      marginBottom: spacing.xl,
+    },
+    textoBotaoNova: { ...typography.bodyBold, color: colors.textOnPrimary },
+    tituloSecao: {
+      ...typography.title2,
+      color: colors.textPrimary,
+      marginTop: spacing.xxl,
+      marginBottom: spacing.md,
+    },
+    textoVazio: { ...typography.body, color: colors.textTertiary },
+    areaCarregando: { paddingVertical: spacing.xxxl },
+  });

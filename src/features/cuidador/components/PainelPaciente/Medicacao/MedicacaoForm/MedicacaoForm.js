@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+
 import { useTheme } from '../../../../../../contexts/ThemeContext';
+import { radius, spacing, typography } from '../../../../../../theme';
 
 export function MedicacaoForm({
   titulo,
@@ -19,101 +20,52 @@ export function MedicacaoForm({
   onCancelar,
   processando,
 }) {
-  const { themeColors: colors } = useTheme();
+  const { themeColors } = useTheme();
+  const styles = getStyles(themeColors);
   const [mostrarHorario, setMostrarHorario] = useState(false);
 
   return (
-    <View
-      style={{
-        marginTop: 20,
-        padding: 15,
-        borderRadius: 12,
-        backgroundColor: colors.surface,
-      }}
-    >
+    <View style={styles.container}>
+      <Text style={styles.titulo}>{titulo}</Text>
 
-      <Text
-        style={{
-          fontSize: 22,
-          fontWeight: 'bold',
-          marginBottom: 20,
-          color: colors.textPrimary,
-        }}
-      >
-        {titulo}
-      </Text>
-
-      <Text
-        style={{
-          fontWeight: 'bold',
-          marginBottom: 5,
-          color: colors.textPrimary,
-        }}
-      >
-        Nome do medicamento
-      </Text>
+      <Text style={styles.rotulo}>Nome do medicamento</Text>
 
       <TextInput
         placeholder="Ex: Dipirona"
-        placeholderTextColor={colors.placeholder}
+        placeholderTextColor={themeColors.placeholder}
         value={nome}
         onChangeText={setNome}
-        style={{
-          borderWidth: 1,
-          borderColor: colors.border,
-          borderRadius: 8,
-          padding: 12,
-          marginBottom: 15,
-          color: colors.textPrimary,
-        }}
+        accessibilityLabel="Nome do medicamento"
+        style={styles.campo}
       />
 
-      <Text
-        style={{
-          fontWeight: 'bold',
-          marginBottom: 5,
-          color: colors.textPrimary,
-        }}
-      >
-        Quantidade
-      </Text>
+      <Text style={styles.rotulo}>Quantidade</Text>
 
       <TextInput
         placeholder="Ex: 500mg"
-        placeholderTextColor={colors.placeholder}
+        placeholderTextColor={themeColors.placeholder}
         value={quantidade}
         onChangeText={setQuantidade}
-        style={{
-          borderWidth: 1,
-          borderColor: colors.border,
-          borderRadius: 8,
-          padding: 12,
-          marginBottom: 15,
-          color: colors.textPrimary,
-        }}
+        accessibilityLabel="Quantidade do medicamento"
+        style={styles.campo}
       />
 
-      <Text
-        style={{
-          fontWeight: 'bold',
-          marginBottom: 5,
-          color: colors.textPrimary,
-        }}
-      >
-        Horário
-      </Text>
+      <Text style={styles.rotulo}>Horário</Text>
 
       <TouchableOpacity
-        style={{
-          borderWidth: 1,
-          borderColor: colors.border,
-          borderRadius: 8,
-          padding: 12,
-          marginBottom: 15,
-        }}
         onPress={() => setMostrarHorario(true)}
+        accessibilityRole="button"
+        accessibilityLabel="Selecionar horário da medicação"
+        style={styles.seletorHorario}
       >
-        <Text style={{ color: horario ? colors.textPrimary : colors.placeholder }}>{horario || 'Selecionar horário'}</Text>
+        <Text
+          style={[
+            styles.textoSeletorHorario,
+            { color: horario ? themeColors.textPrimary : themeColors.placeholder },
+          ]}
+        >
+          {horario || 'Selecionar horário'}
+        </Text>
       </TouchableOpacity>
 
       {mostrarHorario && (
@@ -138,38 +90,67 @@ export function MedicacaoForm({
       <TouchableOpacity
         onPress={onSalvar}
         disabled={processando}
-        style={{
-          backgroundColor: colors.success,
-          padding: 14,
-          borderRadius: 10,
-          alignItems: 'center',
-        }}
+        accessibilityRole="button"
+        accessibilityLabel={textoBotao}
+        accessibilityState={{ disabled: !!processando }}
+        style={styles.botaoSalvar}
       >
-        <Text
-          style={{
-            color: colors.textOnPrimary,
-            fontWeight: 'bold',
-          }}
-        >
-          {processando ? 'Salvando...' : textoBotao}
-        </Text>
+        {processando ? (
+          <ActivityIndicator color={themeColors.textOnPrimary} />
+        ) : (
+          <Text style={styles.textoBotaoSalvar}>{textoBotao}</Text>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity
         onPress={onCancelar}
-        style={{
-          marginTop: 10,
-          alignItems: 'center',
-        }}
+        accessibilityRole="button"
+        accessibilityLabel="Cancelar"
+        style={styles.botaoCancelar}
       >
-        <Text
-          style={{
-            color: colors.textSecondary,
-          }}
-        >
-          Cancelar
-        </Text>
+        <Text style={styles.textoBotaoCancelar}>Cancelar</Text>
       </TouchableOpacity>
     </View>
   );
 }
+
+const getStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      marginTop: spacing.xl,
+      marginBottom: spacing.xl,
+      padding: spacing.lg,
+      borderRadius: radius.md,
+      backgroundColor: colors.surface,
+    },
+    titulo: { ...typography.title1, color: colors.textPrimary, marginBottom: spacing.xl },
+    rotulo: { ...typography.bodyBold, color: colors.textPrimary, marginBottom: spacing.xs },
+    campo: {
+      ...typography.body,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.sm,
+      padding: spacing.md,
+      marginBottom: spacing.lg,
+      color: colors.textPrimary,
+    },
+    seletorHorario: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.sm,
+      padding: spacing.md,
+      marginBottom: spacing.lg,
+    },
+    textoSeletorHorario: { ...typography.body },
+    botaoSalvar: {
+      backgroundColor: colors.success,
+      paddingVertical: spacing.md,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 44,
+    },
+    textoBotaoSalvar: { ...typography.bodyBold, color: colors.textOnPrimary },
+    botaoCancelar: { marginTop: spacing.md, paddingVertical: spacing.sm, alignItems: 'center' },
+    textoBotaoCancelar: { ...typography.body, color: colors.textSecondary },
+  });

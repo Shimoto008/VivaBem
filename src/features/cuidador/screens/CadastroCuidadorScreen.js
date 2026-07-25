@@ -14,13 +14,11 @@ import { getStyles } from './CadastroCuidador.styles';
 import { useCuidadorCadastro } from '../hooks/useCuidadorCadastro';
 import { Input, Button, ScreenHeader, SelectModal } from '../../../components/ui';
 import { LISTA_ESPECIALIDADES } from '../../../constants/especialidades';
+import { ROUTES } from '../../../constants/routeNames';
 import { useTheme } from '../../../contexts/ThemeContext';
 
-/**
- * Tela "burra" por design: só lê o que o hook devolve e desenha a UI.
- * Toda validação, máscara, chamada de API e navegação pós-cadastro estão
- * em useCuidadorCadastro — a tela não duplica essa lógica.
- */
+const OPCAO_OUTRA_ESPECIALIDADE = 'Outros';
+
 export default function CadastroCuidadorScreen() {
   const navigation = useNavigation();
   const { themeColors } = useTheme();
@@ -29,6 +27,7 @@ export default function CadastroCuidadorScreen() {
     nome,
     telefone,
     cpf,
+    senha,
     especialidade,
     outraEspecialidade,
     erros,
@@ -38,6 +37,7 @@ export default function CadastroCuidadorScreen() {
     alterarNome,
     alterarCpf,
     alterarTelefone,
+    alterarSenha,
     alterarOutraEspecialidade,
     selecionarEspecialidade,
     salvar,
@@ -66,6 +66,9 @@ export default function CadastroCuidadorScreen() {
               placeholder="Digite seu nome completo"
               value={nome}
               onChangeText={alterarNome}
+              autoCapitalize="words"
+              autoCorrect={false}
+              textContentType="name"
               error={erros.nome}
             />
 
@@ -75,6 +78,7 @@ export default function CadastroCuidadorScreen() {
               value={cpf}
               onChangeText={alterarCpf}
               keyboardType="numeric"
+              autoCapitalize="none"
               maxLength={14}
               error={erros.cpf}
             />
@@ -85,17 +89,31 @@ export default function CadastroCuidadorScreen() {
               value={telefone}
               onChangeText={alterarTelefone}
               keyboardType="numeric"
+              autoCapitalize="none"
               maxLength={15}
+              textContentType="telephoneNumber"
               error={erros.telefone}
             />
 
-            <Text style={{ alignSelf: 'flex-start', fontWeight: '600', marginBottom: 8, color: themeColors.textPrimary }}>
-              Especialidade
-            </Text>
-            {especialidade !== 'Outros' ? (
+            <Input
+              label="Senha"
+              placeholder="Crie uma senha (mínimo 6 caracteres)"
+              value={senha}
+              onChangeText={alterarSenha}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              textContentType="newPassword"
+              error={erros.senha}
+            />
+
+            <Text style={styles.rotuloEspecialidade}>Especialidade</Text>
+            {especialidade !== OPCAO_OUTRA_ESPECIALIDADE ? (
               <TouchableOpacity
                 style={styles.seletor}
                 onPress={() => setModalEspecialidadeVisivel(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Selecionar especialidade"
               >
                 <Text
                   style={especialidade ? styles.seletorTextoPreenchido : styles.seletorTextoVazio}
@@ -108,14 +126,24 @@ export default function CadastroCuidadorScreen() {
                 placeholder="Escreva sua especialidade aqui..."
                 value={outraEspecialidade}
                 onChangeText={alterarOutraEspecialidade}
+                autoCapitalize="words"
                 autoFocus
               />
             )}
             {erros.especialidade ? (
-              <Text style={{ color: themeColors.danger, marginBottom: 8 }}>{erros.especialidade}</Text>
+              <Text style={styles.erroEspecialidade}>{erros.especialidade}</Text>
             ) : null}
 
             <Button title="Cadastrar" onPress={salvar} loading={enviando} />
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate(ROUTES.LOGIN)}
+              accessibilityRole="button"
+              accessibilityLabel="Entrar em uma conta existente"
+              style={styles.linkLogin}
+            >
+              <Text style={styles.textoLinkLogin}>Já tenho conta — entrar com CPF</Text>
+            </TouchableOpacity>
           </View>
         </TouchableWithoutFeedback>
 

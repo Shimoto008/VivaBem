@@ -1,96 +1,102 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { criarCuidador } from '../../../services/cuidadorService';
-import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../../../utils/masks';
-import { validarNomeCompleto, validarCPFObrigatorio, validarTelefoneObrigatorio } from '../../../utils/validators';
-import { ROUTES } from '../../../constants/routeNames';
+import { cadastrarEConectarCuidador } from '../../../services/authService';
 import { useSession } from '../../../contexts/SessionContext';
+import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../../../utils/masks';
+import {
+  validarCPFObrigatorio,
+  validarNomeCompleto,
+  validarTelefoneObrigatorio,
+} from '../../../utils/validators';
 
-/**
- * Toda a regra de negócio do cadastro de Cuidador (validação + chamada de
- * API + navegação) — a tela CadastroCuidadorScreen só lê o que este hook
- * devolve e desenha a UI.
- */
+const TAMANHO_MINIMO_SENHA = 6;
+const OPCAO_OUTRA_ESPECIALIDADE = 'Outros';
+
 export function useCuidadorCadastro() {
-  const navigation = useNavigation();
-  const { setCuidador } = useSession();
-
+  const { recarregarPerfil } = useSession();
   const [nome, setNome] = useState('');
-  const [telefone, setTelefone] = useState('');
   const [cpf, setCpf] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [senha, setSenha] = useState('');
   const [especialidade, setEspecialidade] = useState('');
   const [outraEspecialidade, setOutraEspecialidade] = useState('');
-  const [modalEspecialidadeVisivel, setModalEspecialidadeVisivel] = useState(false);
   const [erros, setErros] = useState({});
   const [enviando, setEnviando] = useState(false);
+  const [modalEspecialidadeVisivel, setModalEspecialidadeVisivel] = useState(false);
 
-  const alterarNome = (texto) => {
-    setNome(texto);
-    setErros((atual) => ({ ...atual, nome: null }));
-  };
+  const alterarCpf = (texto) => setCpf(aplicarMascaraCPF(texto));
+  const alterarTelefone = (texto) => setTelefone(aplicarMascaraTelefone(texto));
 
-  const alterarCpf = (texto) => {
-    setCpf(aplicarMascaraCPF(texto));
-    setErros((atual) => ({ ...atual, cpf: null }));
-  };
+  const especialidadeFinal = () =>
+    (especialidade === OPCAO_OUTRA_ESPECIALIDADE ? outraEspecialidade : especialidade).trim();
 
-  const alterarTelefone = (texto) => {
-    setTelefone(aplicarMascaraTelefone(texto));
-    setErros((atual) => ({ ...atual, telefone: null }));
-  };
+  const validar = () => {
+    const novosErros = {};
 
-  const alterarOutraEspecialidade = (texto) => {
-    setOutraEspecialidade(texto);
-    setErros((atual) => ({ ...atual, especialidade: null }));
-  };
+    const erroNome = validarNomeCompleto(nome);
+    if (erroNome) novosErros.nome = erroNome;
 
-  const selecionarEspecialidade = (opcao) => {
-    setEspecialidade(opcao);
-    setModalEspecialidadeVisivel(false);
-    setErros((atual) => ({ ...atual, especialidade: null }));
-  };
+    const erroCpf = validarCPFObrigatorio(cpf);
+    if (erroCpf) novosErros.cpf = erroCpf;
 
-  function validar() {
-    const novosErros = {
-      nome: validarNomeCompleto(nome),
-      cpf: validarCPFObrigatorio(cpf),
-      telefone: validarTelefoneObrigatorio(telefone),
-      especialidade: !especialidade
-        ? 'Campo obrigatório'
-        : especialidade === 'Outros' && !outraEspecialidade.trim()
-          ? 'Por favor, digite sua especialidade'
-          : null,
-    };
-    setErros(novosErros);
-    return Object.values(novosErros).every((mensagem) => !mensagem);
-  }
+    const erroTelefone = validarTelefoneObrigatorio(telefone);
+    if (erroTelefone) novosErros.telefone = erroTelefone;
 
-  async function salvar() {
-    if (!validar()) {
-      Alert.alert('Erro no formulário', 'Por favor, corrija os erros indicados na tela.');
-      return;
+    if (!senha || senha.length < TAMANHO_MINIMO_SENHA) {
+      novosErros.senha = `A senha deve ter no mínimo ${TAMANHO_MINIMO_SENHA} caracteres.`;
     }
 
-    const especialidadeFinal = especialidade === 'Outros' ? outraEspecialidade.trim() : especialidade;
+    if (!especialidadeFinal()) {
+      novosErros.especialidade = 'Selecione ou digite sua especialidade.';
+    }
+
+    setErros(novosErros);
+    return Object.keys(novosErros).length === 0;
+  };
+
+  const salvar = async () => {
+    if (!validar()) return;
 
     setEnviando(true);
     try {
-      const cuidadorCriado = await criarCuidador({ nome, cpf, telefone, especialidade: especialidadeFinal });
-      setCuidador(cuidadorCriado);
-      Alert.alert('Sucesso', 'Cuidador cadastrado!');
-      navigation.navigate(ROUTES.HOME_CUIDADOR);
+      await cadastrarEConectarCuidador({
+        nome,
+        cpf,
+        telefone,
+        senha,
+        especialidade: especialidadeFinal(),
+      });
+
+      // A sessão nasce no signUp, mas o perfil só existe após o insert acima:
+      // recarregar aqui garante que a navegação já saiba que é um cuidador.
+      await recarregarPerfil();
     } catch (erro) {
-      Alert.alert('Erro', erro.message ?? 'Não foi possível concluir o cadastro. Tente novamente.');
+      Alert.alert('Erro ao cadastrar', erro.message || 'Não foi possível concluir o cadastro.');
     } finally {
       setEnviando(false);
     }
-  }
+  };
 
   return {
-    nome, telefone, cpf, especialidade, outraEspecialidade, erros, enviando,
-    modalEspecialidadeVisivel, setModalEspecialidadeVisivel,
-    alterarNome, alterarCpf, alterarTelefone, alterarOutraEspecialidade, selecionarEspecialidade,
+    nome,
+    cpf,
+    telefone,
+    senha,
+    especialidade,
+    outraEspecialidade,
+    erros,
+    enviando,
+    modalEspecialidadeVisivel,
+    setModalEspecialidadeVisivel,
+    alterarNome: setNome,
+    alterarCpf,
+    alterarTelefone,
+    alterarSenha: setSenha,
+    alterarOutraEspecialidade: setOutraEspecialidade,
+    selecionarEspecialidade: (esp) => {
+      setEspecialidade(esp);
+      setModalEspecialidadeVisivel(false);
+    },
     salvar,
   };
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { getStyles } from '../screens/HomeCuidador.styles';
 import { PainelPaciente } from './PainelPaciente/PainelPaciente';
@@ -14,16 +14,24 @@ export function PacientesTab({ controlador }) {
   const styles = getStyles(colors);
   const {
     pacientes,
+    carregandoPacientes,
     pacienteSelecionado,
     selecionarPaciente,
     limparPacienteSelecionado,
     cuidadorId,
   } = controlador;
 
+  if (carregandoPacientes) {
+    return (
+      <View style={styles.containerAbas}>
+        <ActivityIndicator size="large" color={colors.primary} style={styles.carregando} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.containerAbas}>
-      {/* Lista de Idosos Vinculados */}
-      {pacientes && pacientes.length > 0 ? (
+      {pacientes.length > 0 ? (
         pacientes.map((idoso) => (
           <View key={idoso.id} style={styles.wrapperPaciente}>
             <TouchableOpacity
@@ -33,8 +41,8 @@ export function PacientesTab({ controlador }) {
               accessibilityLabel={`Abrir painel de ${idoso.nome}`}
             >
               <FontAwesome5 name="user-injured" size={24} color={colors.primary} />
-              <View style={{ marginLeft: 15, flex: 1 }}>
-                <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{idoso.nome}</Text>
+              <View style={styles.infoPacienteHome}>
+                <Text style={styles.nomePacienteHome}>{idoso.nome}</Text>
               </View>
               <MaterialIcons
                 name={pacienteSelecionado?.id === idoso.id ? 'expand-less' : 'expand-more'}
@@ -43,7 +51,6 @@ export function PacientesTab({ controlador }) {
               />
             </TouchableOpacity>
 
-            {/* Painel de detalhes do paciente quando expandido */}
             {pacienteSelecionado?.id === idoso.id && (
               <PainelPaciente
                 idoso={pacienteSelecionado}
@@ -56,10 +63,10 @@ export function PacientesTab({ controlador }) {
       ) : (
         /* O cuidador não cadastra pacientes — eles aparecem aqui somente
            depois que um familiar os cadastra e se conecta a este cuidador. */
-        <View style={{ padding: 20, alignItems: 'center' }}>
-          <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
-            Nenhum paciente vinculado no momento. Assim que um familiar cadastrar um idoso
-            e se conectar ao seu código, ele aparecerá aqui.
+        <View style={styles.containerMensagem}>
+          <Text style={styles.txtMensagem}>
+            Nenhum paciente vinculado no momento. Assim que um familiar cadastrar um idoso e se
+            conectar ao seu código, ele aparecerá aqui.
           </Text>
         </View>
       )}

@@ -41,7 +41,6 @@ export default function OnboardingScreen() {
 
         <Button
           title={ehUltimoPasso ? 'Fique com o App' : 'Próximo'}
-          variant={ehUltimoPasso ? 'primary' : 'primary'}
           onPress={avancar}
           style={styles.botao}
         />

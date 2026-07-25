@@ -17,6 +17,16 @@ export function formatarDataPtBR(date = new Date()) {
   return date.toLocaleDateString('pt-BR');
 }
 
+/**
+ * Formata 'YYYY-MM-DD' como 'DD/MM/AAAA' sem passar por `Date`: interpretar a
+ * string como Date a trata como UTC e mostraria o dia anterior no Brasil.
+ */
+export function formatarISODatePtBR(isoDate) {
+  const [ano, mes, dia] = (isoDate ?? '').split('-');
+  if (!ano || !mes || !dia) return '';
+  return `${dia}/${mes}/${ano}`;
+}
+
 /** Converte ano + mês (0-indexado, como Date) + dia para 'YYYY-MM-DD' (coluna `date` do Postgres). */
 export function paraISODate(ano, mesZeroIndexado, dia) {
   const mes = String(mesZeroIndexado + 1).padStart(2, '0');

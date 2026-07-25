@@ -1,70 +1,76 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { criarFamiliar } from '../../../services/familiarService';
-import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../../../utils/masks';
-import { validarNomeCompleto, validarCPFObrigatorio, validarTelefoneObrigatorio } from '../../../utils/validators';
-import { ROUTES } from '../../../constants/routeNames';
+import { cadastrarEConectarFamiliar } from '../../../services/authService';
 import { useSession } from '../../../contexts/SessionContext';
+import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../../../utils/masks';
+import {
+  validarCPFObrigatorio,
+  validarNomeCompleto,
+  validarTelefoneObrigatorio,
+} from '../../../utils/validators';
 
-/**
- * Antes esta tela (Familiar.js) não tinha NENHUMA lógica de envio — o botão
- * "CADASTRAR" não tinha onPress. Este hook implementa o fluxo real
- * (validação + persistência + navegação), no mesmo padrão do Cuidador.
- */
+const TAMANHO_MINIMO_SENHA = 6;
+
 export function useFamiliarCadastro() {
-  const navigation = useNavigation();
-  const { setFamiliar } = useSession();
-
+  const { recarregarPerfil } = useSession();
   const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
   const [telefone, setTelefone] = useState('');
+  const [senha, setSenha] = useState('');
   const [erros, setErros] = useState({});
   const [enviando, setEnviando] = useState(false);
 
-  const alterarNome = (texto) => {
-    setNome(texto);
-    setErros((atual) => ({ ...atual, nome: null }));
-  };
+  const alterarCpf = (texto) => setCpf(aplicarMascaraCPF(texto));
+  const alterarTelefone = (texto) => setTelefone(aplicarMascaraTelefone(texto));
 
-  const alterarCpf = (texto) => {
-    setCpf(aplicarMascaraCPF(texto));
-    setErros((atual) => ({ ...atual, cpf: null }));
-  };
+  const validar = () => {
+    const novosErros = {};
 
-  const alterarTelefone = (texto) => {
-    setTelefone(aplicarMascaraTelefone(texto));
-    setErros((atual) => ({ ...atual, telefone: null }));
-  };
+    const erroNome = validarNomeCompleto(nome);
+    if (erroNome) novosErros.nome = erroNome;
 
-  function validar() {
-    const novosErros = {
-      nome: validarNomeCompleto(nome),
-      cpf: validarCPFObrigatorio(cpf),
-      telefone: validarTelefoneObrigatorio(telefone),
-    };
-    setErros(novosErros);
-    return Object.values(novosErros).every((mensagem) => !mensagem);
-  }
+    const erroCpf = validarCPFObrigatorio(cpf);
+    if (erroCpf) novosErros.cpf = erroCpf;
 
-  async function salvar() {
-    if (!validar()) {
-      Alert.alert('Erro no formulário', 'Por favor, corrija os erros indicados na tela.');
-      return;
+    const erroTelefone = validarTelefoneObrigatorio(telefone);
+    if (erroTelefone) novosErros.telefone = erroTelefone;
+
+    if (!senha || senha.length < TAMANHO_MINIMO_SENHA) {
+      novosErros.senha = `A senha deve ter no mínimo ${TAMANHO_MINIMO_SENHA} caracteres.`;
     }
+
+    setErros(novosErros);
+    return Object.keys(novosErros).length === 0;
+  };
+
+  const salvar = async () => {
+    if (!validar()) return;
 
     setEnviando(true);
     try {
-      const familiarCriado = await criarFamiliar({ nome, cpf, telefone });
-      setFamiliar(familiarCriado);
-      Alert.alert('Sucesso', 'Cadastro de familiar concluído!');
-      navigation.navigate(ROUTES.HOME_FAMILIAR);
+      await cadastrarEConectarFamiliar({ nome, cpf, telefone, senha });
+
+      // A sessão nasce no signUp, mas o perfil só existe após o insert acima:
+      // recarregar aqui garante que a navegação já saiba que é um familiar.
+      await recarregarPerfil();
     } catch (erro) {
-      Alert.alert('Erro', erro.message ?? 'Não foi possível concluir o cadastro. Tente novamente.');
+      Alert.alert('Erro no cadastro', erro.message || 'Não foi possível realizar o cadastro.');
     } finally {
       setEnviando(false);
     }
-  }
+  };
 
-  return { nome, cpf, telefone, erros, enviando, alterarNome, alterarCpf, alterarTelefone, salvar };
+  return {
+    nome,
+    cpf,
+    telefone,
+    senha,
+    erros,
+    enviando,
+    alterarNome: setNome,
+    alterarCpf,
+    alterarTelefone,
+    alterarSenha: setSenha,
+    salvar,
+  };
 }

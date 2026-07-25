@@ -7,6 +7,7 @@ import { getStyles } from './Home.styles';
 import { PERFIL_OPTIONS } from './perfilOptions';
 import { Card } from '../../../components/ui';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { ROUTES } from '../../../constants/routeNames';
 
 const FAMILIAS_DE_ICONE = { MaterialIcons, FontAwesome5 };
 
@@ -17,7 +18,11 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <Image style={styles.img} source={require('../../../../assets/VivaBem.png')} />
         <Text style={styles.titulo}>Área de Login</Text>
         <Text style={styles.subtitulo}>Auxiliar cuidadores de idoso</Text>
@@ -48,6 +53,16 @@ export default function HomeScreen() {
             );
           })}
         </View>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate(ROUTES.LOGIN)}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Entrar em uma conta existente"
+          style={styles.linkLogin}
+        >
+          <Text style={styles.textoLinkLogin}>Já tenho conta — entrar com CPF</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );

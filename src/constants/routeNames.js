@@ -6,6 +6,7 @@ export const ROUTES = {
   SPLASH: 'Splash',
   ONBOARDING: 'Onboarding',
   HOME: 'Home',
+  LOGIN: 'Login',
   CADASTRO_CUIDADOR: 'CadastroCuidador',
   HOME_CUIDADOR: 'HomeCuidador',
   CADASTRO_FAMILIAR: 'CadastroFamiliar',

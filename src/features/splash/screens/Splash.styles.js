@@ -8,4 +8,6 @@ export const getStyles = (colors) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
+    logoWrapper: { alignItems: 'center' },
+    logo: { width: 140, height: 140, resizeMode: 'contain' },
   });

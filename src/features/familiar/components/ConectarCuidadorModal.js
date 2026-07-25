@@ -5,11 +5,10 @@ import { Input, Button } from '../../../components/ui';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useConexaoFamiliarContext } from '../../../contexts/ConexaoFamiliarContext';
 
+const TAMANHO_CODIGO = 6;
+
 /**
- * Modal de conexão com um cuidador via código. A regra "só pode haver UMA
- * conexão ativa por vez" não é decidida aqui — este componente só chama
- * `conectarPorCodigo` e exibe a mensagem que vier (DomainError ou erro de
- * rede), como pedido: a lógica fica fora da interface.
+ * Modal de conexão com um cuidador via código.
  */
 export function ConectarCuidadorModal({ visible, onClose }) {
   const { conectarPorCodigo, processando } = useConexaoFamiliarContext();
@@ -19,11 +18,15 @@ export function ConectarCuidadorModal({ visible, onClose }) {
   const [erroLocal, setErroLocal] = useState(null);
 
   async function confirmar() {
+    Keyboard.dismiss();
+
     if (!codigo.trim()) {
       setErroLocal('Digite o código do cuidador.');
       return;
     }
+
     setErroLocal(null);
+
     try {
       await conectarPorCodigo(codigo.trim());
       setCodigo('');
@@ -45,7 +48,9 @@ export function ConectarCuidadorModal({ visible, onClose }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitulo}>Conectar a um Cuidador</Text>
-            <Text style={styles.modalSubtitulo}>Peça ao cuidador o código de 6 caracteres gerado no cadastro dele.</Text>
+            <Text style={styles.modalSubtitulo}>
+              Peça ao cuidador o código gerado no aplicativo dele.
+            </Text>
 
             <Input
               label="Código do Cuidador"
@@ -53,14 +58,20 @@ export function ConectarCuidadorModal({ visible, onClose }) {
               value={codigo}
               onChangeText={(texto) => setCodigo(texto.toUpperCase())}
               autoCapitalize="characters"
-              maxLength={6}
+              autoCorrect={false}
+              maxLength={TAMANHO_CODIGO}
             />
 
             {erroLocal ? <Text style={styles.modalErro}>{erroLocal}</Text> : null}
 
             <View style={styles.modalAcoes}>
-              <Button title="Cancelar" variant="outline" onPress={fechar} style={{ flex: 1 }} />
-              <Button title="Conectar" onPress={confirmar} loading={processando} style={{ flex: 1 }} />
+              <Button title="Cancelar" variant="outline" onPress={fechar} style={styles.modalBotao} />
+              <Button
+                title="Conectar"
+                onPress={confirmar}
+                loading={processando}
+                style={styles.modalBotao}
+              />
             </View>
           </View>
         </View>

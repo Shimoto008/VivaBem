@@ -1,32 +1,61 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  Alert,
+  ActivityIndicator,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
-import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
-import { getStyles } from '../screens/HomeCuidador.styles';
-import { Input, Button } from '../../../components/ui';
+import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+
+import { Input, Button, PreferenciasAparencia, BotaoLogout } from '../../../components/ui';
+import { radius, spacing, typography } from '../../../theme';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useSession } from '../../../contexts/SessionContext';
 import { atualizarPerfilCuidador } from '../../../services/cuidadorService';
+import { aplicarMascaraTelefone, somenteDigitos } from '../../../utils/masks';
 
-/**
- * Antes "RenderPerfilCuidador.js": usava um nome fixo no código
- * ("Carlos Alberto Silva") em vez do cuidador realmente logado, e o botão
- * "Editar Perfil" não salvava nada. Agora lê do SessionContext (o cuidador
- * que de fato se cadastrou) e persiste a edição via cuidadorService.
- *
- * A foto de perfil ainda fica só em memória (useState) — persistir uma
- * imagem exige Supabase Storage, o que depende de configuração no backend
- * (ver relatório final).
- */
+const DURACAO_FEEDBACK_COPIA_MS = 2000;
+const QUALIDADE_FOTO = 0.7;
+
 export function PerfilCuidadorTab() {
-  const { cuidador, setCuidador } = useSession();
-  const { themeColors: colors } = useTheme();
-  const styles = getStyles(colors);
+  const { perfil: cuidador, atualizarPerfilLocal, carregando } = useSession();
+  const { themeColors, primaryColor } = useTheme();
+  const styles = getStyles(themeColors);
+
   const [foto, setFoto] = useState(null);
   const [editando, setEditando] = useState(false);
-  const [telefoneEdicao, setTelefoneEdicao] = useState(cuidador?.telefone ?? '');
-  const [especialidadeEdicao, setEspecialidadeEdicao] = useState(cuidador?.especialidade ?? '');
+  const [telefoneEdicao, setTelefoneEdicao] = useState('');
+  const [especialidadeEdicao, setEspecialidadeEdicao] = useState('');
   const [salvando, setSalvando] = useState(false);
+  const [codigoCopiado, setCodigoCopiado] = useState(false);
+  const temporizadorCopiaRef = useRef(null);
+
+  useEffect(() => {
+    setTelefoneEdicao(aplicarMascaraTelefone(cuidador?.telefone ?? ''));
+    setEspecialidadeEdicao(cuidador?.especialidade ?? '');
+  }, [cuidador?.telefone, cuidador?.especialidade]);
+
+  useEffect(() => () => clearTimeout(temporizadorCopiaRef.current), []);
+
+  async function copiarCodigo() {
+    if (!cuidador?.codigo) return;
+    try {
+      await Clipboard.setStringAsync(cuidador.codigo);
+      setCodigoCopiado(true);
+      clearTimeout(temporizadorCopiaRef.current);
+      temporizadorCopiaRef.current = setTimeout(
+        () => setCodigoCopiado(false),
+        DURACAO_FEEDBACK_COPIA_MS
+      );
+    } catch {
+      Alert.alert('Não foi possível copiar', 'Copie o código manualmente e envie ao familiar.');
+    }
+  }
 
   async function selecionarFoto() {
     try {
@@ -35,7 +64,10 @@ export function PerfilCuidadorTab() {
         Alert.alert('Permissão necessária', 'Autorize o acesso à galeria para escolher uma foto.');
         return;
       }
-      const resultado = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
+      const resultado = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: QUALIDADE_FOTO,
+      });
       if (!resultado.canceled) setFoto(resultado.assets[0].uri);
     } catch {
       Alert.alert('Não foi possível abrir a galeria', 'Tente novamente em alguns instantes.');
@@ -46,10 +78,10 @@ export function PerfilCuidadorTab() {
     setSalvando(true);
     try {
       const atualizado = await atualizarPerfilCuidador(cuidador.id, {
-        telefone: telefoneEdicao,
-        especialidade: especialidadeEdicao,
+        telefone: somenteDigitos(telefoneEdicao),
+        especialidade: especialidadeEdicao.trim() || null,
       });
-      setCuidador(atualizado);
+      atualizarPerfilLocal(atualizado);
       setEditando(false);
     } catch {
       Alert.alert('Erro', 'Não foi possível salvar as alterações.');
@@ -58,64 +90,200 @@ export function PerfilCuidadorTab() {
     }
   }
 
+  if (carregando) {
+    return (
+      <View style={styles.containerCarregando}>
+        <ActivityIndicator size="large" color={primaryColor} />
+      </View>
+    );
+  }
+
   if (!cuidador) {
     return (
-      <View style={styles.containerAbas}>
-        <Text>Nenhum cuidador logado nesta sessão.</Text>
+      <View style={styles.containerCarregando}>
+        <MaterialIcons name="person-off" size={32} color={themeColors.textTertiary} />
+        <Text style={styles.textoSecundario}>Nenhum cuidador logado nesta sessão.</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.containerAbas}>
-      <View style={styles.headerPerfil}>
-        <TouchableOpacity onPress={selecionarFoto} accessibilityLabel="Alterar foto de perfil">
-          {foto ? (
-            <Image source={{ uri: foto }} style={{ width: 70, height: 70, borderRadius: 35 }} />
-          ) : (
-            <FontAwesome5 name="user-circle" size={70} color={colors.primary} />
-          )}
-        </TouchableOpacity>
-        <View style={styles.infoDireitaPerfil}>
-          <Text style={styles.nomeCuidador}>{cuidador.nome}</Text>
-          <Text style={styles.subtituloCuidador}>{cuidador.especialidade}</Text>
-          <TouchableOpacity style={styles.btnEditarPerfil} onPress={() => setEditando((atual) => !atual)} accessibilityLabel="Editar perfil">
-            <MaterialIcons name="edit" size={14} color={colors.white} />
-            <Text style={styles.txtBtnEditarPerfil}>{editando ? 'Cancelar' : 'Editar Perfil'}</Text>
+    <View style={styles.container}>
+      <View style={styles.card}>
+        <View style={styles.linhaCentralizada}>
+          <TouchableOpacity
+            onPress={selecionarFoto}
+            accessibilityRole="button"
+            accessibilityLabel="Alterar foto de perfil"
+          >
+            {foto ? (
+              <Image source={{ uri: foto }} style={styles.foto} />
+            ) : (
+              <View style={[styles.avatar, { backgroundColor: primaryColor }]}>
+                <FontAwesome5 name="user-nurse" size={28} color={themeColors.white} />
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.infoPerfil}>
+            <Text style={styles.nome}>{cuidador.nome}</Text>
+            <Text style={styles.textoSecundario}>
+              {cuidador.especialidade || 'Especialidade não informada'}
+            </Text>
+            <Text style={styles.textoSecundario}>
+              {aplicarMascaraTelefone(cuidador.telefone ?? '') || 'Telefone não informado'}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => setEditando((atual) => !atual)}
+            accessibilityRole="button"
+            accessibilityLabel={editando ? 'Cancelar edição' : 'Editar perfil'}
+            style={styles.botaoEditar}
+          >
+            <MaterialIcons
+              name={editando ? 'close' : 'edit'}
+              size={18}
+              color={themeColors.textOnPrimary}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {editando ? (
+          <View style={styles.formularioEdicao}>
+            <Input
+              label="Telefone"
+              value={telefoneEdicao}
+              onChangeText={(texto) => setTelefoneEdicao(aplicarMascaraTelefone(texto))}
+              keyboardType="numeric"
+              maxLength={15}
+              placeholder="(11) 90000-0000"
+            />
+            <Input
+              label="Especialidade"
+              value={especialidadeEdicao}
+              onChangeText={setEspecialidadeEdicao}
+              autoCapitalize="words"
+              placeholder="Ex.: Técnico em Enfermagem"
+            />
+            <Button title="Salvar Alterações" onPress={salvarEdicao} loading={salvando} />
+          </View>
+        ) : null}
+      </View>
+
+      <Text style={styles.secaoTitulo}>Código de Vínculo</Text>
+      <View style={[styles.cardCodigo, { borderColor: primaryColor }]}>
+        <Text style={styles.textoSecundario}>
+          Informe este código ao familiar para que ele se conecte a você.
+        </Text>
+
+        <View style={styles.linhaCodigo}>
+          <Text style={[styles.codigo, { color: primaryColor }]}>
+            {cuidador.codigo ?? '------'}
+          </Text>
+          <TouchableOpacity
+            onPress={copiarCodigo}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Copiar código de vínculo"
+            style={[styles.botaoCopiar, { backgroundColor: primaryColor }]}
+          >
+            <MaterialIcons
+              name={codigoCopiado ? 'check' : 'content-copy'}
+              size={16}
+              color={themeColors.textOnPrimary}
+            />
+            <Text style={styles.textoBotaoCopiar}>{codigoCopiado ? 'Copiado!' : 'Copiar'}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {editando && (
-        <View style={styles.cardSecaoPerfil}>
-          <Input label="Telefone" value={telefoneEdicao} onChangeText={setTelefoneEdicao} keyboardType="numeric" />
-          <Input label="Especialidade" value={especialidadeEdicao} onChangeText={setEspecialidadeEdicao} />
-          <Button title="Salvar Alterações" onPress={salvarEdicao} loading={salvando} />
-        </View>
-      )}
+      <Text style={styles.secaoTitulo}>Aparência e Preferências</Text>
+      <PreferenciasAparencia />
 
-      <View style={styles.cardSecaoPerfil}>
-        <View style={styles.tituloSecaoPerfilContainer}>
-          <MaterialIcons name="info-outline" size={18} color={colors.primary} />
-          <Text style={styles.tituloSecaoPerfil}>Sobre</Text>
-        </View>
-        <Text style={styles.conteudoTextoPerfil}>
-          Cuidador(a) cadastrado(a) no VivaBem, responsável pelo acompanhamento diário dos idosos sob seus cuidados.
-        </Text>
-      </View>
-
-      <View style={styles.cardSecaoPerfil}>
-        <View style={styles.tituloSecaoPerfilContainer}>
-          <MaterialIcons name="work-outline" size={18} color={colors.primary} />
-          <Text style={styles.tituloSecaoPerfil}>Experiência</Text>
-        </View>
-        <View style={styles.itemExperiencia}>
-          <Text style={styles.cargoExperiencia}>{cuidador.especialidade}</Text>
-          <Text style={styles.detalheExperiencia}>
-            Cadastre relatórios, medicações e observações pela aba “Pacientes” para começar a montar seu histórico de atendimentos.
-          </Text>
-        </View>
-      </View>
+      <BotaoLogout />
     </View>
   );
 }
+
+const getStyles = (colors) =>
+  StyleSheet.create({
+    container: { flex: 1, paddingBottom: spacing.lg },
+    containerCarregando: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: spacing.xl,
+      gap: spacing.sm,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      padding: spacing.lg,
+      borderRadius: radius.lg,
+      marginBottom: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    linhaCentralizada: { flexDirection: 'row', alignItems: 'center' },
+    avatar: {
+      width: 60,
+      height: 60,
+      borderRadius: radius.full,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    foto: { width: 60, height: 60, borderRadius: radius.full },
+    infoPerfil: { flex: 1, marginLeft: spacing.lg },
+    nome: { ...typography.title2, color: colors.textPrimary },
+    textoSecundario: { ...typography.caption, color: colors.textSecondary, marginTop: 2 },
+    botaoEditar: {
+      width: 36,
+      height: 36,
+      borderRadius: radius.full,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primary,
+    },
+    formularioEdicao: {
+      marginTop: spacing.lg,
+      borderTopWidth: 1,
+      borderTopColor: colors.divider,
+      paddingTop: spacing.lg,
+    },
+    secaoTitulo: {
+      ...typography.caption,
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      color: colors.textSecondary,
+      marginBottom: spacing.sm,
+      marginLeft: spacing.xs,
+    },
+    cardCodigo: {
+      backgroundColor: colors.primarySoft,
+      padding: spacing.lg,
+      borderRadius: radius.lg,
+      marginBottom: spacing.lg,
+      borderWidth: 1.5,
+      borderStyle: 'dashed',
+    },
+    linhaCodigo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: spacing.sm,
+    },
+    codigo: { ...typography.largeTitle, letterSpacing: 4 },
+    botaoCopiar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.full,
+    },
+    textoBotaoCopiar: {
+      ...typography.caption,
+      fontWeight: '700',
+      color: colors.textOnPrimary,
+      marginLeft: spacing.xs,
+    },
+  });

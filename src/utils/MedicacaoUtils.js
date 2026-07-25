@@ -13,12 +13,17 @@ export function interpretarMedicacao(atividade) {
       original: atividade,
     };
   } catch {
+    // Registros antigos gravavam só o nome do remédio, sem JSON.
     return {
       id: atividade.id,
       nome: atividade.conteudo,
       quantidade: '',
       horario: '',
+      titulo: atividade.conteudo,
+      subtitulo: '',
+      conteudo: atividade.conteudo,
       created_at: atividade.created_at,
+      original: atividade,
     };
   }
 }

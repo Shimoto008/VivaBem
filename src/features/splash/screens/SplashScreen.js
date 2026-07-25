@@ -10,7 +10,12 @@ const { height } = Dimensions.get('window');
 const DURACAO_SUBIDA_LOGO_MS = 1500;
 const DURACAO_TOTAL_SPLASH_MS = 5500;
 
-export default function SplashScreen() {
+/**
+ * `autoNavegar` fica desligado quando a Splash é usada apenas como tela de
+ * espera pelo carregamento da sessão (fora do Stack.Navigator, em routes.js):
+ * ali não existe rota para onde navegar.
+ */
+export default function SplashScreen({ autoNavegar = true }) {
   const navigation = useNavigation();
   const { themeColors } = useTheme();
   const styles = getStyles(themeColors);
@@ -22,30 +27,22 @@ export default function SplashScreen() {
       duration: DURACAO_SUBIDA_LOGO_MS,
       useNativeDriver: true,
     }).start();
+  }, [posicaoLogo]);
 
-    const timer = setTimeout(() => {
+  useEffect(() => {
+    if (!autoNavegar) return undefined;
+
+    const temporizador = setTimeout(() => {
       navigation.replace(ROUTES.ONBOARDING);
     }, DURACAO_TOTAL_SPLASH_MS);
 
-    return () => clearTimeout(timer);
-  }, [navigation, posicaoLogo]);
+    return () => clearTimeout(temporizador);
+  }, [autoNavegar, navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
-      <Animated.View
-        style={{
-          transform: [{ translateY: posicaoLogo }],
-          alignItems: 'center',
-        }}
-      >
-        <Image
-          style={{
-            width: 140,
-            height: 140,
-            resizeMode: 'contain',
-          }}
-          source={require('../../../../assets/VivaBem.png')}
-        />
+      <Animated.View style={[styles.logoWrapper, { transform: [{ translateY: posicaoLogo }] }]}>
+        <Image style={styles.logo} source={require('../../../../assets/VivaBem.png')} />
       </Animated.View>
     </SafeAreaView>
   );

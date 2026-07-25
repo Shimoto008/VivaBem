@@ -20,7 +20,11 @@ export function useAtividadesPaciente(pacienteId, cuidadorId) {
   const [itemEmEdicao, setItemEmEdicao] = useState(null);
 
   const recarregar = useCallback(async () => {
-    if (!pacienteId) return;
+    if (!pacienteId) {
+      setAtividades([]);
+      setCarregando(false);
+      return;
+    }
     setCarregando(true);
     setErro(null);
     try {

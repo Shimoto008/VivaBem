@@ -26,7 +26,7 @@ const ABAS = [
  * inferior porque a BottomTabBar já soma o inset de baixo sozinha.
  */
 export default function HomeCuidadorScreen() {
-  const { cuidador } = useSession();
+  const { perfil: cuidador } = useSession();
   const controlador = useHomeCuidador(cuidador?.id);
   const { abaAtiva, setAbaAtiva } = controlador;
   const { themeColors } = useTheme();

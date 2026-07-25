@@ -1,7 +1,8 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 import { Input, Button } from '../../../components/ui';
+import { radius, spacing } from '../../../theme';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 export function CadastroIdosoForm({
@@ -16,47 +17,36 @@ export function CadastroIdosoForm({
   onSalvar,
 }) {
   const { themeColors } = useTheme();
+  const styles = getStyles(themeColors);
 
   return (
-    <View
-      style={{
-        backgroundColor: themeColors.surface,
-        padding: 20,
-        borderRadius: 15,
-        marginTop: 20,
-        elevation: 3,
-      }}
-    >
-
+    <View style={styles.container}>
       <Input
-        placeholder="Nome Completo"
+        label="Nome Completo"
+        placeholder="Nome do idoso"
         value={nome}
         onChangeText={setNome}
+        autoCapitalize="words"
         error={erros.nome}
       />
 
-
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-        }}
-      >
-
-        <View style={{ width: '30%' }}>
+      <View style={styles.linhaCampos}>
+        <View style={styles.campoIdade}>
           <Input
-            placeholder="Idade"
+            label="Idade"
+            placeholder="Ex.: 78"
             keyboardType="numeric"
+            maxLength={3}
             value={idade}
             onChangeText={setIdade}
             error={erros.idade}
           />
         </View>
 
-
-        <View style={{ width: '65%' }}>
+        <View style={styles.campoCpf}>
           <Input
-            placeholder="CPF"
+            label="CPF"
+            placeholder="000.000.000-00"
             keyboardType="numeric"
             maxLength={14}
             value={cpf}
@@ -64,20 +54,25 @@ export function CadastroIdosoForm({
             error={erros.cpf}
           />
         </View>
-
       </View>
 
-
-      <Button
-        title="Cadastrar Idoso"
-        onPress={onSalvar}
-        loading={enviando}
-        style={{
-          width: '100%',
-          marginTop: 10,
-        }}
-      />
-
+      <Button title="Cadastrar Idoso" onPress={onSalvar} loading={enviando} style={styles.botao} />
     </View>
   );
 }
+
+const getStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: colors.surface,
+      padding: spacing.xl,
+      borderRadius: radius.lg,
+      marginTop: spacing.xl,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    linhaCampos: { flexDirection: 'row', justifyContent: 'space-between' },
+    campoIdade: { width: '30%' },
+    campoCpf: { width: '65%' },
+    botao: { width: '100%', marginTop: spacing.sm },
+  });

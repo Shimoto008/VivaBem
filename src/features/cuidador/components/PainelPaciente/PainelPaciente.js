@@ -1,16 +1,18 @@
 import React, { useMemo } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { getStyles } from '../../screens/HomeCuidador.styles';
 import { useAtividadesPaciente } from '../../hooks/useAtividadesPaciente';
 import { ATIVIDADE_TIPOS } from '../../../../constants/atividadeTipos';
 import { useTheme } from '../../../../contexts/ThemeContext';
+import { radius, spacing, typography } from '../../../../theme';
 
 export function PainelPaciente({ idoso, cuidadorId, onFechar }) {
   const { themeColors } = useTheme();
   const styles = getStyles(themeColors);
-  const { atividades } = useAtividadesPaciente(idoso.id, cuidadorId);
+  const stylesLocais = getStylesLocais(themeColors);
+  const { atividades, carregando } = useAtividadesPaciente(idoso.id, cuidadorId);
 
   const resumo = useMemo(() => {
     return {
@@ -25,25 +27,63 @@ export function PainelPaciente({ idoso, cuidadorId, onFechar }) {
       <View style={styles.topoAcoes}>
         <Text style={styles.tituloAcoes}>Resumo do paciente</Text>
 
-        <TouchableOpacity onPress={onFechar}>
+        <TouchableOpacity
+          onPress={onFechar}
+          accessibilityRole="button"
+          accessibilityLabel="Fechar resumo do paciente"
+        >
           <MaterialIcons name="close" size={22} color={themeColors.textSecondary} />
         </TouchableOpacity>
       </View>
 
-      <View
-        style={{
-          backgroundColor: themeColors.surface,
-          padding: 15,
-          borderRadius: 12,
-        }}
-      >
-        <Text style={{ fontSize: 20, fontWeight: 'bold', color: themeColors.textPrimary }}>{idoso.nome}</Text>
+      <View style={stylesLocais.cartao}>
+        <Text style={stylesLocais.nome}>{idoso.nome}</Text>
 
-        <Text style={{ marginTop: 8, color: themeColors.textSecondary }}>Idade: {idoso.idade} anos</Text>
-        <Text style={{ marginTop: 8, color: themeColors.textSecondary }}>💊 Medicações: {resumo.medicacoes}</Text>
-        <Text style={{ marginTop: 8, color: themeColors.textSecondary }}>📄 Relatórios: {resumo.relatorios}</Text>
-        <Text style={{ marginTop: 8, color: themeColors.textSecondary }}>📅 Atividades registradas: {resumo.totalAtividades}</Text>
+        <Text style={stylesLocais.idade}>
+          {idoso.idade ? `Idade: ${idoso.idade} anos` : 'Idade não informada'}
+        </Text>
+
+        {carregando ? (
+          <ActivityIndicator
+            size="large"
+            color={themeColors.primary}
+            style={stylesLocais.carregando}
+          />
+        ) : (
+          <>
+            <View style={stylesLocais.linhaResumo}>
+              <MaterialIcons name="medication" size={18} color={themeColors.textSecondary} />
+              <Text style={stylesLocais.textoResumo}>Medicações: {resumo.medicacoes}</Text>
+            </View>
+
+            <View style={stylesLocais.linhaResumo}>
+              <MaterialIcons name="description" size={18} color={themeColors.textSecondary} />
+              <Text style={stylesLocais.textoResumo}>Relatórios: {resumo.relatorios}</Text>
+            </View>
+
+            <View style={stylesLocais.linhaResumo}>
+              <MaterialIcons name="event" size={18} color={themeColors.textSecondary} />
+              <Text style={stylesLocais.textoResumo}>
+                Atividades registradas: {resumo.totalAtividades}
+              </Text>
+            </View>
+          </>
+        )}
       </View>
     </View>
   );
 }
+
+const getStylesLocais = (colors) =>
+  StyleSheet.create({
+    cartao: {
+      backgroundColor: colors.surface,
+      padding: spacing.lg,
+      borderRadius: radius.md,
+    },
+    nome: { ...typography.title1, color: colors.textPrimary },
+    idade: { ...typography.body, color: colors.textSecondary, marginTop: spacing.sm },
+    linhaResumo: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm },
+    textoResumo: { ...typography.body, color: colors.textSecondary, marginLeft: spacing.sm },
+    carregando: { marginTop: spacing.lg, alignSelf: 'flex-start' },
+  });

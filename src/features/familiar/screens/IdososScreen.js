@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 
+import { radius, spacing, typography } from '../../../theme';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { ScreenHeader } from '../../../components/ui';
+import { useSession } from '../../../contexts/SessionContext';
+import { Input, Button, ScreenHeader } from '../../../components/ui';
+import { aplicarMascaraTelefone } from '../../../utils/masks';
 
 import { CadastroIdosoForm } from '../components/CadastroIdosoForm';
 import { useCadastroPacienteForm } from '../hooks/useCadastroPacienteForm';
-import { useSession } from '../../../contexts/SessionContext';
 import {
   criarPaciente,
   listarPacientesPorFamiliar,
@@ -23,15 +25,15 @@ import {
  * `SwipeableTabs` em HomeFamiliarScreen, que já provê a rolagem vertical.
  */
 export default function IdososScreen() {
-  const { familiar } = useSession();
-  const { themeColors: colors } = useTheme();
+  const { perfil: familiar } = useSession();
+  const { themeColors } = useTheme();
+  const styles = getStyles(themeColors);
 
   const [idosos, setIdosos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [idosoSelecionado, setIdosoSelecionado] = useState(null);
   const [formularioAberto, setFormularioAberto] = useState(false);
 
-  // Estados para edição/detalhes de saúde do idoso selecionado
   const [editandoSaude, setEditandoSaude] = useState(false);
   const [alergias, setAlergias] = useState('');
   const [tipoSanguineo, setTipoSanguineo] = useState('');
@@ -39,16 +41,18 @@ export default function IdososScreen() {
   const [observacoesMedicas, setObservacoesMedicas] = useState('');
   const [salvandoDetalhes, setSalvandoDetalhes] = useState(false);
 
-  // 1. BUSCAR IDOSOS CADASTRADOS POR ESTE FAMILIAR
   const buscarIdososDoBanco = useCallback(async () => {
-    if (!familiar?.id) return;
+    if (!familiar?.id) {
+      setCarregando(false);
+      return;
+    }
 
     try {
       setCarregando(true);
       const lista = await listarPacientesPorFamiliar(familiar.id);
       setIdosos(lista ?? []);
-    } catch (err) {
-      console.error('Erro ao buscar idosos:', err.message);
+    } catch (erro) {
+      console.error('Erro ao buscar idosos:', erro.message);
     } finally {
       setCarregando(false);
     }
@@ -58,23 +62,22 @@ export default function IdososScreen() {
     buscarIdososDoBanco();
   }, [buscarIdososDoBanco]);
 
-  // Carrega as informações adicionais de saúde ao selecionar o idoso
   const selecionarPaciente = (idoso) => {
     if (idosoSelecionado?.id === idoso.id) {
       setIdosoSelecionado(null);
       setEditandoSaude(false);
-    } else {
-      setIdosoSelecionado(idoso);
-      setAlergias(idoso.alergias || '');
-      setTipoSanguineo(idoso.tipo_sanguineo || '');
-      setContatoEmergencia(idoso.contato_emergencia || '');
-      setObservacoesMedicas(idoso.observacoes_medicas || '');
-      setEditandoSaude(false);
+      return;
     }
+
+    setIdosoSelecionado(idoso);
+    setAlergias(idoso.alergias || '');
+    setTipoSanguineo(idoso.tipo_sanguineo || '');
+    setContatoEmergencia(aplicarMascaraTelefone(idoso.contato_emergencia || ''));
+    setObservacoesMedicas(idoso.observacoes_medicas || '');
+    setEditandoSaude(false);
   };
 
-  // 2. SALVAR INFORMAÇÕES ADICIONAIS DE SAÚDE
-  const handleSalvarDetalhesSaude = async () => {
+  const salvarDetalhesSaude = async () => {
     if (!idosoSelecionado?.id) return;
 
     try {
@@ -96,11 +99,10 @@ export default function IdososScreen() {
     }
   };
 
-  // 3. CADASTRAR NOVO IDOSO (paciente) — regra de negócio: só o Familiar cadastra.
   // Erros são propagados de propósito: useCadastroPacienteForm.salvar() já
   // trata sucesso/erro (Alert + limpeza do form) — duplicar isso aqui geraria
   // alertas contraditórios.
-  const handleCadastrarIdoso = async (dadosIdoso) => {
+  const cadastrarIdoso = async (dadosIdoso) => {
     if (!familiar?.id) {
       throw new Error('Sessão do familiar não encontrada.');
     }
@@ -116,63 +118,35 @@ export default function IdososScreen() {
     setFormularioAberto(false);
   };
 
-  const {
-    nome,
-    setNome,
-    idade,
-    setIdade,
-    cpf,
-    alterarCpf,
-    erros,
-    enviando,
-    salvar,
-  } = useCadastroPacienteForm(handleCadastrarIdoso);
+  const { nome, setNome, idade, setIdade, cpf, alterarCpf, erros, enviando, salvar } =
+    useCadastroPacienteForm(cadastrarIdoso);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={styles.container}>
       <ScreenHeader
         title="Gestão de Idosos"
         subtitle="Acompanhe e gerencie os idosos cadastrados"
       />
 
-      {/* BOTÃO EXPANSÍVEL (TRANCEJADO) DE CADASTRO */}
       <TouchableOpacity
-        onPress={() => setFormularioAberto(!formularioAberto)}
+        onPress={() => setFormularioAberto((aberto) => !aberto)}
         activeOpacity={0.7}
-        style={{
-          borderWidth: 1.5,
-          borderStyle: 'dashed',
-          borderColor: colors.primary,
-          borderRadius: 15,
-          paddingVertical: 18,
-          paddingHorizontal: 20,
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: colors.surface,
-          marginTop: 15,
-          marginBottom: formularioAberto ? 10 : 20,
-        }}
+        accessibilityRole="button"
+        accessibilityLabel={formularioAberto ? 'Fechar cadastro' : 'Cadastrar novo idoso'}
+        style={[styles.botaoCadastro, formularioAberto && styles.botaoCadastroAberto]}
       >
         <MaterialIcons
           name={formularioAberto ? 'remove-circle-outline' : 'add-circle-outline'}
           size={26}
-          color={colors.primary}
+          color={themeColors.primary}
         />
-        <Text
-          style={{
-            marginLeft: 12,
-            fontSize: 16,
-            fontWeight: 'bold',
-            color: colors.primary,
-          }}
-        >
+        <Text style={styles.textoBotaoCadastro}>
           {formularioAberto ? 'Fechar Cadastro' : 'Cadastrar Novo Idoso'}
         </Text>
       </TouchableOpacity>
 
-      {/* FORMULÁRIO DE CADASTRO */}
-      {formularioAberto && (
-        <View style={{ marginBottom: 20 }}>
+      {formularioAberto ? (
+        <View style={styles.blocoFormulario}>
           <CadastroIdosoForm
             nome={nome}
             setNome={setNome}
@@ -185,47 +159,34 @@ export default function IdososScreen() {
             onSalvar={salvar}
           />
         </View>
-      )}
+      ) : null}
 
-      {/* LISTA DE IDOSOS ATIVOS */}
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: colors.textPrimary }}>
-        Idosos Ativos ({idosos.length})
-      </Text>
+      <Text style={styles.tituloLista}>Idosos Ativos ({idosos.length})</Text>
 
       {carregando ? (
-        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 20 }} />
-      ) : idosos.length > 0 ? (
+        <ActivityIndicator size="large" color={themeColors.primary} style={styles.carregando} />
+      ) : idosos.length === 0 ? (
+        <View style={styles.cardVazio}>
+          <Text style={styles.textoVazio}>Nenhum idoso cadastrado ainda.</Text>
+        </View>
+      ) : (
         idosos.map((idoso) => {
           const estaExpandido = idosoSelecionado?.id === idoso.id;
 
           return (
-            <View
-              key={idoso.id}
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: 15,
-                marginBottom: 12,
-                overflow: 'hidden',
-                elevation: 2,
-                borderWidth: 1,
-                borderColor: colors.border,
-              }}
-            >
-              {/* CABEÇALHO DO CARD */}
+            <View key={idoso.id} style={styles.cardIdoso}>
               <TouchableOpacity
-                style={{
-                  padding: 16,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
+                style={styles.cabecalhoCard}
                 onPress={() => selecionarPaciente(idoso)}
+                accessibilityRole="button"
+                accessibilityLabel={`Abrir ficha de ${idoso.nome}`}
+                accessibilityState={{ expanded: estaExpandido }}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                  <FontAwesome5 name="user-circle" size={32} color={colors.primary} />
-                  <View style={{ marginLeft: 15 }}>
-                    <Text style={{ fontWeight: 'bold', fontSize: 16, color: colors.textPrimary }}>{idoso.nome}</Text>
-                    <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                <View style={styles.linhaIdoso}>
+                  <FontAwesome5 name="user-circle" size={32} color={themeColors.primary} />
+                  <View style={styles.infoIdoso}>
+                    <Text style={styles.nomeIdoso}>{idoso.nome}</Text>
+                    <Text style={styles.textoSecundario}>
                       {idoso.idade ? `${idoso.idade} anos` : 'Idade não informada'}
                     </Text>
                   </View>
@@ -234,122 +195,177 @@ export default function IdososScreen() {
                 <MaterialIcons
                   name={estaExpandido ? 'expand-less' : 'expand-more'}
                   size={26}
-                  color={colors.primary}
+                  color={themeColors.primary}
                 />
               </TouchableOpacity>
 
-              {/* CONTEÚDO EXPANDIDO - DETALHES DE SAÚDE E CUIDADOS */}
-              {estaExpandido && (
-                <View
-                  style={{
-                    padding: 16,
-                    backgroundColor: colors.background,
-                    borderTopWidth: 1,
-                    borderTopColor: colors.divider,
-                  }}
-                >
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                    <Text style={{ fontWeight: 'bold', fontSize: 15, color: colors.textPrimary }}>
-                      Ficha do Paciente
-                    </Text>
+              {estaExpandido ? (
+                <View style={styles.detalhes}>
+                  <View style={styles.cabecalhoDetalhes}>
+                    <Text style={styles.tituloDetalhes}>Ficha do Paciente</Text>
                     <TouchableOpacity
-                      onPress={() => setEditandoSaude(!editandoSaude)}
-                      style={{ flexDirection: 'row', alignItems: 'center' }}
+                      onPress={() => setEditandoSaude((editando) => !editando)}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        editandoSaude ? 'Cancelar edição da ficha' : 'Editar ficha do paciente'
+                      }
+                      style={styles.botaoEditar}
                     >
-                      <Ionicons name={editandoSaude ? 'close' : 'pencil'} size={16} color={colors.primary} />
-                      <Text style={{ color: colors.primary, fontWeight: 'bold', marginLeft: 4, fontSize: 13 }}>
+                      <Ionicons
+                        name={editandoSaude ? 'close' : 'pencil'}
+                        size={16}
+                        color={themeColors.primary}
+                      />
+                      <Text style={styles.textoBotaoEditar}>
                         {editandoSaude ? 'Cancelar' : 'Editar'}
                       </Text>
                     </TouchableOpacity>
                   </View>
 
-                  <Text style={{ color: colors.textSecondary, fontSize: 13, marginBottom: 8 }}>
-                    <Text style={{ fontWeight: 'bold' }}>CPF:</Text> {idoso.cpf || 'Não informado'}
+                  <Text style={styles.textoFicha}>
+                    <Text style={styles.rotuloFicha}>CPF:</Text> {idoso.cpf || 'Não informado'}
                   </Text>
 
-                  {/* MODO VISUALIZAÇÃO OU MODO EDIÇÃO DAS INFORMAÇÕES DE SAÚDE */}
-                  {!editandoSaude ? (
-                    <View style={{ marginTop: 5 }}>
-                      <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>
-                        <Text style={{ fontWeight: 'bold' }}>Alergias:</Text> {idoso.alergias || 'Nenhuma informada'}
-                      </Text>
-                      <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>
-                        <Text style={{ fontWeight: 'bold' }}>Tipo Sanguíneo:</Text> {idoso.tipo_sanguineo || 'Não informado'}
-                      </Text>
-                      <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 4 }}>
-                        <Text style={{ fontWeight: 'bold' }}>Contato de Emergência:</Text> {idoso.contato_emergencia || 'Não informado'}
-                      </Text>
-                      <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-                        <Text style={{ fontWeight: 'bold' }}>Obs. Médicas:</Text> {idoso.observacoes_medicas || 'Nenhuma'}
-                      </Text>
-                    </View>
-                  ) : (
-                    <View style={{ marginTop: 10 }}>
-                      <Text style={{ fontSize: 12, fontWeight: 'bold', color: colors.textSecondary, marginBottom: 2 }}>Alergias</Text>
-                      <TextInput
+                  {editandoSaude ? (
+                    <View style={styles.formularioSaude}>
+                      <Input
+                        label="Alergias"
                         value={alergias}
                         onChangeText={setAlergias}
-                        placeholder="Ex: Dipirona, Penicilina"
-                        placeholderTextColor={colors.placeholder}
-                        style={{ backgroundColor: colors.surface, borderRadius: 8, padding: 8, borderWidth: 1, borderColor: colors.border, marginBottom: 10, color: colors.textPrimary }}
+                        placeholder="Ex.: Dipirona, Penicilina"
                       />
-
-                      <Text style={{ fontSize: 12, fontWeight: 'bold', color: colors.textSecondary, marginBottom: 2 }}>Tipo Sanguíneo</Text>
-                      <TextInput
+                      <Input
+                        label="Tipo Sanguíneo"
                         value={tipoSanguineo}
                         onChangeText={setTipoSanguineo}
-                        placeholder="Ex: O+, A-"
-                        placeholderTextColor={colors.placeholder}
-                        style={{ backgroundColor: colors.surface, borderRadius: 8, padding: 8, borderWidth: 1, borderColor: colors.border, marginBottom: 10, color: colors.textPrimary }}
+                        placeholder="Ex.: O+, A-"
+                        autoCapitalize="characters"
+                        maxLength={3}
                       />
-
-                      <Text style={{ fontSize: 12, fontWeight: 'bold', color: colors.textSecondary, marginBottom: 2 }}>Contato de Emergência</Text>
-                      <TextInput
+                      <Input
+                        label="Contato de Emergência"
                         value={contatoEmergencia}
-                        onChangeText={setContatoEmergencia}
+                        onChangeText={(texto) => setContatoEmergencia(aplicarMascaraTelefone(texto))}
                         placeholder="(11) 99999-9999"
-                        placeholderTextColor={colors.placeholder}
-                        keyboardType="phone-pad"
-                        style={{ backgroundColor: colors.surface, borderRadius: 8, padding: 8, borderWidth: 1, borderColor: colors.border, marginBottom: 10, color: colors.textPrimary }}
+                        keyboardType="numeric"
+                        maxLength={15}
                       />
-
-                      <Text style={{ fontSize: 12, fontWeight: 'bold', color: colors.textSecondary, marginBottom: 2 }}>Observações Médicas</Text>
-                      <TextInput
+                      <Input
+                        label="Observações Médicas"
                         value={observacoesMedicas}
                         onChangeText={setObservacoesMedicas}
-                        placeholder="Ex: Diabético, hipertensão..."
-                        placeholderTextColor={colors.placeholder}
+                        placeholder="Ex.: Diabético, hipertensão..."
                         multiline
                         numberOfLines={3}
-                        style={{ backgroundColor: colors.surface, borderRadius: 8, padding: 8, borderWidth: 1, borderColor: colors.border, marginBottom: 12, textAlignVertical: 'top', color: colors.textPrimary }}
+                        style={styles.campoMultilinha}
                       />
-
-                      <TouchableOpacity
-                        onPress={handleSalvarDetalhesSaude}
-                        disabled={salvandoDetalhes}
-                        style={{
-                          backgroundColor: colors.primary,
-                          padding: 12,
-                          borderRadius: 8,
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Text style={{ color: colors.textOnPrimary, fontWeight: 'bold' }}>
-                          {salvandoDetalhes ? 'Salvando...' : 'Salvar Informações'}
-                        </Text>
-                      </TouchableOpacity>
+                      <Button
+                        title="Salvar Informações"
+                        onPress={salvarDetalhesSaude}
+                        loading={salvandoDetalhes}
+                      />
+                    </View>
+                  ) : (
+                    <View style={styles.blocoFicha}>
+                      <Text style={styles.textoFicha}>
+                        <Text style={styles.rotuloFicha}>Alergias:</Text>{' '}
+                        {idoso.alergias || 'Nenhuma informada'}
+                      </Text>
+                      <Text style={styles.textoFicha}>
+                        <Text style={styles.rotuloFicha}>Tipo Sanguíneo:</Text>{' '}
+                        {idoso.tipo_sanguineo || 'Não informado'}
+                      </Text>
+                      <Text style={styles.textoFicha}>
+                        <Text style={styles.rotuloFicha}>Contato de Emergência:</Text>{' '}
+                        {idoso.contato_emergencia || 'Não informado'}
+                      </Text>
+                      <Text style={styles.textoFicha}>
+                        <Text style={styles.rotuloFicha}>Obs. Médicas:</Text>{' '}
+                        {idoso.observacoes_medicas || 'Nenhuma'}
+                      </Text>
                     </View>
                   )}
                 </View>
-              )}
+              ) : null}
             </View>
           );
         })
-      ) : (
-        <View style={{ padding: 20, backgroundColor: colors.surface, borderRadius: 12, alignItems: 'center' }}>
-          <Text style={{ color: colors.textTertiary }}>Nenhum idoso cadastrado ainda.</Text>
-        </View>
       )}
     </View>
   );
 }
+
+const getStyles = (colors) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    botaoCadastro: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderWidth: 1.5,
+      borderStyle: 'dashed',
+      borderColor: colors.primary,
+      borderRadius: radius.lg,
+      paddingVertical: spacing.lg,
+      paddingHorizontal: spacing.xl,
+      marginTop: spacing.lg,
+      marginBottom: spacing.xl,
+    },
+    botaoCadastroAberto: { marginBottom: spacing.sm },
+    textoBotaoCadastro: { ...typography.title3, color: colors.primary, marginLeft: spacing.md },
+    blocoFormulario: { marginBottom: spacing.xl },
+    tituloLista: { ...typography.title2, color: colors.textPrimary, marginBottom: spacing.md },
+    carregando: { marginTop: spacing.xl },
+    cardVazio: {
+      padding: spacing.xl,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    textoVazio: { ...typography.caption, color: colors.textTertiary },
+    cardIdoso: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      marginBottom: spacing.md,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    cabecalhoCard: {
+      padding: spacing.lg,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    linhaIdoso: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+    infoIdoso: { marginLeft: spacing.lg, flex: 1 },
+    nomeIdoso: { ...typography.title3, color: colors.textPrimary },
+    textoSecundario: { ...typography.caption, color: colors.textSecondary },
+    detalhes: {
+      padding: spacing.lg,
+      backgroundColor: colors.background,
+      borderTopWidth: 1,
+      borderTopColor: colors.divider,
+    },
+    cabecalhoDetalhes: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing.md,
+    },
+    tituloDetalhes: { ...typography.bodyBold, color: colors.textPrimary },
+    botaoEditar: { flexDirection: 'row', alignItems: 'center' },
+    textoBotaoEditar: {
+      ...typography.caption,
+      fontWeight: '700',
+      color: colors.primary,
+      marginLeft: spacing.xs,
+    },
+    blocoFicha: { marginTop: spacing.xs },
+    textoFicha: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.xs },
+    rotuloFicha: { fontWeight: '700' },
+    formularioSaude: { marginTop: spacing.md },
+    campoMultilinha: { minHeight: 80, textAlignVertical: 'top' },
+  });

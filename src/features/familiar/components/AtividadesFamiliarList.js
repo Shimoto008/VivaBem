@@ -30,14 +30,28 @@ export function AtividadesFamiliarList() {
     );
   }
 
-  if (carregando) return <ActivityIndicator color={themeColors.primary} style={{ marginTop: 20 }} />;
+  if (carregando) {
+    return <ActivityIndicator size="large" color={themeColors.primary} style={styles.carregando} />;
+  }
 
   if (erro) {
-    return <EmptyState icon="error-outline" title="Não foi possível carregar as atividades" description="Tente novamente em alguns instantes." />;
+    return (
+      <EmptyState
+        icon="error-outline"
+        title="Não foi possível carregar as atividades"
+        description="Tente novamente em alguns instantes."
+      />
+    );
   }
 
   if (atividades.length === 0) {
-    return <EmptyState icon="inbox" title="Nenhuma atividade publicada ainda" description={`${conexao.cuidadores.nome} ainda não registrou nada.`} />;
+    return (
+      <EmptyState
+        icon="inbox"
+        title="Nenhuma atividade publicada ainda"
+        description={`${conexao.cuidadores.nome} ainda não registrou nada.`}
+      />
+    );
   }
 
   return (
@@ -45,7 +59,10 @@ export function AtividadesFamiliarList() {
       {atividades.map((atividade) => {
         const config = ATIVIDADE_CONFIG[atividade.tipo];
         return (
-          <Card key={atividade.id} style={[styles.atividadeCard, { borderLeftWidth: 4, borderLeftColor: config.cor }]}>
+          <Card
+            key={atividade.id}
+            style={[styles.atividadeCard, styles.atividadeBorda, { borderLeftColor: config.cor }]}
+          >
             <View style={styles.atividadeHeader}>
               <Text style={styles.atividadePaciente}>{atividade.pacientes?.nome ?? 'Paciente'}</Text>
               <Text style={styles.atividadeData}>{formatarDataPtBR(new Date(atividade.created_at))}</Text>

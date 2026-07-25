@@ -19,7 +19,11 @@ export function useConexaoFamiliar(familiarId) {
   const [erro, setErro] = useState(null);
 
   const recarregar = useCallback(async () => {
-    if (!familiarId) return;
+    if (!familiarId) {
+      setConexao(null);
+      setCarregando(false);
+      return;
+    }
     setCarregando(true);
     setErro(null);
     try {

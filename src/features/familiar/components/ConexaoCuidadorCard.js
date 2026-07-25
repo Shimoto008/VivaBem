@@ -42,7 +42,7 @@ export function ConexaoCuidadorCard() {
     return (
       <>
         <Card style={styles.conexaoCard}>
-          <View style={{ alignItems: 'center' }}>
+          <View style={styles.conexaoVazioConteudo}>
             <MaterialIcons name="link-off" size={32} color={themeColors.textTertiary} />
             <Text style={styles.conexaoVazioTitulo}>Nenhum cuidador conectado</Text>
             <Text style={styles.conexaoVazioTexto}>
@@ -62,9 +62,11 @@ export function ConexaoCuidadorCard() {
         <View style={styles.conexaoIconWrap}>
           <MaterialIcons name="how-to-reg" size={24} color={themeColors.primary} />
         </View>
-        <View style={{ flex: 1 }}>
+        <View style={styles.conexaoInfo}>
           <Text style={styles.conexaoNome}>{conexao.cuidadores.nome}</Text>
-          <Text style={styles.conexaoEspecialidade}>{conexao.cuidadores.especialidade}</Text>
+          <Text style={styles.conexaoEspecialidade}>
+            {conexao.cuidadores.especialidade || 'Sem especialidade informada'}
+          </Text>
         </View>
         <Badge label="Conectado" tone="success" />
       </View>
@@ -73,7 +75,7 @@ export function ConexaoCuidadorCard() {
         variant="outline"
         onPress={confirmarDesconexao}
         loading={processando}
-        style={{ marginTop: 16 }}
+        style={styles.conexaoBotaoDesconectar}
       />
     </Card>
   );

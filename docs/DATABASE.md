@@ -15,36 +15,53 @@ SQL Editor do painel do Supabase para rodar tudo abaixo.
 create extension if not exists "pgcrypto";
 ```
 
-## 1. Tabela `cuidadores` (já existe — só precisa de uma coluna nova)
+## 1. Tabela `cuidadores` (ligada ao Supabase Auth)
 
-A tabela já existia e era usada pelo app antigo. Só falta a coluna `codigo`,
-usada pelo Familiar para se conectar a um cuidador específico:
+O login é feito por **CPF + senha**: o app converte o CPF num e-mail interno
+(`user_<cpf>@cuidadorapp.com`) e cria o usuário no Supabase Auth. O `id` da
+linha em `cuidadores` é sempre o `id` do usuário em `auth.users`.
 
 ```sql
 alter table cuidadores
   add column if not exists codigo text unique;
+
+-- Impede dois perfis com o mesmo CPF (é o que o app usa para detectar
+-- "CPF já cadastrado" de forma confiável).
+alter table cuidadores
+  add constraint cuidadores_cpf_unico unique (cpf);
+
+-- Amarra o perfil ao usuário do Auth: apagar o usuário apaga o perfil,
+-- evitando o estado "existe no Auth mas não no banco" (e vice-versa).
+alter table cuidadores
+  add constraint cuidadores_id_auth_fk
+  foreign key (id) references auth.users (id) on delete cascade;
 ```
 
-> O app gera esse código (6 caracteres) no momento do cadastro do cuidador,
-> com novas tentativas em caso de colisão (ver `src/services/cuidadorService.js`).
-> Isso é uma solução do lado do cliente; o ideal a longo prazo é gerar via
-> função/trigger no banco para garantir unicidade sem depender do cliente.
+> O app gera o código de 6 caracteres no cadastro do cuidador
+> (`src/services/cuidadorService.js`). É uma solução do lado do cliente; o
+> ideal a longo prazo é gerar via função/trigger no banco.
 
-## 2. Tabela `pacientes` (idosos cadastrados pelo cuidador)
+## 2. Tabela `pacientes` (idosos cadastrados pelo familiar)
 
-Antes só existiam em memória (useState) — nunca eram salvos. Agora persistem aqui:
+Regra de negócio: quem cadastra o idoso é o **familiar**; o cuidador só
+enxerga os pacientes dos familiares conectados a ele (via `conexoes`).
 
 ```sql
 create table if not exists pacientes (
   id uuid primary key default gen_random_uuid(),
-  cuidador_id uuid not null references cuidadores(id) on delete cascade,
+  familiar_id uuid not null references familiares(id) on delete cascade,
   nome text not null,
   idade int,
   cpf text,
+  -- Ficha de saúde preenchida depois do cadastro básico:
+  alergias text,
+  tipo_sanguineo text,
+  contato_emergencia text,
+  observacoes_medicas text,
   created_at timestamptz not null default now()
 );
 
-create index if not exists idx_pacientes_cuidador on pacientes (cuidador_id);
+create index if not exists idx_pacientes_familiar on pacientes (familiar_id);
 ```
 
 ## 3. Tabela `atividades` (agenda, relatórios, medicação, observações)
@@ -64,22 +81,31 @@ create index if not exists idx_atividades_paciente on atividades (paciente_id);
 create index if not exists idx_atividades_cuidador on atividades (cuidador_id, created_at desc);
 ```
 
-## 4. Tabela `familiares`
+## 4. Tabela `familiares` (também ligada ao Supabase Auth)
 
 ```sql
 create table if not exists familiares (
-  id uuid primary key default gen_random_uuid(),
+  id uuid primary key references auth.users (id) on delete cascade,
   nome text not null,
-  cpf text,
+  cpf text unique,
   telefone text,
   created_at timestamptz not null default now()
 );
 ```
 
+Se a tabela já existir com `id uuid default gen_random_uuid()`, ajuste:
+
+```sql
+alter table familiares add constraint familiares_cpf_unico unique (cpf);
+alter table familiares
+  add constraint familiares_id_auth_fk
+  foreign key (id) references auth.users (id) on delete cascade;
+```
+
 ## 5. Tabela `idosos` (cadastro do próprio idoso como usuário do app)
 
-Conceito **diferente** de `pacientes` (que são os idosos cadastrados PELO
-cuidador). Aqui é o idoso se cadastrando como usuário do app pela tela
+Conceito **diferente** de `pacientes` (que são os idosos cadastrados pelo
+familiar). Aqui é o idoso se cadastrando como usuário do app pela tela
 "Idoso" da Home — hoje é só um cadastro simples, sem login.
 
 ```sql
@@ -123,30 +149,74 @@ create index if not exists idx_conexoes_cuidador on conexoes (cuidador_id) where
 
 ---
 
-## 7. Row Level Security (RLS) — atenção especial
+## 7. Configuração do Supabase Auth (obrigatória)
 
-O app usa a `anon key` (chave pública) direto no cliente, sem um sistema de
-login real (sem Supabase Auth). Isso significa que, **por padrão, qualquer
-pessoa com a anon key consegue ler/escrever em qualquer linha** dessas
-tabelas, caso RLS esteja desabilitado.
+Em **Authentication → Providers → Email**:
 
-Não consigo saber, de fora, em que estado RLS está no seu projeto. Verifique
-no painel (Authentication → Policies) e decida entre duas estratégias:
+- **Desative "Confirm email".** O e-mail gerado a partir do CPF é fictício e
+  nunca chega a ninguém; com a confirmação ligada, o `signUp` não devolve
+  sessão e o cadastro falha na hora de gravar o perfil.
+- Mantenha o provedor de e-mail/senha habilitado (é o que sustenta o login
+  por CPF).
 
-- **Curto prazo (mínimo viável):** manter RLS desabilitado nessas tabelas
-  (equivalente ao comportamento atual do app, que já não tinha proteção
-  nenhuma) — funciona, mas qualquer pessoa com a URL+anon key pode ler dados
-  de saúde de terceiros. **Não recomendado para produção.**
-- **Recomendado:** implementar autenticação real (Supabase Auth) para que
-  cada cuidador/familiar tenha uma sessão de verdade, e then escrever
-  policies de RLS que restrinjam cada linha ao `auth.uid()` correspondente.
-  Isso é uma mudança de escopo maior (fora do que foi pedido nesta
-  refatoração de front-end), mas é o item de segurança mais importante a
-  resolver antes de colocar o app em produção com dados reais de saúde.
+## 8. Row Level Security (RLS)
+
+Com o Auth em uso, cada linha pode ser restrita ao `auth.uid()`:
+
+```sql
+alter table cuidadores enable row level security;
+alter table familiares enable row level security;
+
+-- Cada um cria e lê o próprio perfil.
+create policy "perfil proprio insert" on cuidadores
+  for insert to authenticated with check (auth.uid() = id);
+create policy "perfil proprio update" on cuidadores
+  for update to authenticated using (auth.uid() = id);
+create policy "perfil proprio insert" on familiares
+  for insert to authenticated with check (auth.uid() = id);
+create policy "perfil proprio update" on familiares
+  for update to authenticated using (auth.uid() = id);
+
+-- O familiar precisa localizar o cuidador pelo código de vínculo, e o
+-- cuidador precisa ver os familiares conectados a ele.
+create policy "cuidadores visiveis para autenticados" on cuidadores
+  for select to authenticated using (true);
+create policy "familiares visiveis para autenticados" on familiares
+  for select to authenticated using (true);
+```
+
+> A verificação prévia de CPF (`authService.buscarPerfilPorCpf`) roda **antes**
+> do login, então o usuário ainda é `anon`. Com as policies acima ela não
+> enxerga nada e o app cai no plano B: a `unique constraint` de CPF devolve o
+> erro `23505`, que o `authService` traduz em "Este CPF já está cadastrado".
+> Se quiser a mensagem amigável já na primeira tentativa, exponha uma função
+> `security definer` que responde apenas sim/não (sem devolver dados):
+>
+> ```sql
+> create or replace function cpf_ja_cadastrado(cpf_consulta text)
+> returns boolean language sql security definer set search_path = public as $$
+>   select exists (select 1 from cuidadores where cpf = cpf_consulta)
+>       or exists (select 1 from familiares where cpf = cpf_consulta);
+> $$;
+> grant execute on function cpf_ja_cadastrado(text) to anon, authenticated;
+> ```
+
+## 9. "Diz que o CPF já existe, mas o banco está vazio"
+
+Esse erro aparece quando o usuário existe no **Auth** mas o perfil foi apagado
+das tabelas (ou o contrário) — normalmente depois de apagar linhas na mão pelo
+painel. Duas formas de resolver:
+
+1. **Pelo app:** o `authService` agora reaproveita a conta do Auth. Basta
+   cadastrar de novo com o mesmo CPF **e a mesma senha** que o perfil é
+   recriado e vinculado ao usuário existente.
+2. **Pelo painel:** apague o usuário em Authentication → Users. Com a foreign
+   key para `auth.users` (seção 1 e 4), apagar o usuário já remove o perfil, o
+   que evita a divergência.
 
 ---
 
-## 8. Variáveis de ambiente
+## 10. Variáveis de ambiente
 
 Depois de rodar o SQL acima, confirme que existe um arquivo `.env` na raiz
 do projeto (já vem preenchido com as credenciais que estavam hardcoded no

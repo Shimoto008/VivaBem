@@ -2,90 +2,55 @@ import { supabase } from './supabaseClient';
 import { somenteDigitos } from '../utils/masks';
 
 const TABELA = 'pacientes';
+const TABELA_CONEXOES = 'conexoes';
+const STATUS_CONEXAO_ATIVA = 'ativa';
 
-
-/**
- * Cria um novo paciente vinculado ao familiar
- */
-export async function criarPaciente({
-  familiarId,
-  nome,
-  idade,
-  cpf
-}) {
-
+/** Cria um novo paciente vinculado ao familiar. */
+export async function criarPaciente({ familiarId, nome, idade, cpf }) {
   const { data, error } = await supabase
     .from(TABELA)
-    .insert([{
-      familiar_id: familiarId,
-      nome: nome.trim(),
-      idade: idade ? Number(idade) : null,
-      cpf: somenteDigitos(cpf),
-    }])
+    .insert([
+      {
+        familiar_id: familiarId,
+        nome: nome.trim(),
+        idade: idade ? Number(idade) : null,
+        cpf: somenteDigitos(cpf),
+      },
+    ])
     .select()
     .single();
 
-
   if (error) throw error;
-
   return data;
 }
 
-
-
-/**
- * Lista pacientes cadastrados por um familiar
- */
+/** Lista pacientes cadastrados por um familiar. */
 export async function listarPacientesPorFamiliar(familiarId) {
-
   const { data, error } = await supabase
     .from(TABELA)
     .select('*')
     .eq('familiar_id', familiarId)
     .order('created_at', { ascending: true });
 
-
   if (error) throw error;
-
   return data;
 }
 
-
-
 /**
- * Lista pacientes que um cuidador acompanha.
- *
- * Fluxo:
- * cuidador
- *    ↓
- * conexoes
- *    ↓
- * familiares
- *    ↓
- * pacientes
+ * Lista pacientes que um cuidador acompanha, seguindo o caminho
+ * cuidador → conexoes → familiares → pacientes.
  */
 export async function listarPacientesPorCuidador(cuidadorId) {
-
-
   const { data: conexoes, error: erroConexao } = await supabase
-    .from('conexoes')
+    .from(TABELA_CONEXOES)
     .select('familiar_id')
     .eq('cuidador_id', cuidadorId)
-    .eq('status', 'ativa');
-
+    .eq('status', STATUS_CONEXAO_ATIVA);
 
   if (erroConexao) throw erroConexao;
+  if (!conexoes || conexoes.length === 0) return [];
 
-
-  if (!conexoes || conexoes.length === 0) {
-    return [];
-  }
-
-
-  const familiaresIds = conexoes.map(
-    (conexao) => conexao.familiar_id
-  );
-
+  const familiaresIds = conexoes.map((conexao) => conexao.familiar_id);
 
   const { data, error } = await supabase
     .from(TABELA)
@@ -93,46 +58,20 @@ export async function listarPacientesPorCuidador(cuidadorId) {
     .in('familiar_id', familiaresIds)
     .order('created_at', { ascending: true });
 
-
   if (error) throw error;
-
-
   return data;
 }
 
-
-
-/**
- * Busca um paciente específico pelo ID
- */
+/** Busca um paciente específico pelo ID. */
 export async function buscarPacientePorId(pacienteId) {
-
-  const { data, error } = await supabase
-    .from(TABELA)
-    .select('*')
-    .eq('id', pacienteId)
-    .single();
-
+  const { data, error } = await supabase.from(TABELA).select('*').eq('id', pacienteId).single();
 
   if (error) throw error;
-
   return data;
 }
 
-
-
-/**
- * Atualiza dados de um paciente
- */
-export async function atualizarPaciente(
-  pacienteId,
-  {
-    nome,
-    idade,
-    cpf
-  }
-) {
-
+/** Atualiza os dados básicos de um paciente. */
+export async function atualizarPaciente(pacienteId, { nome, idade, cpf }) {
   const { data, error } = await supabase
     .from(TABELA)
     .update({
@@ -144,13 +83,9 @@ export async function atualizarPaciente(
     .select()
     .single();
 
-
   if (error) throw error;
-
   return data;
 }
-
-
 
 /**
  * Atualiza a ficha de saúde de um paciente (alergias, tipo sanguíneo,
@@ -160,14 +95,8 @@ export async function atualizarPaciente(
  */
 export async function atualizarSaudePaciente(
   pacienteId,
-  {
-    alergias,
-    tipoSanguineo,
-    contatoEmergencia,
-    observacoesMedicas,
-  }
+  { alergias, tipoSanguineo, contatoEmergencia, observacoesMedicas }
 ) {
-
   const { data, error } = await supabase
     .from(TABELA)
     .update({
@@ -180,26 +109,14 @@ export async function atualizarSaudePaciente(
     .select()
     .single();
 
-
   if (error) throw error;
-
   return data;
 }
 
-
-
-/**
- * Remove um paciente
- */
+/** Remove um paciente. */
 export async function excluirPaciente(pacienteId) {
-
-  const { error } = await supabase
-    .from(TABELA)
-    .delete()
-    .eq('id', pacienteId);
-
+  const { error } = await supabase.from(TABELA).delete().eq('id', pacienteId);
 
   if (error) throw error;
-
   return true;
 }

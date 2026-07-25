@@ -134,3 +134,100 @@
 3. **Sessão sem persistência entre reinícios do app**: como não há Supabase Auth, a sessão (`SessionContext`) vive só em memória. Para persistir entre aberturas do app seria necessário Supabase Auth + `AsyncStorage` (nenhum dos dois está no `package.json` atual).
 4. **Foto de perfil do cuidador**: hoje só fica em memória (`useState` local); persistir exigiria Supabase Storage configurado no projeto.
 5. **Geração do código do cuidador**: feita no cliente com novas tentativas em caso de colisão; o ideal a longo prazo é uma função/trigger no banco para garantir unicidade sem depender do cliente.
+
+---
+
+# Segunda rodada — autenticação, perfil do cuidador e padronização
+
+## 11. Autenticação por CPF (Supabase Auth)
+
+O app passou a usar Supabase Auth de verdade: o CPF vira um e-mail interno
+(`user_<cpf>@cuidadorapp.com`) e a sessão persiste em `AsyncStorage`.
+
+- `src/services/authService.js` concentra cadastro, login e logout:
+  - **Pré-checagem de CPF** em `cuidadores`/`familiares` com `.maybeSingle()`,
+    antes de chamar o Auth — a fonte da verdade sobre "CPF já existe" passou a
+    ser o banco, não o Auth.
+  - **Tratamento específico dos retornos do `signUp`**: `status 422`,
+    `code: user_already_exists`, mensagens com *already registered* e o caso do
+    "usuário fantasma" (`identities: []`, devolvido quando a confirmação por
+    e-mail está ligada).
+  - **Recuperação de divergência**: se o usuário existe no Auth mas o perfil
+    sumiu do banco, o cadastro faz login com a senha informada e recria o
+    perfil, em vez de barrar com "CPF já cadastrado".
+  - **Rollback**: se o insert do perfil falhar, a sessão recém-criada é
+    encerrada para o app nunca ficar logado sem perfil.
+- `src/features/auth/` — tela e hook de **login por CPF + senha** (antes, depois
+  do logout não havia como voltar a entrar na conta).
+- `SessionContext` reescrito: expõe `perfil`/`tipoUsuario` (as telas usavam
+  `cuidador`/`familiar`, chaves que não existiam mais — perfil, pacientes e
+  conexões nunca carregavam), tenta ler o perfil algumas vezes logo após o
+  cadastro (a linha nasce depois da sessão) e oferece `recarregarPerfil` e
+  `atualizarPerfilLocal`.
+- `routes.js` só entra na área logada quando existe sessão **e** tipo de
+  usuário resolvido, evitando piscar a área errada durante o cadastro.
+
+## 12. Perfil do Cuidador com paridade ao do Familiar
+
+`PerfilCuidadorTab` foi reescrito com: card de destaque do **código de vínculo**
+com botão "Copiar" (`expo-clipboard`) e feedback "Copiado!"; edição de telefone
+e especialidade persistida no Supabase; bloco de aparência (modo escuro + cor de
+destaque) e logout com confirmação.
+
+Para não duplicar markup entre os dois perfis, o bloco de aparência e o botão de
+logout viraram componentes do Design System: `PreferenciasAparencia` e
+`BotaoLogout`. As cores de destaque saíram das telas para
+`src/constants/coresApp.js`.
+
+## 13. Padronização e limpeza
+
+- Estilos inline eliminados das telas e componentes restantes (incluindo toda a
+  árvore `PainelPaciente`), sempre no padrão `getStyles(colors)` no fim do
+  arquivo, consumindo tokens de `src/theme`.
+- Estados de carregamento (`ActivityIndicator`) nas listas de pacientes, idosos,
+  atividades e no perfil, evitando telas em branco.
+- Formulários com `keyboardType="numeric"` (CPF/telefone/idade),
+  `secureTextEntry` + `autoCapitalize="none"` nas senhas, `KeyboardAvoidingView`
+  e `ScrollView` com `keyboardShouldPersistTaps="handled"`.
+- Removidos código morto e mocks: paciente fictício de `__DEV__` na `ResumoTab`,
+  `criarCuidador`/`criarFamiliar` (cadastro sem Auth), ternário sem efeito no
+  Onboarding e a paleta estática `theme/colors.js`.
+- Validações dos cadastros passaram a usar `utils/validators.js` (CPF com
+  dígitos verificadores), em vez de checar só o comprimento do texto mascarado.
+
+## 14. Lembretes de medicação
+
+O botão "Configurar lembrete" existia no card de medicação mas não fazia nada
+(`onLembrete={() => {}}`), enquanto `expo-notifications` e
+`utils/nativeAlarm.js` estavam instalados sem uso.
+
+- `src/services/lembreteService.js` agenda uma **notificação diária** no horário
+  da medicação (`SchedulableTriggerInputTypes.DAILY`), pedindo permissão e
+  criando o canal Android de alta importância. O identificador é derivado do id
+  da medicação (`medicacao-<uuid>`), então o próprio agendador do sistema é a
+  fonte da verdade — nada é duplicado no Supabase nem em armazenamento local.
+- `useLembretesMedicacao` liga isso à tela: alterna o lembrete, reagenda quando
+  o horário é editado, cancela quando a medicação é excluída e, se o
+  agendamento falhar (permissão negada, medicação sem horário), oferece abrir o
+  **despertador nativo** via `abrirDespertadorNativo()`.
+- O card reflete o estado: "Configurar lembrete" ou "Lembrete diário às HH:MM",
+  com `accessibilityRole="switch"`.
+
+## 15. Validação de CPF configurável
+
+`utils/validators.js` ganhou a constante `EXIGIR_DIGITOS_VERIFICADORES`. Com
+ela desligada, o formulário aceita qualquer sequência de 11 dígitos (útil para
+criar contas de teste na demonstração); os 11 dígitos seguem obrigatórios,
+porque o login monta o e-mail interno a partir deles e a coluna `cpf` é única.
+
+## 16. Dependências e componentes sem uso
+
+Removidos `axios`, `expo-intent-launcher` e `@react-navigation/stack` do
+`package.json`, além do componente `Avatar`, que nunca foi renderizado. O
+`pacienteService.js` foi reformatado no padrão dos demais serviços.
+
+## 17. O que ainda depende do backend
+
+Ver `docs/DATABASE.md`, seções 1, 4, 7 e 8: `unique` no CPF, chave estrangeira
+para `auth.users`, **"Confirm email" desativado** e as policies de RLS por
+`auth.uid()`.

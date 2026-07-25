@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { spacing, radius } from '../../../theme';
+import { spacing, radius, typography } from '../../../theme';
 
 export const getStyles = (colors) =>
   StyleSheet.create({
@@ -11,4 +11,7 @@ export const getStyles = (colors) =>
       alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: spacing.xl,
     },
     card: { marginTop: spacing.lg },
+    botao: { marginTop: spacing.xs },
+    linkLogin: { alignSelf: 'center', marginTop: spacing.xl, padding: spacing.sm },
+    textoLinkLogin: { ...typography.bodyBold, color: colors.primary },
   });

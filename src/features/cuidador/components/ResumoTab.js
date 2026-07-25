@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
@@ -8,12 +8,6 @@ import { PainelPaciente } from './PainelPaciente/PainelPaciente';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { EmptyState } from '../../../components/ui';
 import { ROUTES } from '../../../constants/routeNames';
-
-const PACIENTE_DEV = {
-  id: '787d17a0-e5e1-4c1d-bee7-0239aa6ade37',
-  nome: 'neymar',
-  idade: 85,
-};
 
 const CARDS_ATALHO = [
   {
@@ -56,25 +50,21 @@ export function ResumoTab({ controlador }) {
   const styles = getStyles(colors);
   const {
     pacientes,
+    carregandoPacientes,
     pacienteSelecionado,
     selecionarPaciente,
     limparPacienteSelecionado,
     cuidadorId,
   } = controlador;
 
-  const pacientesExibidos = __DEV__ && pacientes.length === 0 ? [PACIENTE_DEV] : pacientes;
-
-  const idosoAtual =
-    pacienteSelecionado ?? (__DEV__ && pacientesExibidos.length > 0 ? pacientesExibidos[0] : null);
-
   function navegarPara(rota) {
-    if (!idosoAtual) {
+    if (!pacienteSelecionado) {
       Alert.alert('Atenção', 'Selecione um idoso primeiro.');
       return;
     }
 
     navigation.navigate(rota, {
-      idoso: idosoAtual,
+      idoso: pacienteSelecionado,
       cuidadorId,
     });
   }
@@ -97,14 +87,16 @@ export function ResumoTab({ controlador }) {
 
       <Text style={styles.secaoTitulo}>Idosos Ativos</Text>
 
-      {pacientesExibidos.length === 0 ? (
+      {carregandoPacientes ? (
+        <ActivityIndicator size="large" color={colors.primary} style={styles.carregando} />
+      ) : pacientes.length === 0 ? (
         <EmptyState
           icon="elderly"
           title="Nenhum idoso vinculado ainda."
           description="Peça para um familiar cadastrar o idoso e conectar-se ao seu código para que ele apareça aqui."
         />
       ) : (
-        pacientesExibidos.map((idoso) => (
+        pacientes.map((idoso) => (
           <View key={idoso.id} style={styles.wrapperPaciente}>
             <TouchableOpacity
               style={styles.cardPacienteHome}
@@ -115,7 +107,9 @@ export function ResumoTab({ controlador }) {
               <FontAwesome5 name="user-circle" size={40} color={colors.primary} />
               <View style={styles.infoPacienteHome}>
                 <Text style={styles.nomePacienteHome}>{idoso.nome}</Text>
-                <Text style={styles.detalhesPacienteHome}>{idoso.idade} anos</Text>
+                <Text style={styles.detalhesPacienteHome}>
+                  {idoso.idade ? `${idoso.idade} anos` : 'Idade não informada'}
+                </Text>
               </View>
               <MaterialIcons
                 name={pacienteSelecionado?.id === idoso.id ? 'expand-less' : 'expand-more'}

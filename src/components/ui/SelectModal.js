@@ -21,7 +21,12 @@ export function SelectModal({ visible, title, options, onSelect, onClose }) {
                 data={options}
                 keyExtractor={(item) => item}
                 renderItem={({ item }) => (
-                  <TouchableOpacity style={styles.option} onPress={() => onSelect(item)}>
+                  <TouchableOpacity
+                    style={styles.option}
+                    onPress={() => onSelect(item)}
+                    accessibilityRole="button"
+                    accessibilityLabel={item}
+                  >
                     <Text style={styles.optionText}>{item}</Text>
                   </TouchableOpacity>
                 )}

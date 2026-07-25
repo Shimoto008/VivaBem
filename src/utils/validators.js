@@ -1,5 +1,14 @@
 import { somenteDigitos } from './masks';
 
+/**
+ * Com `false`, o formulário aceita qualquer sequência de 11 dígitos (ex.:
+ * 111.111.111-11), o que facilita criar contas de teste na demonstração.
+ *
+ * Os 11 dígitos continuam obrigatórios em qualquer cenário: o login monta o
+ * e-mail interno a partir deles e a coluna `cpf` é única no banco.
+ */
+const EXIGIR_DIGITOS_VERIFICADORES = false;
+
 /** Validação de CPF com dígitos verificadores (lógica original preservada). */
 export function validarCPF(rawCpf) {
   const cpf = somenteDigitos(rawCpf);
@@ -30,7 +39,9 @@ export function validarCPFObrigatorio(cpf) {
   const limpo = somenteDigitos(cpf);
   if (!limpo) return 'Campo obrigatório';
   if (limpo.length !== 11) return 'O CPF deve ter 11 dígitos';
-  if (!validarCPF(limpo)) return 'CPF inválido. Digite um CPF verdadeiro';
+  if (EXIGIR_DIGITOS_VERIFICADORES && !validarCPF(limpo)) {
+    return 'CPF inválido. Digite um CPF verdadeiro';
+  }
   return null;
 }
 

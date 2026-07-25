@@ -1,106 +1,64 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useTheme } from '../../../../../../contexts/ThemeContext';
 
-export function AgendaCard({
-  atividade,
-  onEditar,
-  onExcluir,
-}) {
-  const { themeColors: colors } = useTheme();
+import { useTheme } from '../../../../../../contexts/ThemeContext';
+import { radius, shadows, spacing, typography } from '../../../../../../theme';
+import { formatarISODatePtBR } from '../../../../../../utils/dateUtils';
+
+export function AgendaCard({ atividade, onEditar, onExcluir }) {
+  const { themeColors } = useTheme();
+  const styles = getStyles(themeColors);
 
   return (
-    <View
-      style={{
-        backgroundColor: colors.surface,
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        elevation: 3,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-        }}
-      >
-        <View style={{ flex: 1 }}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: 'bold',
-              color: colors.textPrimary,
-            }}
-          >
-            📅 Atividade
-          </Text>
+    <View style={styles.container}>
+      <View style={styles.topo}>
+        <View style={styles.info}>
+          <View style={styles.tituloLinha}>
+            <MaterialIcons name="event" size={20} color={themeColors.primary} />
+            <Text style={styles.titulo}>Atividade</Text>
+          </View>
 
-          <Text
-            style={{
-              marginTop: 8,
-              color: colors.textSecondary,
-            }}
-          >
-            {atividade.conteudo}
-          </Text>
-
-          <Text
-            style={{
-              marginTop: 6,
-              color: colors.textTertiary,
-            }}
-          >
-            {atividade.data_referencia}
-          </Text>
+          <Text style={styles.conteudo}>{atividade.conteudo}</Text>
+          <Text style={styles.data}>{formatarISODatePtBR(atividade.data_referencia)}</Text>
         </View>
 
-        <View
-          style={{
-            flexDirection: 'row',
-            gap: 12,
-          }}
-        >
-          <TouchableOpacity onPress={onEditar}>
-            <MaterialIcons
-              name="edit"
-              size={24}
-              color={colors.primary}
-            />
+        <View style={styles.acoesIcones}>
+          <TouchableOpacity
+            onPress={onEditar}
+            accessibilityRole="button"
+            accessibilityLabel="Editar atividade"
+          >
+            <MaterialIcons name="edit" size={24} color={themeColors.primary} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={onExcluir}>
-            <MaterialIcons
-              name="delete-outline"
-              size={24}
-              color={colors.danger}
-            />
+          <TouchableOpacity
+            onPress={onExcluir}
+            accessibilityRole="button"
+            accessibilityLabel="Excluir atividade"
+          >
+            <MaterialIcons name="delete-outline" size={24} color={themeColors.danger} />
           </TouchableOpacity>
         </View>
       </View>
-
-      <TouchableOpacity
-        onPress={onExcluir}
-        style={{
-          marginTop: 15,
-          borderWidth: 1,
-          borderColor: colors.danger,
-          borderRadius: 8,
-          padding: 10,
-          alignItems: 'center',
-        }}
-      >
-        <Text
-          style={{
-            color: colors.danger,
-            fontWeight: 'bold',
-          }}
-        >
-          Excluir
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 }
+
+const getStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.lg,
+      marginBottom: spacing.md,
+      ...shadows.card,
+    },
+    topo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+    info: { flex: 1 },
+    tituloLinha: { flexDirection: 'row', alignItems: 'center' },
+    titulo: { ...typography.title2, color: colors.textPrimary, marginLeft: spacing.sm },
+    conteudo: { ...typography.body, color: colors.textSecondary, marginTop: spacing.sm },
+    data: { ...typography.caption, color: colors.textTertiary, marginTop: spacing.xs },
+    acoesIcones: { flexDirection: 'row', gap: spacing.md },
+  });

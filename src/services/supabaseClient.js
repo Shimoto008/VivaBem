@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 /**
  * Credenciais lidas de variáveis de ambiente (suporte nativo do Expo a
  * variáveis prefixadas com EXPO_PUBLIC_, sem necessidade de libs extras).
@@ -23,4 +23,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export const supabase = createClient(supabaseUrl ?? '', supabaseAnonKey ?? '');
+export const supabase = createClient(supabaseUrl ?? '', supabaseAnonKey ?? '', {
+  auth: {
+    storage: AsyncStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+  },
+});
