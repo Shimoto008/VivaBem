@@ -97,8 +97,6 @@ async function criarOuReaproveitarUsuarioAuth(email, senha) {
   if (error && !ehUsuarioJaRegistrado(error)) throw error;
 
   if (!error && data.user?.id && !ehUsuarioFantasma(data.user)) {
-    // Sem sessão o insert seguinte cairia na RLS: acontece quando a confirmação
-    // por e-mail está ligada no projeto (incompatível com login por CPF).
     if (data.session) return data.user.id;
   }
 
@@ -116,17 +114,13 @@ async function criarOuReaproveitarUsuarioAuth(email, senha) {
       );
     }
     throw new DomainError(
-      'Este CPF já possui uma conta de acesso com outra senha. Faça login com a senha original.'
+      'Este CPF já possui uma conta de acesso com outra senha. Faça login with a senha original.'
     );
   }
 
   return dadosLogin.user.id;
 }
 
-/**
- * Um perfil órfão (usuário no Auth sem linha em cuidadores/familiares) deixaria
- * o app logado numa sessão sem perfil, então a sessão é desfeita junto.
- */
 async function desfazerSessao() {
   try {
     await supabase.auth.signOut();
@@ -142,7 +136,18 @@ function traduzirErroDeInsercao(erro) {
   return erro;
 }
 
-export async function cadastrarEConectarCuidador({ nome, cpf, telefone, especialidade, senha }) {
+/**
+ * Cadastra e conecta o Cuidador no Supabase repassando latitude e longitude para atuar com a Trigger PostGIS.
+ */
+export async function cadastrarEConectarCuidador({
+  nome,
+  cpf,
+  telefone,
+  especialidade,
+  senha,
+  latitude = null,  // 👈 Adicionado parâmetro opcional de latitude
+  longitude = null, // 👈 Adicionado parâmetro opcional de longitude
+}) {
   const cpfLimpo = normalizarCpf(cpf);
   await garantirCpfDisponivel(cpfLimpo);
 
@@ -158,6 +163,8 @@ export async function cadastrarEConectarCuidador({ nome, cpf, telefone, especial
         telefone: somenteDigitos(telefone),
         especialidade: especialidade ? especialidade.trim() : null,
         codigo: gerarCodigoCuidador(),
+        latitude,  // 👈 Repassado para o banco (dispara a Trigger PostGIS)
+        longitude, // 👈 Repassado para o banco (dispara a Trigger PostGIS)
       },
     ])
     .select()

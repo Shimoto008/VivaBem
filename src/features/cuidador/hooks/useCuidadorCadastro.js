@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
+import * as Location from 'expo-location'; // 👈 1. Importação do Expo Location
 import { cadastrarEConectarCuidador } from '../../../services/authService';
 import { useSession } from '../../../contexts/SessionContext';
 import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../../../utils/masks';
@@ -59,12 +60,32 @@ export function useCuidadorCadastro() {
 
     setEnviando(true);
     try {
+      // 👈 2. Captura a localização via GPS no momento do cadastro
+      let latitude = null;
+      let longitude = null;
+
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          latitude = loc.coords.latitude;
+          longitude = loc.coords.longitude;
+        }
+      } catch (e) {
+        console.warn('Não foi possível obter o GPS durante o cadastro:', e);
+      }
+
+      // 👈 3. Envia latitude e longitude para o authService salvar no Supabase
       await cadastrarEConectarCuidador({
         nome,
         cpf,
         telefone,
         senha,
         especialidade: especialidadeFinal(),
+        latitude,
+        longitude,
       });
 
       // A sessão nasce no signUp, mas o perfil só existe após o insert acima:

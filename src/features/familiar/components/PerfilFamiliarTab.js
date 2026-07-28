@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity, Modal } from 'react-native';
-import { FontAwesome5, MaterialIcons } from '@expo-vector-icons/material-icons';
+import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 
 import { PreferenciasAparencia, BotaoLogout } from '../../../components/ui';
 import { radius, spacing, typography } from '../../../theme';
