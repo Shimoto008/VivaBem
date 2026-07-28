@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { FontAwesome5, MaterialIcons } from '@expo-vector-icons/material-icons';
 
 import { PreferenciasAparencia, BotaoLogout } from '../../../components/ui';
 import { radius, spacing, typography } from '../../../theme';
@@ -9,11 +9,16 @@ import { useConexaoFamiliarContext } from '../../../contexts/ConexaoFamiliarCont
 import { useTheme } from '../../../contexts/ThemeContext';
 import { aplicarMascaraTelefone } from '../../../utils/masks';
 
+// Import da tela do mapa do módulo do familiar
+import MapaCuidador from '../screens/MapaCuidador';
+
 export default function PerfilFamiliarTab() {
   const { perfil, carregando } = useSession();
   const { conexao, carregando: carregandoConexao } = useConexaoFamiliarContext();
   const { primaryColor, themeColors } = useTheme();
   const styles = getStyles(themeColors);
+
+  const [modalMapaVisivel, setModalMapaVisivel] = useState(false);
 
   const conectado = !!conexao;
   const cuidador = conexao?.cuidadores ?? null;
@@ -28,6 +33,7 @@ export default function PerfilFamiliarTab() {
 
   return (
     <View style={styles.container}>
+      {/* CARD DE PERFIL DO FAMILIAR */}
       <View style={styles.card}>
         <View style={styles.linhaCentralizada}>
           <View style={[styles.avatar, { backgroundColor: primaryColor }]}>
@@ -43,6 +49,7 @@ export default function PerfilFamiliarTab() {
         </View>
       </View>
 
+      {/* CUIDADOR VINCULADO */}
       <Text style={styles.secaoTitulo}>Cuidador Vinculado</Text>
       <View style={styles.card}>
         {carregandoConexao ? (
@@ -68,10 +75,58 @@ export default function PerfilFamiliarTab() {
         )}
       </View>
 
+      {/* AÇÕES E LOCALIZAÇÃO */}
+      <Text style={styles.secaoTitulo}>Rede de Apoio</Text>
+      <TouchableOpacity
+        style={styles.cardAcao}
+        onPress={() => setModalMapaVisivel(true)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.linhaCentralizada}>
+          <View style={[styles.iconeAcao, { backgroundColor: `${primaryColor}15` }]}>
+            <MaterialIcons name="map" size={24} color={primaryColor} />
+          </View>
+          <View style={styles.infoConexao}>
+            <Text style={styles.cardTitulo}>Buscar Cuidadores Próximos</Text>
+            <Text style={styles.textoSecundario}>
+              Encontre cuidadores disponíveis na sua região pelo mapa
+            </Text>
+          </View>
+          <MaterialIcons name="chevron-right" size={24} color={themeColors.textSecondary} />
+        </View>
+      </TouchableOpacity>
+
+      {/* APARÊNCIA E PREFERÊNCIAS */}
       <Text style={styles.secaoTitulo}>Aparência e Preferências</Text>
       <PreferenciasAparencia />
 
       <BotaoLogout />
+
+      {/* MODAL DO MAPA DE CUIDADORES */}
+      <Modal
+        visible={modalMapaVisivel}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={() => setModalMapaVisivel(false)}
+      >
+        <View style={styles.containerModal}>
+          {/* Cabeçalho para fechar o Modal */}
+          <View style={styles.headerModal}>
+            <TouchableOpacity
+              style={styles.botaoFechar}
+              onPress={() => setModalMapaVisivel(false)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialIcons name="close" size={26} color={themeColors.textPrimary} />
+            </TouchableOpacity>
+            <Text style={styles.tituloModal}>Cuidadores na Região</Text>
+            <View style={{ width: 26 }} />
+          </View>
+
+          {/* Renderiza a Tela do Mapa */}
+          <MapaCuidador />
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -87,6 +142,21 @@ const getStyles = (colors) =>
       marginBottom: spacing.lg,
       borderWidth: 1,
       borderColor: colors.border,
+    },
+    cardAcao: {
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      borderRadius: radius.lg,
+      marginBottom: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    iconeAcao: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      justify: 'center',
     },
     linhaCentralizada: { flexDirection: 'row', alignItems: 'center' },
     avatar: {
@@ -109,4 +179,18 @@ const getStyles = (colors) =>
       marginBottom: spacing.sm,
       marginLeft: spacing.xs,
     },
+    // Estilos do Modal
+    containerModal: { flex: 1, backgroundColor: colors.background },
+    headerModal: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    tituloModal: { ...typography.title3, color: colors.textPrimary, fontWeight: 'bold' },
+    botaoFechar: { padding: spacing.xs },
   });
