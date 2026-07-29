@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
-import { supabase } from '../../../services/supabaseClient'; // Ajuste o caminho
+import { supabase } from '../../../services/supabaseClient'; // Ajuste o caminho se necessário
 
 export function useBuscarCuidadores(raioMetros = 10000) {
   const [minhaPosicao, setMinhaPosicao] = useState(null);
@@ -9,42 +9,71 @@ export function useBuscarCuidadores(raioMetros = 10000) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function carregarEBuscar() {
       try {
-        // 1. Pede GPS do Familiar
+        setLoading(true);
+        setError(null);
+
+        // 1. Pede permissão de GPS do Familiar
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          setError('Permissão de localização negada.');
-          setLoading(false);
+          if (isMounted) {
+            setError('Permissão de localização negada.');
+            setLoading(false);
+          }
           return;
         }
 
+        // 2. Obtém a posição atual com precisão adequada
         let loc = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
 
-        const lat = loc.coords.latitude;
-        const lng = loc.coords.longitude;
-        setMinhaPosicao({ latitude: lat, longitude: lng });
+        if (!loc || !loc.coords) {
+          throw new Error('Não foi possível obter a localização atual do dispositivo.');
+        }
 
-        // 2. Busca cuidadores no raio especificado via RPC no Supabase
+        const lat = Number(loc.coords.latitude);
+        const lng = Number(loc.coords.longitude);
+
+        if (isNaN(lat) || isNaN(lng)) {
+          throw new Error('Coordenadas de GPS inválidas.');
+        }
+
+        if (isMounted) {
+          setMinhaPosicao({ latitude: lat, longitude: lng });
+        }
+
+        // 3. Busca cuidadores no raio especificado via RPC no Supabase
         const { data, error: rpcError } = await supabase.rpc('buscar_cuidadores_proximos', {
           p_lat: lat,
           p_lng: lng,
-          p_raio_metros: raioMetros,
+          p_raio_metros: Number(raioMetros),
         });
 
         if (rpcError) throw rpcError;
 
-        setCuidadoresProximos(data || []);
+        if (isMounted) {
+          setCuidadoresProximos(data || []);
+        }
       } catch (err) {
-        setError(err.message || 'Erro ao buscar cuidadores.');
+        if (isMounted) {
+          setError(err.message || 'Erro ao buscar cuidadores próximos.');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
     carregarEBuscar();
+
+    return () => {
+      isMounted = false;
+    };
   }, [raioMetros]);
 
   return { minhaPosicao, cuidadoresProximos, loading, error };
