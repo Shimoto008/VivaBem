@@ -17,6 +17,8 @@ import MedicacaoScreen from '../features/cuidador/components/PainelPaciente/Medi
 import RelatorioScreen from '../features/cuidador/components/PainelPaciente/Relatorio/RelatorioScreen';
 import CalendarioScreen from '../features/cuidador/components/PainelPaciente/Calendario/CalendarioScreen';
 import ObservacoesScreen from '../features/cuidador/components/PainelPaciente/Observacoes/ObservacoesScreen';
+import ChatScreen from '../features/chat/Screens/chatScreen';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -61,8 +63,9 @@ export default function StackRoutes() {
           <Stack.Screen name={ROUTES.RELATORIO} component={RelatorioScreen} />
           <Stack.Screen name={ROUTES.CALENDARIO} component={CalendarioScreen} />
           <Stack.Screen name={ROUTES.OBSERVACOES} component={ObservacoesScreen} />
+          <Stack.Screen name={ROUTES.CHAT} component={ChatScreen} />
         </>
       )}
     </Stack.Navigator>
-  );
+  );  
 }

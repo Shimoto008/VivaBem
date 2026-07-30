@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   StyleSheet,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
@@ -29,16 +31,25 @@ export function PerfilCuidadorTab() {
 
   const [foto, setFoto] = useState(null);
   const [editando, setEditando] = useState(false);
+  
+  // Estados para edição dos campos
   const [telefoneEdicao, setTelefoneEdicao] = useState('');
   const [especialidadeEdicao, setEspecialidadeEdicao] = useState('');
+  const [formacaoEdicao, setFormacaoEdicao] = useState('');
+  const [biografiaEdicao, setBiografiaEdicao] = useState('');
+
   const [salvando, setSalvando] = useState(false);
   const [codigoCopiado, setCodigoCopiado] = useState(false);
+  const [modalConfiguracoesVisivel, setModalConfiguracoesVisivel] = useState(false);
+  
   const temporizadorCopiaRef = useRef(null);
 
   useEffect(() => {
     setTelefoneEdicao(aplicarMascaraTelefone(cuidador?.telefone ?? ''));
     setEspecialidadeEdicao(cuidador?.especialidade ?? '');
-  }, [cuidador?.telefone, cuidador?.especialidade]);
+    setFormacaoEdicao(cuidador?.formacao ?? '');
+    setBiografiaEdicao(cuidador?.biografia ?? '');
+  }, [cuidador?.telefone, cuidador?.especialidade, cuidador?.formacao, cuidador?.biografia]);
 
   useEffect(() => () => clearTimeout(temporizadorCopiaRef.current), []);
 
@@ -80,6 +91,8 @@ export function PerfilCuidadorTab() {
       const atualizado = await atualizarPerfilCuidador(cuidador.id, {
         telefone: somenteDigitos(telefoneEdicao),
         especialidade: especialidadeEdicao.trim() || null,
+        formacao: formacaoEdicao.trim() || null,
+        biografia: biografiaEdicao.trim() || null,
       });
       atualizarPerfilLocal(atualizado);
       setEditando(false);
@@ -108,7 +121,21 @@ export function PerfilCuidadorTab() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* 1. CABEÇALHO COM ÍCONE DE CONFIGURAÇÕES */}
+      <View style={styles.headerTopo}>
+        <Text style={styles.tituloPagina}>Meu Perfil</Text>
+        <TouchableOpacity
+          onPress={() => setModalConfiguracoesVisivel(true)}
+          style={styles.botaoConfiguracoes}
+          accessibilityRole="button"
+          accessibilityLabel="Abrir configurações"
+        >
+          <MaterialIcons name="settings" size={26} color={themeColors.textPrimary} />
+        </TouchableOpacity>
+      </View>
+
+      {/* 2. CARD DE INFORMAÇÕES BÁSICAS */}
       <View style={styles.card}>
         <View style={styles.linhaCentralizada}>
           <TouchableOpacity
@@ -149,6 +176,7 @@ export function PerfilCuidadorTab() {
           </TouchableOpacity>
         </View>
 
+        {/* 3. FORMULÁRIO DE EDIÇÃO */}
         {editando ? (
           <View style={styles.formularioEdicao}>
             <Input
@@ -166,11 +194,46 @@ export function PerfilCuidadorTab() {
               autoCapitalize="words"
               placeholder="Ex.: Técnico em Enfermagem"
             />
+            <Input
+              label="Formação Acadêmica / Cursos"
+              value={formacaoEdicao}
+              onChangeText={setFormacaoEdicao}
+              autoCapitalize="sentences"
+              placeholder="Ex.: Auxiliar de Enfermagem (Senac) - 2021"
+            />
+            <Input
+              label="Sobre Mim (Biografia)"
+              value={biografiaEdicao}
+              onChangeText={setBiografiaEdicao}
+              autoCapitalize="sentences"
+              placeholder="Escreva um pouco sobre sua experiência profissional e perfil de atendimento..."
+              multiline
+              numberOfLines={4}
+              style={{ minHeight: 90, textAlignVertical: 'top' }}
+            />
             <Button title="Salvar Alterações" onPress={salvarEdicao} loading={salvando} />
           </View>
         ) : null}
       </View>
 
+      {/* 4. SEÇÃO: SOBRE MIM & FORMAÇÃO (EXIBIÇÃO) */}
+      {!editando && (
+        <View style={styles.cardInfoSecundaria}>
+          <Text style={styles.secaoSubtitulo}>Formação Acadêmica</Text>
+          <Text style={styles.textoDetalhe}>
+            {cuidador.formacao || 'Nenhuma formação cadastrada ainda.'}
+          </Text>
+
+          <View style={styles.divisorApresentacao} />
+
+          <Text style={styles.secaoSubtitulo}>Biografia / Apresentação</Text>
+          <Text style={styles.textoDetalhe}>
+            {cuidador.biografia || 'Adicione uma breve apresentação para que os familiares te conheçam melhor.'}
+          </Text>
+        </View>
+      )}
+
+      {/* 5. CÓDIGO DE VÍNCULO */}
       <Text style={styles.secaoTitulo}>Código de Vínculo</Text>
       <View style={[styles.cardCodigo, { borderColor: primaryColor }]}>
         <Text style={styles.textoSecundario}>
@@ -198,17 +261,38 @@ export function PerfilCuidadorTab() {
         </View>
       </View>
 
-      <Text style={styles.secaoTitulo}>Aparência e Preferências</Text>
-      <PreferenciasAparencia />
+      {/* 6. MODAL DE CONFIGURAÇÕES */}
+      <Modal
+        visible={modalConfiguracoesVisivel}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setModalConfiguracoesVisivel(false)}
+      >
+        <View style={[styles.modalContainer, { backgroundColor: themeColors.background }]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitulo}>Configurações</Text>
+            <TouchableOpacity onPress={() => setModalConfiguracoesVisivel(false)}>
+              <MaterialIcons name="close" size={28} color={themeColors.textPrimary} />
+            </TouchableOpacity>
+          </View>
 
-      <BotaoLogout />
-    </View>
+          <View style={styles.modalConteudo}>
+            <Text style={styles.secaoTitulo}>Aparência e Preferências</Text>
+            <PreferenciasAparencia />
+
+            <View style={styles.divisorLogout} />
+
+            <BotaoLogout />
+          </View>
+        </View>
+      </Modal>
+    </ScrollView>
   );
 }
 
 const getStyles = (colors) =>
   StyleSheet.create({
-    container: { flex: 1, paddingBottom: spacing.lg },
+    container: { flex: 1, paddingBottom: spacing.xl, paddingHorizontal: spacing.sm },
     containerCarregando: {
       flex: 1,
       alignItems: 'center',
@@ -216,11 +300,26 @@ const getStyles = (colors) =>
       padding: spacing.xl,
       gap: spacing.sm,
     },
+    headerTopo: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginVertical: spacing.md,
+      paddingHorizontal: spacing.xs,
+    },
+    tituloPagina: {
+      ...typography.title1,
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+    },
+    botaoConfiguracoes: {
+      padding: spacing.xs,
+    },
     card: {
       backgroundColor: colors.surface,
       padding: spacing.lg,
       borderRadius: radius.lg,
-      marginBottom: spacing.lg,
+      marginBottom: spacing.md,
       borderWidth: 1,
       borderColor: colors.border,
     },
@@ -249,6 +348,31 @@ const getStyles = (colors) =>
       borderTopWidth: 1,
       borderTopColor: colors.divider,
       paddingTop: spacing.lg,
+    },
+    cardInfoSecundaria: {
+      backgroundColor: colors.surface,
+      padding: spacing.lg,
+      borderRadius: radius.lg,
+      marginBottom: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    secaoSubtitulo: {
+      ...typography.caption,
+      fontWeight: 'bold',
+      fontSize: 13,
+      color: colors.textPrimary,
+      marginBottom: 4,
+    },
+    textoDetalhe: {
+      ...typography.caption,
+      color: colors.textSecondary,
+      lineHeight: 20,
+    },
+    divisorApresentacao: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginVertical: spacing.md,
     },
     secaoTitulo: {
       ...typography.caption,
@@ -285,5 +409,27 @@ const getStyles = (colors) =>
       fontWeight: '700',
       color: colors.textOnPrimary,
       marginLeft: spacing.xs,
+    },
+    modalContainer: {
+      flex: 1,
+      padding: spacing.lg,
+      paddingTop: spacing.xl * 1.5,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing.xl,
+    },
+    modalTitulo: {
+      ...typography.title2,
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+    },
+    modalConteudo: {
+      flex: 1,
+    },
+    divisorLogout: {
+      marginVertical: spacing.xl,
     },
   });

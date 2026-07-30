@@ -16,4 +16,5 @@ export const ROUTES = {
   RELATORIO: 'Relatorio',
   CALENDARIO: 'Calendario',
   OBSERVACOES: 'Observacoes',
+  CHAT: 'Chat',
 };

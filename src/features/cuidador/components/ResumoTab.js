@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
@@ -69,8 +69,39 @@ export function ResumoTab({ controlador }) {
     });
   }
 
+  // Função para abrir o Chat com o Familiar do Idoso Selecionado
+  function abrirChatGeral() {
+    // Pega o idoso selecionado ou o primeiro idoso da lista
+    const pacienteAlvo = pacienteSelecionado || pacientes[0];
+
+    if (!pacienteAlvo) {
+      Alert.alert('Nenhum vínculo', 'Você precisa estar vinculado a pelo menos um idoso para acessar as mensagens.');
+      return;
+    }
+
+    navigation.navigate(ROUTES.CHAT, {
+      cuidadorId,
+      idoso: pacienteAlvo,
+      nomeCuidador: pacienteAlvo.familiarNome || 'Familiar',
+    });
+  }
+
   return (
     <View style={styles.containerAbas}>
+      {/* 1. CABEÇALHO SUPERIOR DA TELA COM O ÍCONE DE CHAT NO CANTO DIREITO */}
+      <View style={localStyles.headerTopo}>
+        <Text style={[styles.secaoTitulo, { marginBottom: 0 }]}>Início</Text>
+
+        <TouchableOpacity
+          style={[localStyles.btnChatTopo, { backgroundColor: `${colors.primary}15` }]}
+          onPress={abrirChatGeral}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name="chat" size={22} color={colors.primary} />
+        </TouchableOpacity>
+      </View>
+
+      {/* 2. GRID DE ATALHOS */}
       <View style={styles.grid}>
         {CARDS_ATALHO.map(({ rota, badge, titulo, Icon, iconName, iconSize }) => (
           <TouchableOpacity key={rota} style={styles.card} onPress={() => navegarPara(rota)}>
@@ -85,6 +116,7 @@ export function ResumoTab({ controlador }) {
         ))}
       </View>
 
+      {/* 3. LISTA DE IDOSOS ATIVOS */}
       <Text style={styles.secaoTitulo}>Idosos Ativos</Text>
 
       {carregandoPacientes ? (
@@ -105,12 +137,14 @@ export function ResumoTab({ controlador }) {
               accessibilityLabel={`Abrir painel de ${idoso.nome}`}
             >
               <FontAwesome5 name="user-circle" size={40} color={colors.primary} />
+              
               <View style={styles.infoPacienteHome}>
                 <Text style={styles.nomePacienteHome}>{idoso.nome}</Text>
                 <Text style={styles.detalhesPacienteHome}>
                   {idoso.idade ? `${idoso.idade} anos` : 'Idade não informada'}
                 </Text>
               </View>
+
               <MaterialIcons
                 name={pacienteSelecionado?.id === idoso.id ? 'expand-less' : 'expand-more'}
                 size={28}
@@ -131,3 +165,20 @@ export function ResumoTab({ controlador }) {
     </View>
   );
 }
+
+const localStyles = StyleSheet.create({
+  headerTopo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  btnChatTopo: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
