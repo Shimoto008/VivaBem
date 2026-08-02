@@ -69,21 +69,8 @@ export function ResumoTab({ controlador }) {
     });
   }
 
-  // Função para abrir o Chat com o Familiar do Idoso Selecionado
-  function abrirChatGeral() {
-    // Pega o idoso selecionado ou o primeiro idoso da lista
-    const pacienteAlvo = pacienteSelecionado || pacientes[0];
-
-    if (!pacienteAlvo) {
-      Alert.alert('Nenhum vínculo', 'Você precisa estar vinculado a pelo menos um idoso para acessar as mensagens.');
-      return;
-    }
-
-    navigation.navigate(ROUTES.CHAT, {
-      cuidadorId,
-      idoso: pacienteAlvo,
-      nomeCuidador: pacienteAlvo.familiarNome || 'Familiar',
-    });
+  function abrirConversas() {
+    navigation.navigate(ROUTES.CONVERSAS);
   }
 
   return (
@@ -94,7 +81,7 @@ export function ResumoTab({ controlador }) {
 
         <TouchableOpacity
           style={[localStyles.btnChatTopo, { backgroundColor: `${colors.primary}15` }]}
-          onPress={abrirChatGeral}
+          onPress={abrirConversas}
           activeOpacity={0.7}
         >
           <MaterialIcons name="chat" size={22} color={colors.primary} />

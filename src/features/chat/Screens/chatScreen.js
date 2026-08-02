@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,115 +6,219 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useSession } from '../../../contexts/SessionContext';
+import { EmptyState } from '../../../components/ui';
+import { radius, spacing, typography } from '../../../theme';
 import {
   buscarMensagens,
-  enviarMensagemBanco,
+  enviarMensagem,
   escutarNovasMensagens,
 } from '../../../services/ChatServices';
+
+function formatarHora(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+}
+
+function resolverDestinatario(params) {
+  const {
+    destinatarioId,
+    nomeDestinatario,
+    cuidadorId,
+    nomeCuidador,
+    familiarId,
+    nomeFamiliar,
+  } = params || {};
+
+  if (destinatarioId) {
+    return { destinatarioId, titulo: nomeDestinatario || 'Conversa' };
+  }
+  if (cuidadorId) {
+    return { destinatarioId: cuidadorId, titulo: nomeCuidador || 'Conversa' };
+  }
+  if (familiarId) {
+    return { destinatarioId: familiarId, titulo: nomeFamiliar || 'Conversa' };
+  }
+  return { destinatarioId: null, titulo: 'Conversa' };
+}
 
 export default function ChatScreen() {
   const route = useRoute();
   const navigation = useNavigation();
   const { themeColors, primaryColor } = useTheme();
-  const { user } = useSession(); // Dados do usuário logado na sessão
+  const { user, perfil } = useSession();
+  const styles = getStyles(themeColors, primaryColor);
+  const listaRef = useRef(null);
+  const erroAlertadoRef = useRef(null);
 
-  const { cuidadorId, nomeCuidador } = route.params || {};
+  const { destinatarioId, titulo } = resolverDestinatario(route.params);
+  const euId = user?.id ?? perfil?.id;
 
-  const [mensagemTexto, setMensagemTexto] = useState('');
   const [mensagens, setMensagens] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [enviando, setEnviando] = useState(false);
+  const [mensagemTexto, setMensagemTexto] = useState('');
+  const [erro, setErro] = useState(null);
 
-  // 1. Carregar histórico e ativar Realtime ao abrir a tela
   useEffect(() => {
-    if (!cuidadorId) return;
+    if (!euId || !destinatarioId) {
+      setCarregando(false);
+      return undefined;
+    }
+
+    let ativo = true;
+    setCarregando(true);
+    setErro(null);
 
     async function carregarHistorico() {
       try {
-        const dados = await buscarMensagens(cuidadorId);
-        setMensagens(dados);
+        const dados = await buscarMensagens({ euId, outroId: destinatarioId });
+        if (ativo) setMensagens(dados);
       } catch (err) {
-        console.error('Erro ao carregar chat:', err);
+        if (ativo) setErro(err.message || 'Erro ao carregar mensagens.');
       } finally {
-        setCarregando(false);
+        if (ativo) setCarregando(false);
       }
     }
 
     carregarHistorico();
 
-    // Inscrição no canal em tempo real
-    const cancelarInscricao = escutarNovasMensagens(cuidadorId, (novaMsg) => {
-      setMensagens((prev) => [...prev, novaMsg]);
+    const cancelar = escutarNovasMensagens({ euId, outroId: destinatarioId }, (nova) => {
+      if (!ativo) return;
+      setMensagens((prev) => {
+        if (prev.some((m) => m.id === nova.id)) return prev;
+        return [...prev, nova];
+      });
     });
 
     return () => {
-      cancelarInscricao();
+      ativo = false;
+      cancelar();
     };
-  }, [cuidadorId]);
+  }, [euId, destinatarioId]);
 
-  // 2. Função de Envio de Mensagem
-  const handleEnviarMensagem = async () => {
-    if (!mensagemTexto.trim()) return;
+  useEffect(() => {
+    if (!erro || erroAlertadoRef.current === erro) return;
+    erroAlertadoRef.current = erro;
+    Alert.alert('Chat', erro);
+  }, [erro]);
 
-    const textoParaEnviar = mensagemTexto.trim();
+  const podeEnviar = !!mensagemTexto.trim() && !enviando && !!euId && !!destinatarioId;
+
+  async function handleEnviar() {
+    if (!podeEnviar) return;
+    const texto = mensagemTexto.trim();
     setMensagemTexto('');
+    setEnviando(true);
+    setErro(null);
+
+    const tempId = `temp_${Date.now()}`;
+    setMensagens((prev) => [
+      ...prev,
+      {
+        id: tempId,
+        remetente_id: euId,
+        destinatario_id: destinatarioId,
+        conteudo: texto,
+        created_at: new Date().toISOString(),
+      },
+    ]);
 
     try {
-      await enviarMensagemBanco({
-        cuidadorId,
-        remetenteId: user.id,
-        texto: textoParaEnviar,
+      const salva = await enviarMensagem({ destinatarioId, conteudo: texto });
+      setMensagens((prev) => {
+        const semTemp = prev.filter((m) => m.id !== tempId);
+        if (salva?.id && !semTemp.some((m) => m.id === salva.id)) {
+          return [...semTemp, salva];
+        }
+        return semTemp;
       });
     } catch (err) {
-      console.error('Erro ao enviar mensagem:', err);
+      setMensagens((prev) => prev.filter((m) => m.id !== tempId));
+      setErro(err.message || 'Não foi possível enviar a mensagem.');
+    } finally {
+      setEnviando(false);
     }
-  };
+  }
+
+  function scrollParaFim() {
+    if (mensagens.length > 0) {
+      listaRef.current?.scrollToEnd({ animated: true });
+    }
+  }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
-        {/* CABEÇALHO */}
-        <View style={[styles.header, { backgroundColor: themeColors.surface }]}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+          >
             <MaterialIcons name="arrow-back" size={24} color={themeColors.textPrimary} />
           </TouchableOpacity>
-          <Text style={[styles.nome, { color: themeColors.textPrimary, marginLeft: 12 }]}>
-            {nomeCuidador || 'Conversa'}
+          <Text style={styles.nome} numberOfLines={1}>
+            {titulo}
           </Text>
         </View>
 
-        {/* LISTA DE MENSAGENS */}
         {carregando ? (
-          <ActivityIndicator size="large" color={primaryColor} style={{ flex: 1 }} />
+          <ActivityIndicator size="large" color={primaryColor} style={styles.flex} />
         ) : (
           <FlatList
+            ref={listaRef}
             data={mensagens}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listaMensagens}
+            keyExtractor={(item) => String(item.id)}
+            contentContainerStyle={[
+              styles.listaMensagens,
+              mensagens.length === 0 && styles.listaVazia,
+            ]}
+            onContentSizeChange={scrollParaFim}
+            onLayout={scrollParaFim}
+            ListEmptyComponent={
+              <EmptyState
+                icon="chat-bubble-outline"
+                title="Nenhuma mensagem ainda"
+                description="Envie a primeira mensagem para iniciar a conversa."
+              />
+            }
             renderItem={({ item }) => {
-              const enviadoPorMim = item.remetente_id === user?.id;
+              const enviadoPorMim = item.remetente_id === euId;
               return (
                 <View
                   style={[
                     styles.balaoMensagem,
-                    enviadoPorMim
-                      ? [styles.balaoMinhaMensagem, { backgroundColor: primaryColor }]
-                      : [styles.balaoOutraMensagem, { backgroundColor: themeColors.surface }],
+                    enviadoPorMim ? styles.balaoMinhaMensagem : styles.balaoOutraMensagem,
                   ]}
                 >
-                  <Text style={{ color: enviadoPorMim ? '#FFF' : themeColors.textPrimary }}>
-                    {item.texto}
+                  <Text
+                    style={enviadoPorMim ? styles.textoMinhaMensagem : styles.textoOutraMensagem}
+                  >
+                    {item.conteudo}
+                  </Text>
+                  <Text
+                    style={enviadoPorMim ? styles.horaMinhaMensagem : styles.horaOutraMensagem}
+                  >
+                    {formatarHora(item.created_at)}
                   </Text>
                 </View>
               );
@@ -122,20 +226,29 @@ export default function ChatScreen() {
           />
         )}
 
-        {/* CAMPO DE DIGITAÇÃO */}
-        <View style={[styles.containerInput, { backgroundColor: themeColors.surface }]}>
+        <View style={styles.containerInput}>
           <TextInput
-            style={[styles.input, { color: themeColors.textPrimary, backgroundColor: themeColors.background }]}
+            style={styles.input}
             placeholder="Digite uma mensagem..."
             placeholderTextColor={themeColors.textSecondary}
             value={mensagemTexto}
             onChangeText={setMensagemTexto}
+            multiline
+            maxLength={1000}
+            editable={!!euId && !!destinatarioId}
           />
           <TouchableOpacity
-            style={[styles.botaoEnviar, { backgroundColor: primaryColor }]}
-            onPress={handleEnviarMensagem}
+            style={[styles.botaoEnviar, !podeEnviar && styles.botaoEnviarDesabilitado]}
+            onPress={handleEnviar}
+            disabled={!podeEnviar}
+            accessibilityRole="button"
+            accessibilityLabel="Enviar mensagem"
           >
-            <MaterialIcons name="send" size={20} color="#FFF" />
+            {enviando ? (
+              <ActivityIndicator size="small" color="#FFF" />
+            ) : (
+              <MaterialIcons name="send" size={20} color="#FFF" />
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -143,14 +256,88 @@ export default function ChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', padding: 16, elevation: 2 },
-  nome: { fontSize: 18, fontWeight: 'bold' },
-  listaMensagens: { padding: 16 },
-  balaoMensagem: { maxWidth: '80%', padding: 12, borderRadius: 16, marginBottom: 10 },
-  balaoMinhaMensagem: { alignSelf: 'flex-end', borderBottomRightRadius: 2 },
-  balaoOutraMensagem: { alignSelf: 'flex-start', borderBottomLeftRadius: 2 },
-  containerInput: { flexDirection: 'row', alignItems: 'center', padding: 12 },
-  input: { flex: 1, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, marginRight: 8 },
-  botaoEnviar: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-});
+const getStyles = (colors, primaryColor) =>
+  StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: colors.background },
+    flex: { flex: 1 },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: spacing.lg,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    nome: {
+      ...typography.title3,
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+      marginLeft: spacing.md,
+      flex: 1,
+    },
+    listaMensagens: { padding: spacing.lg, flexGrow: 1 },
+    listaVazia: { justifyContent: 'center' },
+    balaoMensagem: {
+      maxWidth: '80%',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm + 2,
+      borderRadius: radius.lg,
+      marginBottom: spacing.sm,
+    },
+    balaoMinhaMensagem: {
+      alignSelf: 'flex-end',
+      backgroundColor: primaryColor,
+      borderBottomRightRadius: 4,
+    },
+    balaoOutraMensagem: {
+      alignSelf: 'flex-start',
+      backgroundColor: colors.surface,
+      borderBottomLeftRadius: 4,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    textoMinhaMensagem: { ...typography.body, color: '#FFF' },
+    textoOutraMensagem: { ...typography.body, color: colors.textPrimary },
+    horaMinhaMensagem: {
+      ...typography.caption,
+      fontSize: 11,
+      color: 'rgba(255,255,255,0.75)',
+      marginTop: 4,
+      alignSelf: 'flex-end',
+    },
+    horaOutraMensagem: {
+      ...typography.caption,
+      fontSize: 11,
+      color: colors.textTertiary,
+      marginTop: 4,
+      alignSelf: 'flex-end',
+    },
+    containerInput: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      padding: spacing.md,
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    input: {
+      flex: 1,
+      borderRadius: radius.full,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: Platform.OS === 'ios' ? spacing.sm + 2 : spacing.sm,
+      marginRight: spacing.sm,
+      maxHeight: 120,
+      color: colors.textPrimary,
+      backgroundColor: colors.background,
+      fontSize: 16,
+    },
+    botaoEnviar: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.full,
+      backgroundColor: primaryColor,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    botaoEnviarDesabilitado: { opacity: 0.45 },
+  });

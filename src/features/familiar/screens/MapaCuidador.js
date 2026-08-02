@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import { useBuscarCuidadores } from '../hooks/useBuscarCuidador';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { ROUTES } from '../../../constants/routeNames';
 import { radius, spacing, typography } from '../../../theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -36,13 +37,10 @@ export default function MapaCuidador() {
     longitudeDelta: 0.05,
   };
 
-  // Navegar para a tela de Chat / Perfil enviando os dados do cuidador selecionado
   const handleIniciarChat = (cuidador) => {
-    navigation.navigate('Chat', {
-      cuidadorId: cuidador.id,
-      nomeCuidador: cuidador.nome,
-      telefoneCuidador: cuidador.telefone,
-      especialidade: cuidador.especialidade,
+    navigation.navigate(ROUTES.CHAT, {
+      destinatarioId: cuidador.id,
+      nomeDestinatario: cuidador.nome,
     });
   };
 

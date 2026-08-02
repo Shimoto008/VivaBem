@@ -233,35 +233,7 @@ export function PerfilCuidadorTab() {
         </View>
       )}
 
-      {/* 5. CÓDIGO DE VÍNCULO */}
-      <Text style={styles.secaoTitulo}>Código de Vínculo</Text>
-      <View style={[styles.cardCodigo, { borderColor: primaryColor }]}>
-        <Text style={styles.textoSecundario}>
-          Informe este código ao familiar para que ele se conecte a você.
-        </Text>
-
-        <View style={styles.linhaCodigo}>
-          <Text style={[styles.codigo, { color: primaryColor }]}>
-            {cuidador.codigo ?? '------'}
-          </Text>
-          <TouchableOpacity
-            onPress={copiarCodigo}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Copiar código de vínculo"
-            style={[styles.botaoCopiar, { backgroundColor: primaryColor }]}
-          >
-            <MaterialIcons
-              name={codigoCopiado ? 'check' : 'content-copy'}
-              size={16}
-              color={themeColors.textOnPrimary}
-            />
-            <Text style={styles.textoBotaoCopiar}>{codigoCopiado ? 'Copiado!' : 'Copiar'}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* 6. MODAL DE CONFIGURAÇÕES */}
+      {/* 5. MODAL DE CONFIGURAÇÕES */}
       <Modal
         visible={modalConfiguracoesVisivel}
         animationType="slide"
@@ -276,14 +248,43 @@ export function PerfilCuidadorTab() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.modalConteudo}>
+          <ScrollView style={styles.modalConteudo} showsVerticalScrollIndicator={false}>
+            <Text style={styles.secaoTitulo}>Código de Vínculo</Text>
+            <View style={[styles.cardCodigo, { borderColor: primaryColor }]}>
+              <Text style={styles.textoSecundario}>
+                Informe este código ao familiar para que ele se conecte a você.
+              </Text>
+
+              <View style={styles.linhaCodigo}>
+                <Text style={[styles.codigo, { color: primaryColor }]}>
+                  {cuidador.codigo ?? '------'}
+                </Text>
+                <TouchableOpacity
+                  onPress={copiarCodigo}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Copiar código de vínculo"
+                  style={[styles.botaoCopiar, { backgroundColor: primaryColor }]}
+                >
+                  <MaterialIcons
+                    name={codigoCopiado ? 'check' : 'content-copy'}
+                    size={16}
+                    color={themeColors.textOnPrimary}
+                  />
+                  <Text style={styles.textoBotaoCopiar}>
+                    {codigoCopiado ? 'Copiado!' : 'Copiar'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <Text style={styles.secaoTitulo}>Aparência e Preferências</Text>
             <PreferenciasAparencia />
 
             <View style={styles.divisorLogout} />
 
             <BotaoLogout />
-          </View>
+          </ScrollView>
         </View>
       </Modal>
     </ScrollView>

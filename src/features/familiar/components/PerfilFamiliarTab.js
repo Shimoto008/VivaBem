@@ -1,27 +1,70 @@
-import React, { useState } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 
-import { PreferenciasAparencia, BotaoLogout } from '../../../components/ui';
+import { PreferenciasAparencia, BotaoLogout, Input, Button } from '../../../components/ui';
 import { radius, spacing, typography } from '../../../theme';
 import { useSession } from '../../../contexts/SessionContext';
 import { useConexaoFamiliarContext } from '../../../contexts/ConexaoFamiliarContext';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { aplicarMascaraTelefone } from '../../../utils/masks';
+import { atualizarPerfilFamiliar } from '../../../services/familiarService';
+import { aplicarMascaraTelefone, somenteDigitos } from '../../../utils/masks';
+import { validarNomeCompleto, validarTelefoneObrigatorio } from '../../../utils/validators';
 
-// Import da tela do mapa do módulo do familiar
 import MapaCuidador from '../screens/MapaCuidador';
 
 export default function PerfilFamiliarTab() {
-  const { perfil, carregando } = useSession();
+  const { perfil, carregando, atualizarPerfilLocal } = useSession();
   const { conexao, carregando: carregandoConexao } = useConexaoFamiliarContext();
   const { primaryColor, themeColors } = useTheme();
   const styles = getStyles(themeColors);
 
   const [modalMapaVisivel, setModalMapaVisivel] = useState(false);
+  const [modalConfigVisivel, setModalConfigVisivel] = useState(false);
+  const [nomeEdicao, setNomeEdicao] = useState('');
+  const [telefoneEdicao, setTelefoneEdicao] = useState('');
+  const [erros, setErros] = useState({});
+  const [salvando, setSalvando] = useState(false);
+
+  useEffect(() => {
+    setNomeEdicao(perfil?.nome ?? '');
+    setTelefoneEdicao(aplicarMascaraTelefone(perfil?.telefone ?? ''));
+  }, [perfil?.nome, perfil?.telefone, modalConfigVisivel]);
 
   const conectado = !!conexao;
   const cuidador = conexao?.cuidadores ?? null;
+
+  async function salvarPerfil() {
+    const novosErros = {
+      nome: validarNomeCompleto(nomeEdicao),
+      telefone: validarTelefoneObrigatorio(telefoneEdicao),
+    };
+    setErros(novosErros);
+    if (Object.values(novosErros).some(Boolean)) return;
+
+    setSalvando(true);
+    try {
+      const atualizado = await atualizarPerfilFamiliar(perfil.id, {
+        nome: nomeEdicao.trim(),
+        telefone: somenteDigitos(telefoneEdicao),
+      });
+      atualizarPerfilLocal(atualizado);
+      Alert.alert('Sucesso', 'Dados atualizados.');
+    } catch {
+      Alert.alert('Erro', 'Não foi possível salvar as alterações.');
+    } finally {
+      setSalvando(false);
+    }
+  }
 
   if (carregando) {
     return (
@@ -33,7 +76,18 @@ export default function PerfilFamiliarTab() {
 
   return (
     <View style={styles.container}>
-      {/* CARD DE PERFIL DO FAMILIAR */}
+      <View style={styles.headerTopo}>
+        <Text style={styles.tituloPagina}>Meu Perfil</Text>
+        <TouchableOpacity
+          onPress={() => setModalConfigVisivel(true)}
+          style={styles.botaoConfiguracoes}
+          accessibilityRole="button"
+          accessibilityLabel="Abrir configurações"
+        >
+          <MaterialIcons name="settings" size={26} color={themeColors.textPrimary} />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.card}>
         <View style={styles.linhaCentralizada}>
           <View style={[styles.avatar, { backgroundColor: primaryColor }]}>
@@ -49,7 +103,6 @@ export default function PerfilFamiliarTab() {
         </View>
       </View>
 
-      {/* CUIDADOR VINCULADO */}
       <Text style={styles.secaoTitulo}>Cuidador Vinculado</Text>
       <View style={styles.card}>
         {carregandoConexao ? (
@@ -75,7 +128,6 @@ export default function PerfilFamiliarTab() {
         )}
       </View>
 
-      {/* AÇÕES E LOCALIZAÇÃO */}
       <Text style={styles.secaoTitulo}>Rede de Apoio</Text>
       <TouchableOpacity
         style={styles.cardAcao}
@@ -96,13 +148,50 @@ export default function PerfilFamiliarTab() {
         </View>
       </TouchableOpacity>
 
-      {/* APARÊNCIA E PREFERÊNCIAS */}
-      <Text style={styles.secaoTitulo}>Aparência e Preferências</Text>
-      <PreferenciasAparencia />
+      <Modal
+        visible={modalConfigVisivel}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setModalConfigVisivel(false)}
+      >
+        <View style={[styles.modalConfigContainer, { backgroundColor: themeColors.background }]}>
+          <View style={styles.modalConfigHeader}>
+            <Text style={styles.modalConfigTitulo}>Configurações</Text>
+            <TouchableOpacity onPress={() => setModalConfigVisivel(false)}>
+              <MaterialIcons name="close" size={28} color={themeColors.textPrimary} />
+            </TouchableOpacity>
+          </View>
 
-      <BotaoLogout />
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={styles.secaoTitulo}>Editar Perfil</Text>
+            <Input
+              label="Nome"
+              value={nomeEdicao}
+              onChangeText={setNomeEdicao}
+              autoCapitalize="words"
+              error={erros.nome}
+            />
+            <Input
+              label="Telefone"
+              value={telefoneEdicao}
+              onChangeText={(texto) => setTelefoneEdicao(aplicarMascaraTelefone(texto))}
+              keyboardType="numeric"
+              maxLength={15}
+              error={erros.telefone}
+            />
+            <Button title="Salvar alterações" onPress={salvarPerfil} loading={salvando} />
 
-      {/* MODAL DO MAPA DE CUIDADORES */}
+            <Text style={[styles.secaoTitulo, { marginTop: spacing.xl }]}>
+              Aparência e Preferências
+            </Text>
+            <PreferenciasAparencia />
+
+            <View style={styles.divisorLogout} />
+            <BotaoLogout />
+          </ScrollView>
+        </View>
+      </Modal>
+
       <Modal
         visible={modalMapaVisivel}
         animationType="slide"
@@ -110,7 +199,6 @@ export default function PerfilFamiliarTab() {
         onRequestClose={() => setModalMapaVisivel(false)}
       >
         <View style={styles.containerModal}>
-          {/* Cabeçalho para fechar o Modal */}
           <View style={styles.headerModal}>
             <TouchableOpacity
               style={styles.botaoFechar}
@@ -122,8 +210,6 @@ export default function PerfilFamiliarTab() {
             <Text style={styles.tituloModal}>Cuidadores na Região</Text>
             <View style={{ width: 26 }} />
           </View>
-
-          {/* Renderiza a Tela do Mapa */}
           <MapaCuidador />
         </View>
       </Modal>
@@ -134,7 +220,25 @@ export default function PerfilFamiliarTab() {
 const getStyles = (colors) =>
   StyleSheet.create({
     container: { flex: 1, paddingBottom: spacing.lg },
-    containerCarregando: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+    containerCarregando: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: spacing.xl,
+    },
+    headerTopo: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing.md,
+      paddingHorizontal: spacing.xs,
+    },
+    tituloPagina: {
+      ...typography.title1,
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+    },
+    botaoConfiguracoes: { padding: spacing.xs },
     card: {
       backgroundColor: colors.surface,
       padding: spacing.lg,
@@ -156,7 +260,7 @@ const getStyles = (colors) =>
       height: 44,
       borderRadius: radius.md,
       alignItems: 'center',
-      justify: 'center',
+      justifyContent: 'center',
     },
     linhaCentralizada: { flexDirection: 'row', alignItems: 'center' },
     avatar: {
@@ -179,7 +283,23 @@ const getStyles = (colors) =>
       marginBottom: spacing.sm,
       marginLeft: spacing.xs,
     },
-    // Estilos do Modal
+    modalConfigContainer: {
+      flex: 1,
+      padding: spacing.lg,
+      paddingTop: spacing.xl * 1.5,
+    },
+    modalConfigHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing.xl,
+    },
+    modalConfigTitulo: {
+      ...typography.title2,
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+    },
+    divisorLogout: { marginVertical: spacing.xl },
     containerModal: { flex: 1, backgroundColor: colors.background },
     headerModal: {
       flexDirection: 'row',

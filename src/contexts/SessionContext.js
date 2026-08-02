@@ -146,6 +146,7 @@ export function SessionProvider({ children }) {
   const value = useMemo(
     () => ({
       session,
+      user: session?.user ?? null,
       perfil,
       tipoUsuario,
       carregando,

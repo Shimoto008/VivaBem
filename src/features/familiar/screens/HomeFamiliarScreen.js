@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { getStyles } from './HomeFamiliar.styles';
 
 import { ConexaoCuidadorCard } from '../components/ConexaoCuidadorCard';
@@ -12,6 +14,8 @@ import { BottomTabBar, ScreenHeader, SwipeableTabs } from '../../../components/u
 import { useSession } from '../../../contexts/SessionContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { ConexaoFamiliarProvider } from '../../../contexts/ConexaoFamiliarContext';
+import { ROUTES } from '../../../constants/routeNames';
+import { spacing } from '../../../theme';
 
 const ABAS = [
   { key: 'home', label: 'Início', icon: 'home', iconFamily: 'MaterialIcons' },
@@ -26,8 +30,9 @@ const ABAS = [
  * inferior porque a BottomTabBar já soma o inset de baixo sozinha.
  */
 export default function HomeFamiliarScreen() {
+  const navigation = useNavigation();
   const { perfil: familiar } = useSession();
-  const { themeColors } = useTheme();
+  const { themeColors, primaryColor } = useTheme();
   const styles = getStyles(themeColors);
   const [abaAtiva, setAbaAtiva] = useState('home');
 
@@ -44,10 +49,23 @@ export default function HomeFamiliarScreen() {
             contentContainerStyle={styles.scrollContent}
           >
             <View>
-              <ScreenHeader
-                title={`Olá, ${primeiroNome}`}
-                subtitle="Acompanhe a rotina de quem você ama"
-              />
+              <View style={localStyles.headerComChat}>
+                <View style={localStyles.headerTexto}>
+                  <ScreenHeader
+                    title={`Olá, ${primeiroNome}`}
+                    subtitle="Acompanhe a rotina de quem você ama"
+                  />
+                </View>
+                <TouchableOpacity
+                  style={[localStyles.btnChat, { backgroundColor: `${primaryColor}15` }]}
+                  onPress={() => navigation.navigate(ROUTES.CONVERSAS)}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel="Abrir conversas"
+                >
+                  <MaterialIcons name="chat" size={22} color={primaryColor} />
+                </TouchableOpacity>
+              </View>
               <View style={styles.blocoConexao}>
                 <ConexaoCuidadorCard />
               </View>
@@ -65,3 +83,20 @@ export default function HomeFamiliarScreen() {
     </SafeAreaView>
   );
 }
+
+const localStyles = StyleSheet.create({
+  headerComChat: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingRight: spacing.lg,
+  },
+  headerTexto: { flex: 1 },
+  btnChat: {
+    marginTop: spacing.lg + 4,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

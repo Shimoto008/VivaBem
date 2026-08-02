@@ -5,7 +5,7 @@ import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { getStyles } from './Home.styles';
 import { PERFIL_OPTIONS } from './perfilOptions';
-import { Card } from '../../../components/ui';
+import { Card, Button } from '../../../components/ui';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { ROUTES } from '../../../constants/routeNames';
 
@@ -26,7 +26,15 @@ export default function HomeScreen() {
         <Image style={styles.img} source={require('../../../../assets/VivaBem.png')} />
         <Text style={styles.titulo}>Área de Login</Text>
         <Text style={styles.subtitulo}>Auxiliar cuidadores de idoso</Text>
-        <Text style={styles.selecionar}>Selecione seu perfil</Text>
+
+        <Button
+          title="Criar conta"
+          onPress={() => navigation.navigate(ROUTES.CADASTRO)}
+          style={styles.ctaCriarConta}
+          accessibilityLabel="Criar uma nova conta"
+        />
+
+        <Text style={styles.selecionar}>Ou escolha um perfil para começar</Text>
 
         <View style={styles.lista}>
           {PERFIL_OPTIONS.map((opcao) => {
@@ -35,7 +43,9 @@ export default function HomeScreen() {
               <TouchableOpacity
                 key={opcao.key}
                 activeOpacity={0.7}
-                onPress={() => navigation.navigate(opcao.route)}
+                onPress={() =>
+                  navigation.navigate(ROUTES.CADASTRO, { tipoInicial: opcao.tipoInicial })
+                }
                 accessibilityRole="button"
                 accessibilityLabel={`Selecionar perfil ${opcao.title}`}
               >

@@ -9,6 +9,7 @@ export const getStyles = (colors) =>
     img: { width: 130, height: 90, alignSelf: 'center', resizeMode: 'contain', marginBottom: spacing.lg },
     titulo: { ...typography.title1, color: colors.textPrimary, textAlign: 'center' },
     subtitulo: { ...typography.body, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs },
+    ctaCriarConta: { marginTop: spacing.xl },
     selecionar: { ...typography.bodyBold, color: colors.textPrimary, marginTop: spacing.xxl, marginBottom: spacing.md },
     lista: { gap: spacing.md },
     cardPerfil: { flexDirection: 'row', alignItems: 'center' },

@@ -1,6 +1,4 @@
-import { ROUTES } from '../../../constants/routeNames';
-
-/** Dados das 3 opções de perfil — extraído da tela para facilitar manutenção. */
+/** Opções de perfil na Home — todas abrem o cadastro unificado com tipoInicial. */
 export const PERFIL_OPTIONS = [
   {
     key: 'cuidador',
@@ -9,7 +7,7 @@ export const PERFIL_OPTIONS = [
     iconColor: '#4169E1',
     title: 'Cuidador',
     description: 'Gerenciar e cuidar da rotina dos idosos e suas atividades diárias',
-    route: ROUTES.CADASTRO_CUIDADOR,
+    tipoInicial: 'cuidador',
   },
   {
     key: 'familiar',
@@ -18,7 +16,7 @@ export const PERFIL_OPTIONS = [
     iconColor: '#20B2AA',
     title: 'Familiar',
     description: 'Acompanhar o perfil do idoso e as atividades publicadas pelo cuidador',
-    route: ROUTES.CADASTRO_FAMILIAR,
+    tipoInicial: 'familiar',
   },
   {
     key: 'idoso',
@@ -27,6 +25,6 @@ export const PERFIL_OPTIONS = [
     iconColor: '#9370DB',
     title: 'Idoso',
     description: 'Jogos, alertas e atividades',
-    route: ROUTES.IDOSO,
+    tipoInicial: 'idoso',
   },
 ];

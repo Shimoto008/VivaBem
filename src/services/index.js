@@ -8,3 +8,4 @@ export * as familiarService from './familiarService';
 export * as idosoService from './idosoService';
 export * as conexaoService from './conexaoService';
 export * as lembreteService from './lembreteService';
+export * as chatService from './ChatServices';
