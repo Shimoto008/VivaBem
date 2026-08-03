@@ -42,7 +42,7 @@ export default function SplashScreen({ autoNavegar = true }) {
   return (
     <SafeAreaView style={styles.container}>
       <Animated.View style={[styles.logoWrapper, { transform: [{ translateY: posicaoLogo }] }]}>
-        <Image style={styles.logo} source={require('../../../../assets/VivaBem.png')} />
+        <Image style={styles.logo} source={require('../../../../assets/logo2.png')} />
       </Animated.View>
     </SafeAreaView>
   );

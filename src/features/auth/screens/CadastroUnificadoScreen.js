@@ -95,7 +95,7 @@ export default function CadastroUnificadoScreen() {
               subtitle="Escolha o perfil e preencha seus dados"
               onBack={() => navigation.goBack()}
             />
-            <Image style={styles.img} source={require('../../../../assets/VivaBem.png')} />
+           
 
             <Text style={styles.seletorTitulo}>Tipo de perfil</Text>
             <View style={styles.seletorRow}>

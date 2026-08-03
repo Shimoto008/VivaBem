@@ -5,18 +5,18 @@ const STORAGE_KEY = '@vivabem:theme-preferences';
 const DEFAULT_PRIMARY_COLOR = '#3B82F6';
 
 /**
- * Paletas neutras (fundo, superfície, texto, bordas) para os dois modos.
- * `primary*` NÃO entra aqui — é derivado de `primaryColor` em `buildThemeColors`,
- * pois o usuário pode trocar a cor de destaque independente do modo claro/escuro.
+ * Paletas neutras atualizadas:
+ * No modo claro (LIGHT_PALETTE), alteramos o background para #FFFFFF
+ * e os textos primário/secundário para o preto puro (#000000).
  */
 const LIGHT_PALETTE = {
-  background: '#F8F9FA',
+  background: '#FFFFFF', // <--- Alterado de #F8F9FA para Branco Puro
   surface: '#FFFFFF',
   border: '#E1E8ED',
   divider: '#F1F3F5',
-  textPrimary: '#1C1C1E',
-  textSecondary: '#666666',
-  textTertiary: '#999999',
+  textPrimary: '#000000', // <--- Alterado para Preto Puro
+  textSecondary: '#000000', // <--- Alterado para Preto Puro
+  textTertiary: '#777777',
   placeholder: '#A1A1A1',
   overlay: 'rgba(0, 0, 0, 0.4)',
 };
@@ -33,7 +33,6 @@ const DARK_PALETTE = {
   overlay: 'rgba(0, 0, 0, 0.6)',
 };
 
-/** Cores semânticas — mantidas fixas nos dois modos (sucesso/erro/alerta). */
 const SEMANTIC = {
   white: '#FFFFFF',
   success: '#228B22',
@@ -43,7 +42,6 @@ const SEMANTIC = {
   textOnPrimary: '#FFFFFF',
 };
 
-/** Escurece uma cor hex por uma fração (0–1), para estados "pressed". */
 function escurecerHex(hex, fator = 0.15) {
   const match = /^#?([a-f\d]{6})$/i.exec(hex);
   if (!match) return hex;
@@ -54,13 +52,6 @@ function escurecerHex(hex, fator = 0.15) {
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
-/**
- * Monta o objeto de cores usado pelas telas — mesmo formato do antigo
- * `theme/colors.js` estático, só que calculado em tempo de execução a
- * partir do modo (claro/escuro) e da cor de destaque escolhida pelo
- * usuário. Isso permite trocar `colors` por `themeColors` nos componentes
- * sem precisar renomear todas as chaves usadas pelo app.
- */
 function buildThemeColors(isDarkMode, primaryColor) {
   const paleta = isDarkMode ? DARK_PALETTE : LIGHT_PALETTE;
   return {
@@ -102,8 +93,6 @@ export function ThemeProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // Só persiste depois de terminar de ler o storage, para não sobrescrever
-    // a preferência salva com os valores padrão durante o carregamento inicial.
     if (!preferenciasCarregadas) return;
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ isDarkMode, primaryColor })).catch((erro) => {
       console.warn('Não foi possível salvar as preferências de tema:', erro.message);
