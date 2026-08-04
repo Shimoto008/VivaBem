@@ -7,11 +7,12 @@ import {
   FlatList,
   StyleSheet,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -24,6 +25,8 @@ import {
   enviarMensagem,
   escutarNovasMensagens,
 } from '../../../services/ChatServices';
+
+const KEYBOARD_VERTICAL_OFFSET_IOS = 64;
 
 function formatarHora(iso) {
   if (!iso) return '';
@@ -59,6 +62,7 @@ function resolverDestinatario(params) {
 export default function ChatScreen() {
   const route = useRoute();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { themeColors, primaryColor } = useTheme();
   const { user, perfil } = useSession();
   const styles = getStyles(themeColors, primaryColor);
@@ -73,6 +77,7 @@ export default function ChatScreen() {
   const [enviando, setEnviando] = useState(false);
   const [mensagemTexto, setMensagemTexto] = useState('');
   const [erro, setErro] = useState(null);
+  const [tecladoVisivel, setTecladoVisivel] = useState(false);
 
   useEffect(() => {
     if (!euId || !destinatarioId) {
@@ -117,7 +122,28 @@ export default function ChatScreen() {
     Alert.alert('Chat', erro);
   }, [erro]);
 
+  useEffect(() => {
+    const eventoShow = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const eventoHide = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const subShow = Keyboard.addListener(eventoShow, () => {
+      setTecladoVisivel(true);
+      requestAnimationFrame(() => {
+        listaRef.current?.scrollToEnd({ animated: true });
+      });
+    });
+    const subHide = Keyboard.addListener(eventoHide, () => {
+      setTecladoVisivel(false);
+    });
+
+    return () => {
+      subShow.remove();
+      subHide.remove();
+    };
+  }, []);
+
   const podeEnviar = !!mensagemTexto.trim() && !enviando && !!euId && !!destinatarioId;
+  const paddingInputBottom = tecladoVisivel ? spacing.md : spacing.md + insets.bottom;
 
   async function handleEnviar() {
     if (!podeEnviar) return;
@@ -162,11 +188,11 @@ export default function ChatScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? KEYBOARD_VERTICAL_OFFSET_IOS : 0}
       >
         <View style={styles.header}>
           <TouchableOpacity
@@ -188,6 +214,8 @@ export default function ChatScreen() {
             ref={listaRef}
             data={mensagens}
             keyExtractor={(item) => String(item.id)}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
             contentContainerStyle={[
               styles.listaMensagens,
               mensagens.length === 0 && styles.listaVazia,
@@ -226,7 +254,7 @@ export default function ChatScreen() {
           />
         )}
 
-        <View style={styles.containerInput}>
+        <View style={[styles.containerInput, { paddingBottom: paddingInputBottom }]}>
           <TextInput
             style={styles.input}
             placeholder="Digite uma mensagem..."
@@ -315,7 +343,8 @@ const getStyles = (colors, primaryColor) =>
     containerInput: {
       flexDirection: 'row',
       alignItems: 'flex-end',
-      padding: spacing.md,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.md,
       backgroundColor: colors.surface,
       borderTopWidth: 1,
       borderTopColor: colors.border,

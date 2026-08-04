@@ -24,7 +24,7 @@ export default function MapaCuidador() {
   const { themeColors, primaryColor } = useTheme();
   const styles = getStyles(themeColors, primaryColor);
 
-  // Busca do banco (raio padrão: 10.000 metros)
+  // Busca cuidadores no raio padrão (10 km).
   const { minhaPosicao, cuidadoresProximos, loading, error } = useBuscarCuidadores(10000);
 
   const [cuidadorSelecionado, setCuidadorSelecionado] = useState(null);
@@ -44,13 +44,6 @@ export default function MapaCuidador() {
     });
   };
 
-  const handleVerPerfil = (cuidador) => {
-    // Opção caso queira ter uma tela detalhada de perfil antes do chat
-    navigation.navigate('PerfilCuidador', {
-      cuidadorId: cuidador.id,
-    });
-  };
-
   if (loading) {
     return (
       <View style={styles.containerCarregando}>
@@ -62,7 +55,6 @@ export default function MapaCuidador() {
 
   return (
     <View style={styles.container}>
-      {/* 1. MAPA */}
       <MapView
         style={styles.mapa}
         provider={PROVIDER_DEFAULT}
@@ -86,14 +78,13 @@ export default function MapaCuidador() {
               >
                 <Text style={styles.calloutNome}>{cuidador.nome}</Text>
                 <Text style={styles.calloutEspecialidade}>{cuidador.especialidade}</Text>
-                <Text style={styles.calloutAcao}>Toque para conversar 💬</Text>
+                <Text style={styles.calloutAcao}>Toque para conversar</Text>
               </Callout>
             </Marker>
           );
         })}
       </MapView>
 
-      {/* 2. ABA INFERIOR */}
       <View style={[styles.abaInferior, listaExpandida && styles.abaInferiorExpandida]}>
         <TouchableOpacity
           style={styles.alcaAba}
@@ -154,7 +145,6 @@ export default function MapaCuidador() {
                   )}
                 </View>
 
-                {/* Botão para iniciar o Chat diretamente */}
                 <TouchableOpacity
                   style={styles.botaoContato}
                   onPress={() => handleIniciarChat(item)}

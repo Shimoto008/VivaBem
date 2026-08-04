@@ -11,7 +11,13 @@ import {
 } from 'react-native';
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 
-import { PreferenciasAparencia, BotaoLogout, Input, Button } from '../../../components/ui';
+import {
+  PreferenciasAparencia,
+  SecaoInstitucional,
+  BotaoLogout,
+  Input,
+  Button,
+} from '../../../components/ui';
 import { radius, spacing, typography } from '../../../theme';
 import { useSession } from '../../../contexts/SessionContext';
 import { useConexaoFamiliarContext } from '../../../contexts/ConexaoFamiliarContext';
@@ -185,6 +191,8 @@ export default function PerfilFamiliarTab() {
               Aparência e Preferências
             </Text>
             <PreferenciasAparencia />
+
+            <SecaoInstitucional />
 
             <View style={styles.divisorLogout} />
             <BotaoLogout />

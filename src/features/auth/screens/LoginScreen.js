@@ -15,6 +15,7 @@ import { Input, Button, Card, ScreenHeader } from '../../../components/ui';
 import { spacing, typography } from '../../../theme';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useLogin } from '../hooks/useLogin';
+import { getLogoSource } from '../../../constants/brandAssets';
 
 /**
  * Login por CPF: o e-mail exigido pelo Supabase Auth é derivado do CPF dentro
@@ -22,7 +23,7 @@ import { useLogin } from '../hooks/useLogin';
  */
 export default function LoginScreen() {
   const navigation = useNavigation();
-  const { themeColors } = useTheme();
+  const { themeColors, isDarkMode } = useTheme();
   const styles = getStyles(themeColors);
   const { cpf, senha, erros, entrando, alterarCpf, alterarSenha, entrar } = useLogin();
 
@@ -43,7 +44,7 @@ export default function LoginScreen() {
             onBack={() => navigation.goBack()}
           />
 
-          <Image style={styles.img} source={require('../../../../assets/VivaBem.png')} />
+          <Image style={styles.img} source={getLogoSource(isDarkMode)} />
 
           <Card>
             <Input

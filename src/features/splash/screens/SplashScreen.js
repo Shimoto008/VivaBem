@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { getStyles } from './Splash.styles';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { ROUTES } from '../../../constants/routeNames';
+import { getLogoSource } from '../../../constants/brandAssets';
 
 const { height } = Dimensions.get('window');
 const DURACAO_SUBIDA_LOGO_MS = 1500;
@@ -17,7 +18,7 @@ const DURACAO_TOTAL_SPLASH_MS = 5500;
  */
 export default function SplashScreen({ autoNavegar = true }) {
   const navigation = useNavigation();
-  const { themeColors } = useTheme();
+  const { themeColors, isDarkMode } = useTheme();
   const styles = getStyles(themeColors);
   const posicaoLogo = useRef(new Animated.Value(height)).current;
 
@@ -42,7 +43,7 @@ export default function SplashScreen({ autoNavegar = true }) {
   return (
     <SafeAreaView style={styles.container}>
       <Animated.View style={[styles.logoWrapper, { transform: [{ translateY: posicaoLogo }] }]}>
-        <Image style={styles.logo} source={require('../../../../assets/logo2.png')} />
+        <Image style={styles.logo} source={getLogoSource(isDarkMode)} />
       </Animated.View>
     </SafeAreaView>
   );

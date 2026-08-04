@@ -14,7 +14,13 @@ import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 
-import { Input, Button, PreferenciasAparencia, BotaoLogout } from '../../../components/ui';
+import {
+  Input,
+  Button,
+  PreferenciasAparencia,
+  SecaoInstitucional,
+  BotaoLogout,
+} from '../../../components/ui';
 import { radius, spacing, typography } from '../../../theme';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useSession } from '../../../contexts/SessionContext';
@@ -31,8 +37,6 @@ export function PerfilCuidadorTab() {
 
   const [foto, setFoto] = useState(null);
   const [editando, setEditando] = useState(false);
-  
-  // Estados para edição dos campos
   const [telefoneEdicao, setTelefoneEdicao] = useState('');
   const [especialidadeEdicao, setEspecialidadeEdicao] = useState('');
   const [formacaoEdicao, setFormacaoEdicao] = useState('');
@@ -41,7 +45,7 @@ export function PerfilCuidadorTab() {
   const [salvando, setSalvando] = useState(false);
   const [codigoCopiado, setCodigoCopiado] = useState(false);
   const [modalConfiguracoesVisivel, setModalConfiguracoesVisivel] = useState(false);
-  
+
   const temporizadorCopiaRef = useRef(null);
 
   useEffect(() => {
@@ -96,8 +100,13 @@ export function PerfilCuidadorTab() {
       });
       atualizarPerfilLocal(atualizado);
       setEditando(false);
-    } catch {
-      Alert.alert('Erro', 'Não foi possível salvar as alterações.');
+      Alert.alert('Sucesso', 'Dados atualizados.');
+    } catch (error) {
+      const detalhe =
+        error?.message ||
+        error?.error_description ||
+        'Não foi possível salvar as alterações.';
+      Alert.alert('Erro', detalhe);
     } finally {
       setSalvando(false);
     }
@@ -122,7 +131,6 @@ export function PerfilCuidadorTab() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* 1. CABEÇALHO COM ÍCONE DE CONFIGURAÇÕES */}
       <View style={styles.headerTopo}>
         <Text style={styles.tituloPagina}>Meu Perfil</Text>
         <TouchableOpacity
@@ -135,7 +143,6 @@ export function PerfilCuidadorTab() {
         </TouchableOpacity>
       </View>
 
-      {/* 2. CARD DE INFORMAÇÕES BÁSICAS */}
       <View style={styles.card}>
         <View style={styles.linhaCentralizada}>
           <TouchableOpacity
@@ -176,7 +183,6 @@ export function PerfilCuidadorTab() {
           </TouchableOpacity>
         </View>
 
-        {/* 3. FORMULÁRIO DE EDIÇÃO */}
         {editando ? (
           <View style={styles.formularioEdicao}>
             <Input
@@ -216,7 +222,6 @@ export function PerfilCuidadorTab() {
         ) : null}
       </View>
 
-      {/* 4. SEÇÃO: SOBRE MIM & FORMAÇÃO (EXIBIÇÃO) */}
       {!editando && (
         <View style={styles.cardInfoSecundaria}>
           <Text style={styles.secaoSubtitulo}>Formação Acadêmica</Text>
@@ -233,7 +238,6 @@ export function PerfilCuidadorTab() {
         </View>
       )}
 
-      {/* 5. MODAL DE CONFIGURAÇÕES */}
       <Modal
         visible={modalConfiguracoesVisivel}
         animationType="slide"
@@ -280,6 +284,8 @@ export function PerfilCuidadorTab() {
 
             <Text style={styles.secaoTitulo}>Aparência e Preferências</Text>
             <PreferenciasAparencia />
+
+            <SecaoInstitucional />
 
             <View style={styles.divisorLogout} />
 

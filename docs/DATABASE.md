@@ -25,6 +25,11 @@ linha em `cuidadores` é sempre o `id` do usuário em `auth.users`.
 alter table cuidadores
   add column if not exists codigo text unique;
 
+-- Campos editáveis no perfil do cuidador (Biografia e Formação Acadêmica).
+alter table cuidadores
+  add column if not exists formacao text,
+  add column if not exists biografia text;
+
 -- Impede dois perfis com o mesmo CPF (é o que o app usa para detectar
 -- "CPF já cadastrado" de forma confiável).
 alter table cuidadores
@@ -36,6 +41,15 @@ alter table cuidadores
   add constraint cuidadores_id_auth_fk
   foreign key (id) references auth.users (id) on delete cascade;
 ```
+
+> **Importante:** se a edição de Biografia / Formação Acadêmica falhar no app
+> com erro de coluna inexistente, rode no SQL Editor apenas:
+>
+> ```sql
+> alter table cuidadores
+>   add column if not exists formacao text,
+>   add column if not exists biografia text;
+> ```
 
 > O app gera o código de 6 caracteres no cadastro do cuidador
 > (`src/services/cuidadorService.js`). É uma solução do lado do cliente; o

@@ -8,4 +8,5 @@ export { SelectModal } from './SelectModal';
 export { BottomTabBar } from './BottomTabBar';
 export { SwipeableTabs } from './SwipeableTabs';
 export { PreferenciasAparencia } from './PreferenciasAparencia';
+export { SecaoInstitucional } from './SecaoInstitucional';
 export { BotaoLogout } from './BotaoLogout';

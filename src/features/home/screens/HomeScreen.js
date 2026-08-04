@@ -6,10 +6,11 @@ import { getStyles } from './Home.styles';
 import { Button } from '../../../components/ui';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { ROUTES } from '../../../constants/routeNames';
+import { getLogoSource } from '../../../constants/brandAssets';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const { themeColors } = useTheme();
+  const { themeColors, isDarkMode } = useTheme();
   const styles = getStyles(themeColors);
 
   return (
@@ -27,14 +28,11 @@ export default function HomeScreen() {
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Banner / Logo */}
-        <Image style={styles.img} source={require('../../../../assets/logo2.png')} />
-        
-        {/* Textos de Apresentação */}
+        <Image style={styles.img} source={getLogoSource(isDarkMode)} />
+
         <Text style={styles.titulo}>Área de Login</Text>
         <Text style={styles.subtitulo}>Auxiliar cuidadores de idoso</Text>
 
-        {/* Ações do Usuário */}
         <View style={[styles.buttonContainer, { gap: 12, width: '100%' }]}>
           <Button
             title="Criar conta"
