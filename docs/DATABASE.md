@@ -119,17 +119,43 @@ alter table familiares
 ## 5. Tabela `idosos` (cadastro do próprio idoso como usuário do app)
 
 Conceito **diferente** de `pacientes` (que são os idosos cadastrados pelo
-familiar). Aqui é o idoso se cadastrando como usuário do app pela tela
-"Idoso" da Home — hoje é só um cadastro simples, sem login.
+familiar). Aqui o idoso se cadastra como usuário autenticado do app (mesmo
+padrão de `cuidadores` / `familiares`: `id` = `auth.users.id`).
 
 ```sql
 create table if not exists idosos (
-  id uuid primary key default gen_random_uuid(),
+  id uuid primary key references auth.users (id) on delete cascade,
   nome text not null,
-  cpf text,
+  cpf text unique,
   telefone text,
+  contato_emergencia text,
+  preferencias text,
   created_at timestamptz not null default now()
 );
+
+alter table idosos enable row level security;
+
+create policy "idosos_select_own" on idosos
+  for select using (auth.uid() = id);
+
+create policy "idosos_insert_own" on idosos
+  for insert with check (auth.uid() = id);
+
+create policy "idosos_update_own" on idosos
+  for update using (auth.uid() = id);
+```
+
+### Migração (ambientes com `idosos` legado sem `auth.users`)
+
+Se a tabela já existir com `id uuid default gen_random_uuid()` (cadastro sem
+login), é preciso realinhar no Supabase **manualmente** antes de usar o novo
+fluxo: apagar linhas órfãs ou recriar a tabela com FK para `auth.users`.
+O app **não** migra esses registros automaticamente.
+
+```sql
+-- Exemplo (destrutivo — faça backup antes):
+-- drop table if exists idosos cascade;
+-- depois rode o create table da seção acima
 ```
 
 ## 6. Tabela `conexoes` (regra de negócio Familiar ↔ Cuidador)

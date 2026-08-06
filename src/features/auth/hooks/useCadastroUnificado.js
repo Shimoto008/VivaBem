@@ -4,8 +4,8 @@ import * as Location from 'expo-location';
 import {
   cadastrarEConectarCuidador,
   cadastrarEConectarFamiliar,
+  cadastrarEConectarIdoso,
 } from '../../../services/authService';
-import { criarIdoso } from '../../../services/idosoService';
 import { useSession } from '../../../contexts/SessionContext';
 import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../../../utils/masks';
 import {
@@ -78,7 +78,11 @@ export function useCadastroUnificado(tipoInicial = TIPOS_CADASTRO.FAMILIAR) {
     const erroTelefone = validarTelefoneObrigatorio(telefone);
     if (erroTelefone) novosErros.telefone = erroTelefone;
 
-    if (tipo === TIPOS_CADASTRO.CUIDADOR || tipo === TIPOS_CADASTRO.FAMILIAR) {
+    if (
+      tipo === TIPOS_CADASTRO.CUIDADOR ||
+      tipo === TIPOS_CADASTRO.FAMILIAR ||
+      tipo === TIPOS_CADASTRO.IDOSO
+    ) {
       if (!senha || senha.length < TAMANHO_MINIMO_SENHA) {
         novosErros.senha = `A senha deve ter no mínimo ${TAMANHO_MINIMO_SENHA} caracteres.`;
       }
@@ -132,15 +136,8 @@ export function useCadastroUnificado(tipoInicial = TIPOS_CADASTRO.FAMILIAR) {
         return;
       }
 
-      await criarIdoso({ nome, cpf, telefone });
-      Alert.alert('Sucesso', 'Cadastro de idoso concluído!');
-      setNome('');
-      setCpf('');
-      setTelefone('');
-      setSenha('');
-      setEspecialidade('');
-      setOutraEspecialidade('');
-      setErros({});
+      await cadastrarEConectarIdoso({ nome, cpf, telefone, senha });
+      await recarregarPerfil();
     } catch (erro) {
       Alert.alert('Erro ao cadastrar', erro.message || 'Não foi possível concluir o cadastro.');
     } finally {
@@ -171,6 +168,11 @@ export function useCadastroUnificado(tipoInicial = TIPOS_CADASTRO.FAMILIAR) {
     selecionarEspecialidade: (esp) => {
       setEspecialidade(esp);
       setModalEspecialidadeVisivel(false);
+    },
+    reabrirListaEspecialidade: () => {
+      setEspecialidade('');
+      setOutraEspecialidade('');
+      setModalEspecialidadeVisivel(true);
     },
     salvar,
   };

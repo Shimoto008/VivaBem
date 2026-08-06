@@ -10,6 +10,7 @@ import LoginScreen from '../features/auth/screens/LoginScreen';
 import CadastroUnificadoScreen from '../features/auth/screens/CadastroUnificadoScreen';
 import HomeCuidadorScreen from '../features/cuidador/screens/HomeCuidadorScreen';
 import HomeFamiliarScreen from '../features/familiar/screens/HomeFamiliarScreen';
+import IdosoAutonomoScreen from '../features/idoso/screens/IdosoAutonomoScreen';
 
 import MedicacaoScreen from '../features/cuidador/components/PainelPaciente/Medicacao/MedicacaoScreen';
 import RelatorioScreen from '../features/cuidador/components/PainelPaciente/Relatorio/RelatorioScreen';
@@ -23,8 +24,6 @@ const Stack = createNativeStackNavigator();
 export default function StackRoutes() {
   const { session, tipoUsuario, carregando, perfilAusente } = useSession();
 
-  // Sessão criada mas perfil ainda não resolvido: segura na Splash para não
-  // piscar a área do familiar antes de saber o tipo real do usuário.
   const resolvendoPerfil = !!session && !tipoUsuario && !perfilAusente;
   if (carregando || resolvendoPerfil) {
     return <SplashScreen autoNavegar={false} />;
@@ -51,6 +50,13 @@ export default function StackRoutes() {
           <Stack.Screen name={ROUTES.OBSERVACOES} component={ObservacoesScreen} />
           <Stack.Screen name={ROUTES.CONVERSAS} component={ConversasScreen} />
           <Stack.Screen name={ROUTES.CHAT} component={ChatScreen} />
+        </>
+      ) : tipoUsuario === 'idoso' ? (
+        <>
+          <Stack.Screen name={ROUTES.HOME_IDOSO} component={IdosoAutonomoScreen} />
+          <Stack.Screen name={ROUTES.MEDICACAO} component={MedicacaoScreen} />
+          <Stack.Screen name={ROUTES.CALENDARIO} component={CalendarioScreen} />
+          <Stack.Screen name={ROUTES.OBSERVACOES} component={ObservacoesScreen} />
         </>
       ) : (
         <>

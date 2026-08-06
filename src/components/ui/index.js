@@ -10,3 +10,4 @@ export { SwipeableTabs } from './SwipeableTabs';
 export { PreferenciasAparencia } from './PreferenciasAparencia';
 export { SecaoInstitucional } from './SecaoInstitucional';
 export { BotaoLogout } from './BotaoLogout';
+export { PinchZoomView } from './PinchZoomView';

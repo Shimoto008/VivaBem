@@ -6,6 +6,7 @@ import { gerarCodigoCuidador } from './cuidadorService';
 const DOMINIO_INTERNO = 'cuidadorapp.com';
 const TABELA_CUIDADORES = 'cuidadores';
 const TABELA_FAMILIARES = 'familiares';
+const TABELA_IDOSOS = 'idosos';
 const TAMANHO_CPF = 11;
 const CODIGO_VIOLACAO_UNICIDADE = '23505';
 const STATUS_USUARIO_DUPLICADO = 422;
@@ -73,6 +74,14 @@ export async function buscarPerfilPorCpf(cpf) {
   if (erroFamiliar) throw erroFamiliar;
   if (familiar) return { tipo: 'familiar', perfil: familiar };
 
+  const { data: idoso, error: erroIdoso } = await supabase
+    .from(TABELA_IDOSOS)
+    .select('*')
+    .eq('cpf', cpfLimpo)
+    .maybeSingle();
+  if (erroIdoso) throw erroIdoso;
+  if (idoso) return { tipo: 'idoso', perfil: idoso };
+
   return null;
 }
 
@@ -80,7 +89,12 @@ async function garantirCpfDisponivel(cpfLimpo) {
   const existente = await buscarPerfilPorCpf(cpfLimpo);
   if (!existente) return;
 
-  const comoQue = existente.tipo === 'cuidador' ? 'cuidador' : 'familiar';
+  const rotulos = {
+    cuidador: 'cuidador',
+    familiar: 'familiar',
+    idoso: 'idoso',
+  };
+  const comoQue = rotulos[existente.tipo] ?? existente.tipo;
   throw new DomainError(
     `Este CPF já está cadastrado como ${comoQue}. Entre na sua conta usando o CPF e a senha.`
   );
@@ -203,6 +217,33 @@ export async function cadastrarEConectarFamiliar({ nome, cpf, telefone, senha })
   }
 
   return perfilFamiliar;
+}
+
+export async function cadastrarEConectarIdoso({ nome, cpf, telefone, senha }) {
+  const cpfLimpo = normalizarCpf(cpf);
+  await garantirCpfDisponivel(cpfLimpo);
+
+  const userId = await criarOuReaproveitarUsuarioAuth(gerarEmailPorCpf(cpfLimpo), senha);
+
+  const { data: perfilIdoso, error: erroBanco } = await supabase
+    .from(TABELA_IDOSOS)
+    .insert([
+      {
+        id: userId,
+        nome: nome.trim(),
+        cpf: cpfLimpo,
+        telefone: somenteDigitos(telefone),
+      },
+    ])
+    .select()
+    .single();
+
+  if (erroBanco) {
+    await desfazerSessao();
+    throw traduzirErroDeInsercao(erroBanco);
+  }
+
+  return perfilIdoso;
 }
 
 /**

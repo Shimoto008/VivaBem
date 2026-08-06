@@ -10,6 +10,7 @@ export const ROUTES = {
   CADASTRO: 'Cadastro',
   HOME_CUIDADOR: 'HomeCuidador',
   HOME_FAMILIAR: 'HomeFamiliar',
+  HOME_IDOSO: 'HomeIdoso',
   MEDICACAO: 'Medicacao',
   RELATORIO: 'Relatorio',
   CALENDARIO: 'Calendario',

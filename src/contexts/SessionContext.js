@@ -40,6 +40,14 @@ async function buscarPerfilDoUsuario(userId) {
   if (erroFamiliar) throw erroFamiliar;
   if (familiar) return { perfil: familiar, tipo: 'familiar' };
 
+  const { data: idoso, error: erroIdoso } = await supabase
+    .from('idosos')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle();
+  if (erroIdoso) throw erroIdoso;
+  if (idoso) return { perfil: idoso, tipo: 'idoso' };
+
   return null;
 }
 
