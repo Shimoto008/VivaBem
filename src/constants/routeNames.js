@@ -1,3 +1,4 @@
+
 /**
  * Nomes de rota centralizados. Evita strings "mágicas" espalhadas pelas
  * telas e erros de digitação em navigation.navigate('...').
@@ -17,4 +18,5 @@ export const ROUTES = {
   OBSERVACOES: 'Observacoes',
   CHAT: 'Chat',
   CONVERSAS: 'Conversas',
+  EXERCICIOS: 'Exercicios'
 };

@@ -10,7 +10,7 @@ import { useHomeIdoso } from '../hooks/useHomeIdoso';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 const ABAS = [
-  { key: 'dia', label: 'Dia a Dia', icon: 'today', iconFamily: 'MaterialIcons' },
+  { key: 'home', label: 'Home', icon: 'home', iconFamily: 'MaterialIcons' },
   { key: 'perfil', label: 'Perfil', icon: 'person', iconFamily: 'MaterialIcons' },
 ];
 

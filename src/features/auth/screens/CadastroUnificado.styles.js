@@ -115,10 +115,31 @@ export const getStyles = (themeColors, accentColor) =>
       fontWeight: '500',
     },
 
-    /* CONTAINER DOS INPUTS PESSOAIS SOLTOS NA TELA */
-    containerInputsPessoais: {
-      gap: 2,
-      marginTop: 4,
+    /* CARD ELEVADO - DADOS PESSOAIS COM SOMBRA PRETA DE PROSPERIDADE */
+    cardDadosPessoais: {
+      backgroundColor: themeColors.surface || '#FFFFFF',
+      borderRadius: 20,
+      padding: 18,
+      marginVertical: 8,
+      borderWidth: 1,
+      borderColor: 'rgba(0,0,0,0.03)',
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.12,
+          shadowRadius: 16,
+        },
+        android: {
+          elevation: 6,
+        },
+      }),
+    },
+    secaoTitulo: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: themeColors.textPrimary || '#1A1D20',
+      marginBottom: 14,
     },
     wrapperEspecialidade: {
       marginTop: 6,
@@ -136,7 +157,7 @@ export const getStyles = (themeColors, accentColor) =>
       height: 52,
       paddingHorizontal: 14,
       borderRadius: 12,
-      backgroundColor: themeColors.surface || '#FFFFFF',
+      backgroundColor: themeColors.backgroundSecondary || '#F8F9FA',
       borderWidth: 1,
       borderColor: themeColors.border || '#E9ECEF',
     },

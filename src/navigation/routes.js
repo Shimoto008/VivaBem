@@ -19,6 +19,9 @@ import ObservacoesScreen from '../features/cuidador/components/PainelPaciente/Ob
 import ChatScreen from '../features/chat/Screens/chatScreen';
 import ConversasScreen from '../features/chat/Screens/ConversasScreen';
 
+// ✅ Nome e componente padronizados em PascalCase
+import ExerciciosScreen from '../features/idoso/components/PainelIdoso/Exercicios/ExerciciosScreen';
+
 const Stack = createNativeStackNavigator();
 
 export default function StackRoutes() {
@@ -57,6 +60,8 @@ export default function StackRoutes() {
           <Stack.Screen name={ROUTES.MEDICACAO} component={MedicacaoScreen} />
           <Stack.Screen name={ROUTES.CALENDARIO} component={CalendarioScreen} />
           <Stack.Screen name={ROUTES.OBSERVACOES} component={ObservacoesScreen} />
+          {/* ✅ Usando o mesmo nome da importação acima */}
+          <Stack.Screen name={ROUTES.EXERCICIOS} component={ExerciciosScreen} />
         </>
       ) : (
         <>
