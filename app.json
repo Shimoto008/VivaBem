@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Teste",
-    "slug": "Teste",
+    "name": "VivaBem",
+    "slug": "vivabem",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -18,16 +18,23 @@
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+        "foregroundImage": "./assets/icon.png"
+      },
+      "package": "com.vivabem.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
-    ]
+      "expo-font",
+      "expo-notifications",
+      "@react-native-community/datetimepicker",
+      "expo-asset"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "99c13e1e-d28d-45f0-b880-78f5ef598296"
+      }
+    }
   }
 }
