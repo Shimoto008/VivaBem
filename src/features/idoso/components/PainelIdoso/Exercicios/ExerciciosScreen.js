@@ -1,37 +1,148 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ScrollView } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { View, Text, TouchableOpacity, FlatList, ScrollView } from 'react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useTheme } from '../../../../contexts/ThemeContext';
+import { useTheme } from '../../../../../contexts/ThemeContext';
+import { getStyles } from '../Exercicios/Exerecicios.Styles';
 
-const CATEGORIAS = ['Todos', 'Alongamento', 'Pernas', 'Braços', 'Cadeira'];
+// CATEGORIAS
+const CATEGORIAS = ['Todos', 'Alongamento', 'Pernas', 'Braços', 'Dança'];
 
 const EXERCICIOS_DATA = [
+  // --- ALONGAMENTO ---
   {
-    id: '1',
-    titulo: 'Alongamento Matinal',
+    id: 'along-1',
+    titulo: 'Alongamento Matinal Suave',
     categoria: 'Alongamento',
     duracao: '5 min',
-    nivel: 'Leve',
-    incentivo: 'Perfeito para acordar o corpo!',
-    descricao: 'Movimentos suaves para soltar os braços e o pescoço sem fazer esforço pesado.',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    nivel: 'Fácil',
+    incentivo: 'Ótimo para despertar o corpo ao acordar!',
+    descricao: 'Movimentos suaves para soltar os braços, pescoço e coluna sem nenhum esforço pesado.',
+    youtubeId: 'F1iejoRbRts',
   },
   {
-    id: '2',
+    id: 'along-2',
+    titulo: 'Alongamento para Costas e Pescoço',
+    categoria: 'Alongamento',
+    duracao: '7 min',
+    nivel: 'Leve',
+    incentivo: 'Alivia dores e tensões do dia a dia!',
+    descricao: 'Exercícios focados em destravar a região dos ombros e cervical de forma relaxante.',
+    youtubeId: '9zNY-Z-VIH0',
+  },
+  {
+    id: 'along-3',
+    titulo: 'Relaxamento de Corpo Inteiro',
+    categoria: 'Alongamento',
+    duracao: '10 min',
+    nivel: 'Leve',
+    incentivo: 'Ideal para fazer antes de dormir!',
+    descricao: 'Posturas bem tranquilas para respirar fundo e relaxar a musculatura.',
+    youtubeId: 'We44qc_6Gj4',
+  },
+
+  // --- PERNAS ---
+  {
+    id: 'pernas-1',
     titulo: 'Fortalecimento de Pernas',
     categoria: 'Pernas',
     duracao: '8 min',
     nivel: 'Fácil',
-    incentivo: 'Ajuda a dar mais firmeza ao andar!',
-    descricao: 'Exercícios práticos que podem ser feitos com o apoio de uma cadeira firme.',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    incentivo: 'Ajuda a dar mais firmeza e equilíbrio ao andar!',
+    descricao: 'Exercícios práticos usando o apoio de uma cadeira firme para garantir a sua segurança.',
+    youtubeId: 'dfE5IVudz24',
+  },
+  {
+    id: 'pernas-2',
+    titulo: 'Exercícios para Joelhos e Coxas',
+    categoria: 'Pernas',
+    duracao: '6 min',
+    nivel: 'Leve',
+    incentivo: 'Fortalece as articulações com segurança!',
+    descricao: 'Movimentos leves de elevação de pernas para manter as articulações saudáveis.',
+    youtubeId: 'sbIXSdAUUGM',
+  },
+  {
+    id: 'pernas-3',
+    titulo: 'Circulação e Tornozelos',
+    categoria: 'Pernas',
+    duracao: '5 min',
+    nivel: 'Fácil',
+    incentivo: 'Excelente para diminuir o inchaço dos pés!',
+    descricao: 'Movimentos circulares com os pés e pontas dos pés para ativar a circulação sanguínea.',
+    youtubeId: 'Cc5Z1Fun5nc',
+  },
+
+  // --- BRAÇOS ---
+  {
+    id: 'bracos-1',
+    titulo: 'Fortalecimento de Braços e Ombros',
+    categoria: 'Braços',
+    duracao: '6 min',
+    nivel: 'Fácil',
+    incentivo: 'Garante mais autonomia nas tarefas de casa!',
+    descricao: 'Exercícios sem peso para melhorar a mobilidade dos ombros e a força das mãos.',
+    youtubeId: '-EvsDX_8afI',
+  },
+  {
+    id: 'bracos-2',
+    titulo: 'Mobilidade de Mãos e Punhos',
+    categoria: 'Braços',
+    duracao: '4 min',
+    nivel: 'Leve',
+    incentivo: 'Facilita segurar objetos e copos no dia a dia!',
+    descricao: 'Abre e fecha de dedos, rotação de punhos para manter a agilidade das articulações.',
+    youtubeId: 'EDjVfL4SU-E',
+  },
+  {
+    id: 'bracos-3',
+    titulo: 'Postura e Postura Escapular',
+    categoria: 'Braços',
+    duracao: '7 min',
+    nivel: 'Leve',
+    incentivo: 'Mantenha as costas eretas com conforto!',
+    descricao: 'Movimentos com a parte superior do tronco para evitar a curvatura das costas.',
+    youtubeId: 'RNw0Mr2Z0gw',
+  },
+
+  // --- DANÇA ---
+  {
+    id: 'danca-1',
+    titulo: 'Dança para Exercitar o Corpo',
+    categoria: 'Dança',
+    duracao: '10 min',
+    nivel: 'Fácil',
+    incentivo: 'Movimente todo o corpo com música e alegria!',
+    descricao: 'Passos bem tranquilos e ritmo leve para trabalhar o corpo todo de forma divertida.',
+    youtubeId: 'LorT81Ufwbo',
+  },
+  {
+    id: 'danca-2',
+    titulo: 'Cardio Dançante Sentado',
+    categoria: 'Dança',
+    duracao: '8 min',
+    nivel: 'Fácil',
+    incentivo: 'Ativa o coração e a disposição de forma segura!',
+    descricao: 'Marcha ritmada e movimentos de braços 100% sentados na cadeira para aquecer o corpo.',
+    youtubeId: '-rYZ1Vtybb8',
+  },
+  {
+    id: 'danca-3',
+    titulo: 'Coordenação e Ritmo Motora',
+    categoria: 'Dança',
+    duracao: '6 min',
+    nivel: 'Leve',
+    incentivo: 'Exercite o corpo e a mente ao mesmo tempo!',
+    descricao: 'Sequências simples acompanhando a música, alternando braços e pernas.',
+    youtubeId: 'MJ7cobB7CwM',
   },
 ];
 
 export default function ExerciciosScreen() {
   const { themeColors, primaryColor } = useTheme();
   const [categoriaAtiva, setCategoriaAtiva] = useState('Todos');
+  
+  const styles = getStyles(themeColors, primaryColor);
 
   const exerciciosFiltrados = categoriaAtiva === 'Todos'
     ? EXERCICIOS_DATA
@@ -40,13 +151,22 @@ export default function ExerciciosScreen() {
   return (
     <View style={[styles.container, { backgroundColor: themeColors?.background || '#F8F9FA' }]}>
       
-      {/* CABEÇALHO */}
+      {/* CABEÇALHO MOTIVACIONAL PROFISSIONAL */}
       <View style={styles.header}>
-        <Text style={[styles.tituloHeader, { color: themeColors?.textPrimary || '#1A1D20' }]}>
-          Exercícios 🏋️‍♂️
-        </Text>
+        <View style={styles.tagMotivacional}>
+          <MaterialIcons name="local-fire-department" size={16} color="#4169E1" />
+          <Text style={styles.textoTagMotivacional}>Sua saúde em 1º lugar</Text>
+        </View>
+        
+        <View style={styles.headerTituloRow}>
+          <Text style={[styles.tituloHeader, { color: themeColors?.textPrimary || '#1A1D20' }]}>
+            Mova-se no seu ritmo
+          </Text>
+          <MaterialIcons name="favorite" size={26} color="#4169E1" />
+        </View>
+
         <Text style={[styles.subtituloHeader, { color: themeColors?.textSecondary || '#6C757D' }]}>
-          Escolha um vídeo e comece no seu ritmo.
+          Assista aos vídeos explicativos e faça os exercícios no conforto da sua casa.
         </Text>
       </View>
 
@@ -60,7 +180,7 @@ export default function ExerciciosScreen() {
                 key={cat}
                 style={[
                   styles.btnCategoria,
-                  selecionado && { backgroundColor: primaryColor },
+                  selecionado && { backgroundColor: primaryColor || '#4169E1' },
                 ]}
                 onPress={() => setCategoriaAtiva(cat)}
                 activeOpacity={0.8}
@@ -79,29 +199,30 @@ export default function ExerciciosScreen() {
         data={exerciciosFiltrados}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listaPadding}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <View style={[styles.cardExercicio, { backgroundColor: themeColors?.surface || '#FFFFFF' }]}>
             
-            {/* VÍDEO EM DESTAQUE NO TOPO */}
-            <Video
-              style={styles.videoPlayer}
-              source={{ uri: item.videoUrl }}
-              useNativeControls
-              resizeMode={ResizeMode.CONTAIN}
-              isLooping={false}
-            />
+            {/* PLAYER DE VÍDEO DO YOUTUBE (Altura ajustada para eliminar bordas pretas) */}
+            <View style={styles.videoWrapper}>
+              <YoutubePlayer
+                height={190}
+                play={false}
+                videoId={item.youtubeId}
+              />
+            </View>
 
-            {/* TEXTOS E LABELS INTERATIVAS MAIS PARA BAIXO */}
+            {/* INFORMAÇÕES E LABELS ABAIXO DO VÍDEO */}
             <View style={styles.infoContainer}>
               
-              {/* TITULO */}
+              {/* TÍTULO DO EXERCÍCIO */}
               <Text style={styles.tituloExercicio}>{item.titulo}</Text>
 
-              {/* LABELS INTERATIVAS (DURAÇÃO, NÍVEL E CATEGORIA) */}
+              {/* LABELS INTERATIVAS */}
               <View style={styles.labelsRow}>
-                <View style={[styles.labelBadge, { backgroundColor: `${primaryColor}15` }]}>
-                  <MaterialIcons name="schedule" size={18} color={primaryColor} />
-                  <Text style={[styles.labelTexto, { color: primaryColor }]}>{item.duracao}</Text>
+                <View style={styles.labelBadge}>
+                  <MaterialIcons name="schedule" size={18} color={primaryColor || '#4169E1'} />
+                  <Text style={styles.labelTexto}>{item.duracao}</Text>
                 </View>
 
                 <View style={styles.labelBadgeCinza}>
@@ -115,13 +236,13 @@ export default function ExerciciosScreen() {
                 </View>
               </View>
 
-              {/* MENSAGEM DE INCENTIVO EM DESTAQUE */}
+              {/* BOX DE INCENTIVO COM BORDA DE DESTAQUE */}
               <View style={styles.cardIncentivo}>
-                <MaterialIcons name="thumb-up" size={20} color="#0D6EFD" />
+                <MaterialIcons name="thumb-up" size={20} color="#4169E1" />
                 <Text style={styles.textoIncentivo}>{item.incentivo}</Text>
               </View>
 
-              {/* DESCRIÇÃO MAIS COMPLETA */}
+              {/* DESCRIÇÃO COMPLETA */}
               <Text style={styles.descricaoExercicio}>{item.descricao}</Text>
             </View>
           </View>
@@ -130,138 +251,3 @@ export default function ExerciciosScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 8,
-  },
-  tituloHeader: {
-    fontSize: 28,
-    fontWeight: '800',
-  },
-  subtituloHeader: {
-    fontSize: 16,
-    marginTop: 4,
-  },
-  categoriasContainer: {
-    marginVertical: 12,
-  },
-  scrollCategorias: {
-    paddingHorizontal: 20,
-    gap: 10,
-  },
-  btnCategoria: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 24,
-    backgroundColor: '#E9ECEF',
-  },
-  txtCategoria: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#495057',
-  },
-  listaPadding: {
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-  },
-  cardExercicio: {
-    borderRadius: 22,
-    marginBottom: 24,
-    overflow: 'hidden',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  videoPlayer: {
-    width: '100%',
-    height: 220,
-    backgroundColor: '#000000',
-  },
-  infoContainer: {
-    padding: 20,
-  },
-  tituloExercicio: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1A1D20',
-    marginBottom: 12,
-  },
-
-  /* ESTILOS DAS LABELS INTERATIVAS */
-  labelsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 14,
-  },
-  labelBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-  labelTexto: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  labelBadgeCinza: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#F1F3F5',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-  labelTextoCinza: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#495057',
-  },
-  labelBadgeVerde: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-  labelTextoVerde: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#2E7D32',
-  },
-
-  /* BOX DE INCENTIVO */
-  cardIncentivo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: '#E7F1FF',
-    padding: 12,
-    borderRadius: 14,
-    marginBottom: 12,
-  },
-  textoIncentivo: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#0D6EFD',
-    flex: 1,
-  },
-  descricaoExercicio: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#6C757D',
-  },
-});

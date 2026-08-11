@@ -36,7 +36,7 @@ export const getStyles = (themeColors) =>
       color: themeColors?.textSecondary || '#6C757D',
     },
     nomeDestaque: {
-      fontSize: 32, // Nome bem visível e em destaque
+      fontSize: 32,
       fontWeight: '800',
       color: themeColors?.textPrimary || '#1A1D20',
       marginBottom: spacing?.xs || 8,
@@ -59,7 +59,7 @@ export const getStyles = (themeColors) =>
       width: '48%',
       backgroundColor: themeColors?.surface || '#FFFFFF',
       borderRadius: radius?.lg || 20,
-      paddingVertical: 26, // Mais espaçamento interno para facilitar o toque
+      paddingVertical: 26,
       paddingHorizontal: spacing?.xs || 12,
       alignItems: 'center',
       justifyContent: 'center',
@@ -78,7 +78,7 @@ export const getStyles = (themeColors) =>
       }),
     },
     iconContainer: {
-      width: 68, // Círculo do ícone ampliado
+      width: 68,
       height: 68,
       borderRadius: 34,
       backgroundColor: themeColors?.backgroundSecondary || '#F1F3F5',
@@ -87,7 +87,7 @@ export const getStyles = (themeColors) =>
       marginBottom: spacing?.xs || 12,
     },
     cardTitle: {
-      fontSize: 18, // Texto maior
+      fontSize: 18,
       fontWeight: '700',
       color: themeColors?.textPrimary || '#1A1D20',
       textAlign: 'center',
@@ -126,7 +126,7 @@ export const getStyles = (themeColors) =>
     },
     emergenciaRow: {
       flexDirection: 'row',
-      gap: spacing?.md || 16, // Funções levemente mais separadas
+      gap: spacing?.md || 16,
     },
     botaoEmergenciaPrincipal: {
       flex: 1,
@@ -134,7 +134,7 @@ export const getStyles = (themeColors) =>
       alignItems: 'center',
       justifyContent: 'center',
       gap: spacing?.xs || 8,
-      backgroundColor: themeColors?.danger || '#DC3545',
+      backgroundColor: themeColors?.danger || '#DC3545', // Botão Vermelho
       paddingVertical: 16,
       borderRadius: radius?.sm || 14,
       ...Platform.select({
@@ -167,7 +167,66 @@ export const getStyles = (themeColors) =>
       borderRadius: radius?.sm || 14,
     },
     textoEmergencia: {
-      fontSize: 17,
-      fontWeight: '700',
+      fontSize: 18,
+      fontWeight: '800',
+    },
+
+    /* MINI ABAS (MODAIS) */
+    fundoEscuroModal: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'flex-end',
+    },
+    miniAbaModal: {
+      backgroundColor: themeColors?.surface || '#FFFFFF',
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      padding: 20,
+      paddingBottom: 30,
+    },
+    barraHeaderModal: {
+      width: 40,
+      height: 5,
+      backgroundColor: themeColors?.border || '#DEE2E6',
+      borderRadius: 3,
+      alignSelf: 'center',
+      marginBottom: 15,
+    },
+    tituloModal: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: themeColors?.textPrimary || '#212529',
+      textAlign: 'center',
+      marginBottom: 16,
+    },
+    opcaoBotaoModal: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: themeColors?.backgroundSecondary || '#F8F9FA',
+      padding: 14,
+      borderRadius: 14,
+      marginBottom: 10,
+    },
+    textoContainerModal: {
+      marginLeft: 14,
+    },
+    tituloOpcaoModal: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: themeColors?.textPrimary || '#212529',
+    },
+    subtituloOpcaoModal: {
+      fontSize: 13,
+      color: themeColors?.textSecondary || '#6C757D',
+    },
+    botaoCancelarModal: {
+      marginTop: 8,
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
+    textoCancelarModal: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: themeColors?.textSecondary || '#6C757D',
     },
   });
