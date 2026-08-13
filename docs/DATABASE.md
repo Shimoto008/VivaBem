@@ -17,9 +17,9 @@ create extension if not exists "pgcrypto";
 
 ## 1. Tabela `cuidadores` (ligada ao Supabase Auth)
 
-O login é feito por **CPF + senha**: o app converte o CPF num e-mail interno
-(`user_<cpf>@cuidadorapp.com`) e cria o usuário no Supabase Auth. O `id` da
-linha em `cuidadores` é sempre o `id` do usuário em `auth.users`.
+O login é feito por **e-mail + senha**: o e-mail informado no cadastro é o
+mesmo usado no Supabase Auth, o que permite a recuperação de senha por e-mail.
+O `id` da linha em `cuidadores` é sempre o `id` do usuário em `auth.users`.
 
 ```sql
 alter table cuidadores
@@ -29,6 +29,13 @@ alter table cuidadores
 alter table cuidadores
   add column if not exists formacao text,
   add column if not exists biografia text;
+
+-- E-mail do cadastro, gravado junto do perfil para manter os dados do usuário
+-- consistentes sem depender de uma leitura em auth.users. Sem `unique`: a
+-- unicidade real é garantida pelo auth.users.email, e uma segunda constraint
+-- deixaria o erro 23505 ambíguo com o do CPF.
+alter table cuidadores
+  add column if not exists email text;
 
 -- Impede dois perfis com o mesmo CPF (é o que o app usa para detectar
 -- "CPF já cadastrado" de forma confiável).
@@ -103,6 +110,7 @@ create table if not exists familiares (
   nome text not null,
   cpf text unique,
   telefone text,
+  email text,
   created_at timestamptz not null default now()
 );
 ```
@@ -110,6 +118,7 @@ create table if not exists familiares (
 Se a tabela já existir com `id uuid default gen_random_uuid()`, ajuste:
 
 ```sql
+alter table familiares add column if not exists email text;
 alter table familiares add constraint familiares_cpf_unico unique (cpf);
 alter table familiares
   add constraint familiares_id_auth_fk
@@ -128,10 +137,14 @@ create table if not exists idosos (
   nome text not null,
   cpf text unique,
   telefone text,
+  email text,
   contato_emergencia text,
   preferencias text,
   created_at timestamptz not null default now()
 );
+
+-- Para bases criadas antes do cadastro por e-mail:
+alter table idosos add column if not exists email text;
 
 alter table idosos enable row level security;
 
@@ -187,17 +200,101 @@ create index if not exists idx_conexoes_cuidador on conexoes (cuidador_id) where
 > vinculados) — só o Familiar é limitado a uma conexão ativa, conforme a
 > regra de negócio pedida.
 
+## 6.1. Tabela `mensagens` (chat 1:1) e Realtime
+
+O chat é direto entre dois usuários do Auth: `remetente_id` e `destinatario_id`
+apontam para `auth.users`. Não existe "sala" nem `cuidador_id` / `familiar_id`
+aqui — qualquer par de usuários conversa pelos próprios ids.
+
+```sql
+create table if not exists mensagens (
+  id uuid primary key default gen_random_uuid(),
+  remetente_id uuid not null references auth.users (id) on delete cascade,
+  destinatario_id uuid not null references auth.users (id) on delete cascade,
+  conteudo text not null,
+  created_at timestamptz not null default now()
+);
+
+-- O histórico é sempre lido pelo par (eu ↔ outro) em ordem cronológica.
+create index if not exists idx_mensagens_remetente on mensagens (remetente_id, created_at);
+create index if not exists idx_mensagens_destinatario on mensagens (destinatario_id, created_at);
+
+alter table mensagens enable row level security;
+
+-- Só os dois participantes leem a conversa.
+create policy "mensagens_select_participantes" on mensagens
+  for select to authenticated
+  using (auth.uid() = remetente_id or auth.uid() = destinatario_id);
+
+-- Ninguém envia mensagem no nome de outra pessoa.
+create policy "mensagens_insert_remetente" on mensagens
+  for insert to authenticated
+  with check (auth.uid() = remetente_id);
+```
+
+### Publicar a tabela no Realtime (obrigatório)
+
+**É este passo que faz as mensagens aparecerem na hora.** Sem ele o app abre o
+canal, não recebe nenhum evento e a conversa só parece atualizar quando o
+usuário sai e volta para a tela (o que dispara uma nova leitura do histórico).
+
+```sql
+alter publication supabase_realtime add table mensagens;
+```
+
+Pelo painel, o mesmo efeito: **Database → Replication → `supabase_realtime`** e
+ligue a tabela `mensagens`. Para conferir se já está publicada:
+
+```sql
+select tablename from pg_publication_tables where pubname = 'supabase_realtime';
+```
+
+> O `postgres_changes` respeita RLS: cada usuário só recebe eventos das linhas
+> que ele poderia ler pelo `select`. Por isso a policy de select acima é
+> pré-requisito do tempo real, não só da listagem.
+>
+> O app **não** usa `filter` no canal (`destinatario_id=eq.…`): no React Native
+> esse filtro combinado com RLS costuma engolir o INSERT e o chat só atualiza
+> ao reabrir a tela. A conversa é filtrada no cliente, em
+> `escutarNovasMensagens` (`src/services/ChatServices.js`).
+>
+> Se o canal não conectar, o app escreve um aviso no console
+> (`[Realtime] Canal "chat" não conectou...`) em vez de falhar em silêncio.
+
 ---
 
 ## 7. Configuração do Supabase Auth (obrigatória)
 
 Em **Authentication → Providers → Email**:
 
-- **Desative "Confirm email".** O e-mail gerado a partir do CPF é fictício e
-  nunca chega a ninguém; com a confirmação ligada, o `signUp` não devolve
-  sessão e o cadastro falha na hora de gravar o perfil.
-- Mantenha o provedor de e-mail/senha habilitado (é o que sustenta o login
-  por CPF).
+- Mantenha o provedor de e-mail/senha habilitado (é o que sustenta o login).
+- **Desative "Confirm email".** Com a confirmação ligada, o `signUp` não devolve
+  sessão e o cadastro falha na hora de gravar o perfil (a linha em
+  `cuidadores` / `familiares` / `idosos` é inserida logo depois do `signUp`,
+  já autenticado).
+
+### 7.1. Template do e-mail de recuperação (código de 6 dígitos)
+
+A tela "Esqueci minha senha" usa `resetPasswordForEmail` + `verifyOtp` com um
+**código de 6 dígitos digitado dentro do app** — não um link. O template padrão
+do Supabase só envia `{{ .ConfirmationURL }}`, então o código nunca chega.
+
+Em **Authentication → Email Templates → Reset Password**, inclua `{{ .Token }}`
+no corpo da mensagem. Exemplo:
+
+```html
+<h2>Redefinição de senha — VivaBem</h2>
+<p>Use o código abaixo no aplicativo para criar uma nova senha:</p>
+<p style="font-size:28px;letter-spacing:4px;"><strong>{{ .Token }}</strong></p>
+<p>O código expira em 1 hora. Se não foi você que pediu, ignore este e-mail.</p>
+```
+
+### 7.2. SMTP
+
+O serviço de e-mail padrão do Supabase é apenas para desenvolvimento: poucos
+e-mails por hora e, em projetos novos, **entrega só para os endereços dos
+membros do projeto**. Para demonstrar o app com e-mails de verdade, configure
+um SMTP próprio em **Project Settings → Auth → SMTP Settings**.
 
 ## 8. Row Level Security (RLS)
 
@@ -241,14 +338,31 @@ create policy "familiares visiveis para autenticados" on familiares
 > grant execute on function cpf_ja_cadastrado(text) to anon, authenticated;
 > ```
 
-## 9. "Diz que o CPF já existe, mas o banco está vazio"
+## 9. Contas antigas (login por CPF com e-mail interno)
+
+Antes da versão com cadastro por e-mail, o app criava no Auth um e-mail
+fictício derivado do CPF (`user_<cpf>@cuidadorapp.com`). Essas contas **não
+são migradas** e não têm como receber o e-mail de recuperação de senha: o login
+agora é feito com o e-mail real informado no cadastro.
+
+Ao subir esta versão, limpe a base de teste e cadastre os usuários novamente:
+
+```sql
+-- Destrutivo: apaga todos os usuários e, pelas foreign keys com
+-- on delete cascade, também os perfis em cuidadores / familiares / idosos.
+delete from auth.users;
+```
+
+Se preferir pelo painel, apague os usuários em **Authentication → Users**.
+
+## 10. "Diz que o CPF já existe, mas o banco está vazio"
 
 Esse erro aparece quando o usuário existe no **Auth** mas o perfil foi apagado
 das tabelas (ou o contrário) — normalmente depois de apagar linhas na mão pelo
 painel. Duas formas de resolver:
 
 1. **Pelo app:** o `authService` agora reaproveita a conta do Auth. Basta
-   cadastrar de novo com o mesmo CPF **e a mesma senha** que o perfil é
+   cadastrar de novo com o mesmo e-mail **e a mesma senha** que o perfil é
    recriado e vinculado ao usuário existente.
 2. **Pelo painel:** apague o usuário em Authentication → Users. Com a foreign
    key para `auth.users` (seção 1 e 4), apagar o usuário já remove o perfil, o
@@ -256,7 +370,7 @@ painel. Duas formas de resolver:
 
 ---
 
-## 10. Variáveis de ambiente
+## 11. Variáveis de ambiente
 
 Depois de rodar o SQL acima, confirme que existe um arquivo `.env` na raiz
 do projeto (já vem preenchido com as credenciais que estavam hardcoded no

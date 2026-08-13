@@ -8,11 +8,6 @@ export function diasNoMes(ano, mesAtual) {
   return new Date(ano, mesAtual + 1, 0).getDate();
 }
 
-/** Chave estável para indexar a agenda de um dia específico. */
-export function chaveData(ano, mes, dia) {
-  return `${ano}-${mes}-${dia}`;
-}
-
 export function formatarDataPtBR(date = new Date()) {
   return date.toLocaleDateString('pt-BR');
 }
@@ -25,6 +20,31 @@ export function formatarISODatePtBR(isoDate) {
   const [ano, mes, dia] = (isoDate ?? '').split('-');
   if (!ano || !mes || !dia) return '';
   return `${dia}/${mes}/${ano}`;
+}
+
+/** Hora e minuto de um timestamp ISO (ex.: '14:32'). Usado nos balões do chat. */
+export function formatarHoraPtBR(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+}
+
+/** Data curta com hora (ex.: '12 de ago. 14:32'). Usado na lista de conversas. */
+export function formatarDataHoraCurtaPtBR(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '';
+  }
 }
 
 /** Converte ano + mês (0-indexado, como Date) + dia para 'YYYY-MM-DD' (coluna `date` do Postgres). */

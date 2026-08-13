@@ -58,6 +58,14 @@ export function SessionProvider({ children }) {
   const [carregando, setCarregando] = useState(true);
   const [perfilAusente, setPerfilAusente] = useState(false);
   const montadoRef = useRef(true);
+  /**
+   * A recuperação de senha precisa de uma sessão autenticada (o `verifyOtp`
+   * loga o usuário para autorizar o `updateUser`). Sem esta trava, essa sessão
+   * momentânea trocaria a stack de navegação e desmontaria a tela no meio do
+   * fluxo. É um `ref` porque o listener do Supabase precisa ler o valor atual
+   * de forma síncrona, sem esperar o próximo render.
+   */
+  const recuperandoSenhaRef = useRef(false);
 
   const carregarPerfil = useCallback(async (userId, { tentativas = 1 } = {}) => {
     if (!userId) {
@@ -109,6 +117,8 @@ export function SessionProvider({ children }) {
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange(async (_evento, novaSessao) => {
+      if (recuperandoSenhaRef.current) return;
+
       setSession(novaSessao);
       if (novaSessao?.user) {
         await carregarPerfil(novaSessao.user.id, { tentativas: TENTATIVAS_BUSCA_PERFIL });
@@ -129,6 +139,29 @@ export function SessionProvider({ children }) {
   const recarregarPerfil = useCallback(async () => {
     const { data } = await supabase.auth.getUser();
     return carregarPerfil(data?.user?.id, { tentativas: TENTATIVAS_BUSCA_PERFIL });
+  }, [carregarPerfil]);
+
+  const iniciarRecuperacaoSenha = useCallback(() => {
+    recuperandoSenhaRef.current = true;
+  }, []);
+
+  /**
+   * Libera o listener e volta a espelhar o estado real do Auth — depois de
+   * redefinir a senha o `authService` já encerrou a sessão, então o esperado
+   * aqui é continuar deslogado, na tela de Login. Se sobrar sessão (o signOut
+   * falhou), o perfil é carregado para o app entrar autenticado em vez de
+   * travar na splash esperando um perfil que ninguém pediu.
+   */
+  const finalizarRecuperacaoSenha = useCallback(async () => {
+    recuperandoSenhaRef.current = false;
+    const { data } = await supabase.auth.getSession();
+    const sessaoAtual = data?.session ?? null;
+    if (!montadoRef.current) return;
+
+    setSession(sessaoAtual);
+    if (sessaoAtual?.user) {
+      await carregarPerfil(sessaoAtual.user.id, { tentativas: TENTATIVAS_BUSCA_PERFIL });
+    }
   }, [carregarPerfil]);
 
   /** Atualiza o perfil em memória depois de uma edição já persistida. */
@@ -162,6 +195,8 @@ export function SessionProvider({ children }) {
       recarregarPerfil,
       atualizarPerfilLocal,
       deslogar,
+      iniciarRecuperacaoSenha,
+      finalizarRecuperacaoSenha,
     }),
     [
       session,
@@ -172,6 +207,8 @@ export function SessionProvider({ children }) {
       recarregarPerfil,
       atualizarPerfilLocal,
       deslogar,
+      iniciarRecuperacaoSenha,
+      finalizarRecuperacaoSenha,
     ]
   );
 

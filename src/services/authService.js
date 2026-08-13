@@ -3,20 +3,20 @@ import { somenteDigitos } from '../utils/masks';
 import { DomainError } from './errors';
 import { gerarCodigoCuidador } from './cuidadorService';
 
-const DOMINIO_INTERNO = 'cuidadorapp.com';
 const TABELA_CUIDADORES = 'cuidadores';
 const TABELA_FAMILIARES = 'familiares';
 const TABELA_IDOSOS = 'idosos';
 const TAMANHO_CPF = 11;
 const CODIGO_VIOLACAO_UNICIDADE = '23505';
 const STATUS_USUARIO_DUPLICADO = 422;
+const TAMANHO_MINIMO_CODIGO_RECUPERACAO = 6;
 
-/**
- * O app autentica por CPF, mas o Supabase Auth exige e-mail. Cada CPF vira um
- * e-mail interno determinístico — nunca é exibido nem enviado ao usuário.
- */
-function gerarEmailPorCpf(cpfLimpo) {
-  return `user_${cpfLimpo}@${DOMINIO_INTERNO}`;
+function normalizarEmail(email) {
+  const limpo = (email ?? '').trim().toLowerCase();
+  if (!limpo) {
+    throw new DomainError('Informe o seu e-mail.');
+  }
+  return limpo;
 }
 
 function normalizarCpf(cpf) {
@@ -55,7 +55,7 @@ function ehUsuarioFantasma(usuario) {
  * Auth. Um usuário removido no painel do Supabase (ou um perfil apagado à mão)
  * deixava o cadastro travado em "CPF já cadastrado" mesmo com o banco vazio.
  */
-export async function buscarPerfilPorCpf(cpf) {
+async function buscarPerfilPorCpf(cpf) {
   const cpfLimpo = normalizarCpf(cpf);
 
   const { data: cuidador, error: erroCuidador } = await supabase
@@ -96,7 +96,7 @@ async function garantirCpfDisponivel(cpfLimpo) {
   };
   const comoQue = rotulos[existente.tipo] ?? existente.tipo;
   throw new DomainError(
-    `Este CPF já está cadastrado como ${comoQue}. Entre na sua conta usando o CPF e a senha.`
+    `Este CPF já está cadastrado como ${comoQue}. Entre na sua conta usando o e-mail e a senha.`
   );
 }
 
@@ -104,9 +104,16 @@ async function garantirCpfDisponivel(cpfLimpo) {
  * Cria a conta no Auth. Se o usuário já existir lá (perfil apagado do banco,
  * cadastro interrompido no meio), reaproveita a conta fazendo login com a senha
  * informada em vez de barrar o cadastro.
+ *
+ * Os `metadados` vão para `auth.users.raw_user_meta_data`, o que deixa os dados
+ * básicos disponíveis no próprio Auth (útil para triggers e para o painel).
  */
-async function criarOuReaproveitarUsuarioAuth(email, senha) {
-  const { data, error } = await supabase.auth.signUp({ email, password: senha });
+async function criarOuReaproveitarUsuarioAuth(email, senha, metadados) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password: senha,
+    options: { data: metadados },
+  });
 
   if (error && !ehUsuarioJaRegistrado(error)) throw error;
 
@@ -123,12 +130,12 @@ async function criarOuReaproveitarUsuarioAuth(email, senha) {
     const mensagem = (erroLogin?.message ?? '').toLowerCase();
     if (mensagem.includes('email not confirmed')) {
       throw new DomainError(
-        'A confirmação por e-mail está ativada no Supabase e impede o login por CPF. ' +
+        'A confirmação por e-mail está ativada no Supabase e impede o cadastro. ' +
         'Desative "Confirm email" em Authentication → Providers.'
       );
     }
     throw new DomainError(
-      'Este CPF já possui uma conta de acesso com outra senha. Faça login with a senha original.'
+      'Este e-mail já está cadastrado. Entre com a sua senha ou use "Esqueci minha senha".'
     );
   }
 
@@ -144,10 +151,18 @@ async function desfazerSessao() {
 }
 
 function traduzirErroDeInsercao(erro) {
-  if (erro?.code === CODIGO_VIOLACAO_UNICIDADE) {
-    return new DomainError('Este CPF já está cadastrado no sistema.');
+  if (erro?.code !== CODIGO_VIOLACAO_UNICIDADE) return erro;
+
+  // A chave primária do perfil é o id do usuário do Auth: se ela colide, o
+  // e-mail informado já tem um perfil — não é o CPF que está duplicado.
+  const detalhe = `${erro.message ?? ''} ${erro.details ?? ''}`.toLowerCase();
+  if (detalhe.includes('pkey') || detalhe.includes('(id)')) {
+    return new DomainError(
+      'Este e-mail já está cadastrado no sistema. Entre na sua conta pela tela de login.'
+    );
   }
-  return erro;
+
+  return new DomainError('Este CPF já está cadastrado no sistema.');
 }
 
 /**
@@ -156,6 +171,7 @@ function traduzirErroDeInsercao(erro) {
 export async function cadastrarEConectarCuidador({
   nome,
   cpf,
+  email,
   telefone,
   especialidade,
   senha,
@@ -163,9 +179,15 @@ export async function cadastrarEConectarCuidador({
   longitude = null, // 👈 Adicionado parâmetro opcional de longitude
 }) {
   const cpfLimpo = normalizarCpf(cpf);
+  const emailLimpo = normalizarEmail(email);
   await garantirCpfDisponivel(cpfLimpo);
 
-  const userId = await criarOuReaproveitarUsuarioAuth(gerarEmailPorCpf(cpfLimpo), senha);
+  const userId = await criarOuReaproveitarUsuarioAuth(emailLimpo, senha, {
+    nome: nome.trim(),
+    cpf: cpfLimpo,
+    telefone: somenteDigitos(telefone),
+    tipo_usuario: 'cuidador',
+  });
 
   const { data: perfilCuidador, error: erroBanco } = await supabase
     .from(TABELA_CUIDADORES)
@@ -174,6 +196,7 @@ export async function cadastrarEConectarCuidador({
         id: userId,
         nome: nome.trim(),
         cpf: cpfLimpo,
+        email: emailLimpo,
         telefone: somenteDigitos(telefone),
         especialidade: especialidade ? especialidade.trim() : null,
         codigo: gerarCodigoCuidador(),
@@ -192,11 +215,17 @@ export async function cadastrarEConectarCuidador({
   return perfilCuidador;
 }
 
-export async function cadastrarEConectarFamiliar({ nome, cpf, telefone, senha }) {
+export async function cadastrarEConectarFamiliar({ nome, cpf, email, telefone, senha }) {
   const cpfLimpo = normalizarCpf(cpf);
+  const emailLimpo = normalizarEmail(email);
   await garantirCpfDisponivel(cpfLimpo);
 
-  const userId = await criarOuReaproveitarUsuarioAuth(gerarEmailPorCpf(cpfLimpo), senha);
+  const userId = await criarOuReaproveitarUsuarioAuth(emailLimpo, senha, {
+    nome: nome.trim(),
+    cpf: cpfLimpo,
+    telefone: somenteDigitos(telefone),
+    tipo_usuario: 'familiar',
+  });
 
   const { data: perfilFamiliar, error: erroBanco } = await supabase
     .from(TABELA_FAMILIARES)
@@ -205,6 +234,7 @@ export async function cadastrarEConectarFamiliar({ nome, cpf, telefone, senha })
         id: userId,
         nome: nome.trim(),
         cpf: cpfLimpo,
+        email: emailLimpo,
         telefone: somenteDigitos(telefone),
       },
     ])
@@ -219,11 +249,17 @@ export async function cadastrarEConectarFamiliar({ nome, cpf, telefone, senha })
   return perfilFamiliar;
 }
 
-export async function cadastrarEConectarIdoso({ nome, cpf, telefone, senha }) {
+export async function cadastrarEConectarIdoso({ nome, cpf, email, telefone, senha }) {
   const cpfLimpo = normalizarCpf(cpf);
+  const emailLimpo = normalizarEmail(email);
   await garantirCpfDisponivel(cpfLimpo);
 
-  const userId = await criarOuReaproveitarUsuarioAuth(gerarEmailPorCpf(cpfLimpo), senha);
+  const userId = await criarOuReaproveitarUsuarioAuth(emailLimpo, senha, {
+    nome: nome.trim(),
+    cpf: cpfLimpo,
+    telefone: somenteDigitos(telefone),
+    tipo_usuario: 'idoso',
+  });
 
   const { data: perfilIdoso, error: erroBanco } = await supabase
     .from(TABELA_IDOSOS)
@@ -232,6 +268,7 @@ export async function cadastrarEConectarIdoso({ nome, cpf, telefone, senha }) {
         id: userId,
         nome: nome.trim(),
         cpf: cpfLimpo,
+        email: emailLimpo,
         telefone: somenteDigitos(telefone),
       },
     ])
@@ -246,25 +283,94 @@ export async function cadastrarEConectarIdoso({ nome, cpf, telefone, senha }) {
   return perfilIdoso;
 }
 
-/**
- * Login por CPF + senha (o e-mail interno é reconstruído a partir do CPF).
- */
-export async function entrarComCpf({ cpf, senha }) {
-  const cpfLimpo = normalizarCpf(cpf);
+/** Login por e-mail + senha. */
+export async function entrarComEmail({ email, senha }) {
+  const emailLimpo = normalizarEmail(email);
 
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: gerarEmailPorCpf(cpfLimpo),
+    email: emailLimpo,
     password: senha,
   });
 
   if (error) {
-    throw new DomainError('CPF ou senha incorretos.');
+    const mensagem = (error.message ?? '').toLowerCase();
+    if (mensagem.includes('email not confirmed')) {
+      throw new DomainError(
+        'Este e-mail ainda não foi confirmado. Desative "Confirm email" em ' +
+        'Authentication → Providers no Supabase.'
+      );
+    }
+    throw new DomainError('E-mail ou senha incorretos.');
   }
 
   return data.user;
 }
 
-export async function sair() {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
+/**
+ * Etapa 1 da recuperação: dispara o e-mail com o código de 6 dígitos.
+ *
+ * O Supabase não devolve erro quando o e-mail não existe (proteção contra
+ * enumeração de contas), então a UI precisa manter a mensagem neutra.
+ */
+export async function solicitarRecuperacaoSenha(email) {
+  const emailLimpo = normalizarEmail(email);
+
+  const { error } = await supabase.auth.resetPasswordForEmail(emailLimpo);
+
+  if (error) {
+    const mensagem = (error.message ?? '').toLowerCase();
+    if (error.status === 429 || mensagem.includes('rate limit') || mensagem.includes('security purposes')) {
+      throw new DomainError(
+        'Muitas tentativas em pouco tempo. Aguarde alguns minutos antes de pedir um novo código.'
+      );
+    }
+    throw new DomainError('Não foi possível enviar o código agora. Tente novamente em instantes.');
+  }
+
+  return emailLimpo;
+}
+
+/**
+ * Etapa 2 da recuperação: valida o código e grava a nova senha.
+ *
+ * O `verifyOtp` abre uma sessão autenticada (é ela que autoriza o
+ * `updateUser`), por isso a sessão é encerrada no fim — quem redefine a senha
+ * volta para a tela de Login em vez de entrar direto no app.
+ */
+export async function redefinirSenhaComCodigo({ email, codigo, novaSenha }) {
+  const emailLimpo = normalizarEmail(email);
+  // Só remove espaços das pontas: o token do Supabase costuma ser numérico, mas
+  // pode vir alfanumérico dependendo da configuração do projeto, então nada de
+  // filtrar caracteres — só o próprio Auth sabe validá-lo.
+  const codigoLimpo = (codigo ?? '').trim();
+
+  if (codigoLimpo.length < TAMANHO_MINIMO_CODIGO_RECUPERACAO) {
+    throw new DomainError(
+      `O código deve ter no mínimo ${TAMANHO_MINIMO_CODIGO_RECUPERACAO} caracteres.`
+    );
+  }
+
+  const { error: erroCodigo } = await supabase.auth.verifyOtp({
+    email: emailLimpo,
+    token: codigoLimpo,
+    type: 'recovery',
+  });
+
+  if (erroCodigo) {
+    throw new DomainError('Código inválido ou expirado. Peça um novo código e tente de novo.');
+  }
+
+  try {
+    const { error: erroSenha } = await supabase.auth.updateUser({ password: novaSenha });
+
+    if (erroSenha) {
+      const mensagem = (erroSenha.message ?? '').toLowerCase();
+      if (mensagem.includes('should be different') || mensagem.includes('same as the old')) {
+        throw new DomainError('A nova senha precisa ser diferente da senha atual.');
+      }
+      throw new DomainError('Não foi possível alterar a senha. Tente novamente.');
+    }
+  } finally {
+    await desfazerSessao();
+  }
 }

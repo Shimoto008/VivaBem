@@ -23,11 +23,13 @@ export default function SplashScreen({ autoNavegar = true }) {
   const posicaoLogo = useRef(new Animated.Value(height)).current;
 
   useEffect(() => {
-    Animated.timing(posicaoLogo, {
+    const animacao = Animated.timing(posicaoLogo, {
       toValue: 0,
       duration: DURACAO_SUBIDA_LOGO_MS,
       useNativeDriver: true,
-    }).start();
+    });
+    animacao.start();
+    return () => animacao.stop();
   }, [posicaoLogo]);
 
   useEffect(() => {

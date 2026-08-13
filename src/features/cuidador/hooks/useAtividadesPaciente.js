@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { ATIVIDADE_TIPOS } from '../../../constants/atividadeTipos';
 import {
   listarAtividadesPorPaciente,
@@ -18,6 +18,11 @@ export function useAtividadesPaciente(pacienteId, cuidadorId) {
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState(null);
   const [itemEmEdicao, setItemEmEdicao] = useState(null);
+  /**
+   * `processando` desabilita os botões, mas só no próximo render — um toque
+   * duplo rápido ainda passaria. O ref barra a segunda chamada na hora.
+   */
+  const emAndamentoRef = useRef(false);
 
   const recarregar = useCallback(async () => {
     if (!pacienteId) {
@@ -55,6 +60,8 @@ export function useAtividadesPaciente(pacienteId, cuidadorId) {
 
   const salvar = useCallback(
     async (tipo, conteudo, dataReferencia = null) => {
+      if (emAndamentoRef.current) return;
+      emAndamentoRef.current = true;
       setProcessando(true);
       setErro(null);
       try {
@@ -69,6 +76,7 @@ export function useAtividadesPaciente(pacienteId, cuidadorId) {
         setErro(err);
         throw err;
       } finally {
+        emAndamentoRef.current = false;
         setProcessando(false);
       }
     },
@@ -77,6 +85,8 @@ export function useAtividadesPaciente(pacienteId, cuidadorId) {
 
   const excluir = useCallback(
     async (atividadeId) => {
+      if (emAndamentoRef.current) return;
+      emAndamentoRef.current = true;
       setProcessando(true);
       setErro(null);
 
@@ -87,6 +97,7 @@ export function useAtividadesPaciente(pacienteId, cuidadorId) {
         setErro(err);
         throw err;
       } finally {
+        emAndamentoRef.current = false;
         setProcessando(false);
       }
     },

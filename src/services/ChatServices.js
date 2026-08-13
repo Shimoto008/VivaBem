@@ -65,14 +65,41 @@ export async function enviarMensagem({ destinatarioId, conteudo }) {
   return data;
 }
 
-export function escutarNovasMensagens({ euId, outroId }, onNovaMensagem) {
-  const fazParteDoPar = (msg) => {
-    if (!msg) return false;
-    const a = msg.remetente_id;
-    const b = msg.destinatario_id;
-    return (a === euId && b === outroId) || (a === outroId && b === euId);
-  };
+/**
+ * O `postgres_changes` só entrega eventos se a tabela estiver na publicação
+ * `supabase_realtime`. Quando falta essa configuração o canal falha calado e o
+ * chat parece "só atualizar ao reabrir a tela" — daí o aviso explícito.
+ */
+function avisarSeCanalFalhou(status, rotulo) {
+  if (status !== 'CHANNEL_ERROR' && status !== 'TIMED_OUT') return;
+  console.warn(
+    `[Realtime] Canal "${rotulo}" não conectou (${status}). Confirme que a tabela ` +
+      '"mensagens" está publicada no Realtime do Supabase (veja docs/DATABASE.md).'
+  );
+}
 
+function mensagemPertenceAConversa(msg, euId, outroId) {
+  if (!msg) return false;
+  return (
+    (msg.remetente_id === euId && msg.destinatario_id === outroId) ||
+    (msg.remetente_id === outroId && msg.destinatario_id === euId)
+  );
+}
+
+function mensagemEnvolveUsuario(msg, euId) {
+  if (!msg) return false;
+  return msg.remetente_id === euId || msg.destinatario_id === euId;
+}
+
+/**
+ * Escuta INSERTs em `mensagens` da conversa aberta (nos dois sentidos).
+ *
+ * Sem `filter` no servidor: no React Native o filtro `destinatario_id=eq.…`
+ * combinado com RLS costuma engolir o evento, e o chat só atualiza ao reabrir
+ * a tela. O RLS já limita o que o canal entrega; a conversa é filtrada aqui.
+ * Duplicatas (envio otimista + eco do Realtime) são ignoradas pelo hook.
+ */
+export function escutarNovasMensagens({ euId, outroId }, onNovaMensagem) {
   const canal = supabase
     .channel(`chat_${euId}_${outroId}`)
     .on(
@@ -81,25 +108,41 @@ export function escutarNovasMensagens({ euId, outroId }, onNovaMensagem) {
         event: 'INSERT',
         schema: 'public',
         table: 'mensagens',
-        filter: `remetente_id=eq.${euId}`,
       },
       (payload) => {
-        if (fazParteDoPar(payload.new)) onNovaMensagem(payload.new);
+        if (mensagemPertenceAConversa(payload.new, euId, outroId)) {
+          onNovaMensagem(payload.new);
+        }
       }
     )
+    .subscribe((status) => avisarSeCanalFalhou(status, 'chat'));
+
+  return () => {
+    supabase.removeChannel(canal);
+  };
+}
+
+/**
+ * Escuta qualquer mensagem nova em que o usuário participa, para reordenar a
+ * lista de conversas enquanto a tela está aberta.
+ */
+export function escutarConversas(euId, onNovaMensagem) {
+  const canal = supabase
+    .channel(`conversas_${euId}`)
     .on(
       'postgres_changes',
       {
         event: 'INSERT',
         schema: 'public',
         table: 'mensagens',
-        filter: `remetente_id=eq.${outroId}`,
       },
       (payload) => {
-        if (fazParteDoPar(payload.new)) onNovaMensagem(payload.new);
+        if (mensagemEnvolveUsuario(payload.new, euId)) {
+          onNovaMensagem(payload.new);
+        }
       }
     )
-    .subscribe();
+    .subscribe((status) => avisarSeCanalFalhou(status, 'conversas'));
 
   return () => {
     supabase.removeChannel(canal);

@@ -85,6 +85,7 @@ export default function CadastroUnificadoScreen() {
     nome,
     telefone,
     cpf,
+    email,
     senha,
     especialidade,
     outraEspecialidade,
@@ -95,6 +96,7 @@ export default function CadastroUnificadoScreen() {
     selecionarTipo,
     alterarNome,
     alterarCpf,
+    alterarEmail,
     alterarTelefone,
     alterarSenha,
     alterarOutraEspecialidade,
@@ -103,10 +105,6 @@ export default function CadastroUnificadoScreen() {
   } = useCadastroUnificado(tipoInicial);
 
   const styles = getStyles(themeColors, accentColor);
-  const precisaSenha =
-    tipo === TIPOS_CADASTRO.CUIDADOR ||
-    tipo === TIPOS_CADASTRO.FAMILIAR ||
-    tipo === TIPOS_CADASTRO.IDOSO;
   const precisaEspecialidade = tipo === TIPOS_CADASTRO.CUIDADOR;
 
   const perfilSelecionadoInfo = OPCOES_TIPO.find((item) => item.key === tipo);
@@ -266,6 +264,18 @@ export default function CadastroUnificadoScreen() {
                 />
 
                 <Input
+                  label="E-mail"
+                  placeholder="exemplo@email.com"
+                  value={email}
+                  onChangeText={alterarEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  textContentType="emailAddress"
+                  error={erros.email}
+                />
+
+                <Input
                   label="CPF"
                   placeholder="000.000.000-00"
                   value={cpf}
@@ -288,19 +298,17 @@ export default function CadastroUnificadoScreen() {
                   error={erros.telefone}
                 />
 
-                {precisaSenha ? (
-                  <Input
-                    label="Senha"
-                    placeholder="Crie uma senha (mínimo 6 caracteres)"
-                    value={senha}
-                    onChangeText={alterarSenha}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    textContentType="newPassword"
-                    error={erros.senha}
-                  />
-                ) : null}
+                <Input
+                  label="Senha"
+                  placeholder="Crie uma senha (mínimo 6 caracteres)"
+                  value={senha}
+                  onChangeText={alterarSenha}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  textContentType="newPassword"
+                  error={erros.senha}
+                />
 
                 {precisaEspecialidade ? (
                   <View style={styles.wrapperEspecialidade}>
@@ -366,7 +374,7 @@ export default function CadastroUnificadoScreen() {
                 activeOpacity={0.7}
               >
                 <Text style={styles.textoLinkLogin}>
-                  Já tenho conta — <Text style={{ color: accentColor, fontWeight: '700' }}>entrar com CPF</Text>
+                  Já tenho conta — <Text style={{ color: accentColor, fontWeight: '700' }}>entrar com e-mail</Text>
                 </Text>
               </TouchableOpacity>
             </View>

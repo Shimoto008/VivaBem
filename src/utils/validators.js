@@ -28,6 +28,19 @@ export function validarNomeCompleto(nome) {
   return null;
 }
 
+/**
+ * Formato mínimo (algo@algo.dominio) sem espaços. A validação de verdade é a
+ * entrega do e-mail: é por ele que passa a recuperação de senha.
+ */
+const FORMATO_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+export function validarEmailObrigatorio(email) {
+  const limpo = (email || '').trim();
+  if (!limpo) return 'Campo obrigatório';
+  if (!FORMATO_EMAIL.test(limpo)) return 'E-mail inválido. Ex.: exemplo@email.com';
+  return null;
+}
+
 export function validarTelefoneObrigatorio(fone) {
   const limpo = somenteDigitos(fone);
   if (!limpo) return 'Campo obrigatório';

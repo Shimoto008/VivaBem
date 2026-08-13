@@ -2,10 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-import { useRecuperarSenha } from './hooks/useRecuperarSenha';
+import { useRecuperarSenha } from '../hooks/useRecuperarSenha';
 import { Input, Button, ScreenHeader } from '../../../components/ui';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { getStyles } from './RecuperarSenhaStyles';
@@ -20,12 +19,14 @@ export default function RecuperarSenhaScreen() {
   const {
     passo,
     setPasso,
-    telefone,
-    setTelefone,
+    email,
+    setEmail,
     codigo,
     setCodigo,
     novaSenha,
     setNovaSenha,
+    confirmarNovaSenha,
+    setConfirmarNovaSenha,
     carregando,
     erros,
     solicitarCodigo,
@@ -33,16 +34,6 @@ export default function RecuperarSenhaScreen() {
   } = useRecuperarSenha();
 
   const styles = getStyles(themeColors);
-
-  // Formata o número de telefone conforme digita
-  const handleTelefoneChange = (text) => {
-    const limpo = text.replace(/\D/g, '');
-    let formatado = limpo;
-    if (limpo.length > 2) {
-      formatado = `(${limpo.slice(0, 2)}) ${limpo.slice(2, 7)}-${limpo.slice(7, 11)}`;
-    }
-    setTelefone(formatado);
-  };
 
   const handleVoltarPasso = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -64,28 +55,30 @@ export default function RecuperarSenhaScreen() {
           title={passo === 1 ? "Recuperar Conta" : "Validar Código"}
           subtitle={
             passo === 1
-              ? "Digite seu telefone para receber o código de verificação"
-              : `Enviamos um código de 6 dígitos para ${telefone}`
+              ? "Digite seu e-mail para receber o código de verificação"
+              : `Enviamos um código de recuperação para ${email.trim()}`
           }
           onBack={handleVoltarPasso}
         />
 
         <View style={styles.cardForm}>
           {passo === 1 ? (
-            /* PASSO 1: DIGITAR TELEFONE */
+            /* PASSO 1: DIGITAR E-MAIL */
             <>
               <Input
-                label="Telefone Cadastrado"
-                placeholder="(11) 90000-0000"
-                value={telefone}
-                onChangeText={handleTelefoneChange}
-                keyboardType="numeric"
-                maxLength={15}
-                error={erros.telefone}
+                label="E-mail Cadastrado"
+                placeholder="exemplo@email.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="emailAddress"
+                error={erros.email}
               />
 
               <Button
-                title="Enviar Código"
+                title="Enviar código de recuperação"
                 onPress={solicitarCodigo}
                 loading={carregando}
                 style={styles.botaoAcao}
@@ -96,13 +89,20 @@ export default function RecuperarSenhaScreen() {
             <>
               <Input
                 label="Código de Verificação"
-                placeholder="000000"
+                placeholder="Ex.: 123456"
                 value={codigo}
-                onChangeText={(t) => setCodigo(t.replace(/\D/g, ''))}
-                keyboardType="numeric"
-                maxLength={6}
+                onChangeText={setCodigo}
+                keyboardType="default"
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="oneTimeCode"
+                style={styles.inputCodigo}
                 error={erros.codigo}
               />
+
+              <Text style={styles.textoAjudaCodigo}>
+                Digite ou cole o código recebido no seu e-mail
+              </Text>
 
               <Input
                 label="Nova Senha"
@@ -110,11 +110,26 @@ export default function RecuperarSenhaScreen() {
                 value={novaSenha}
                 onChangeText={setNovaSenha}
                 secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="newPassword"
                 error={erros.novaSenha}
               />
 
+              <Input
+                label="Confirmar Nova Senha"
+                placeholder="Repita a nova senha"
+                value={confirmarNovaSenha}
+                onChangeText={setConfirmarNovaSenha}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="newPassword"
+                error={erros.confirmarNovaSenha}
+              />
+
               <Button
-                title="Redefinir Senha"
+                title="Alterar Senha"
                 onPress={() => redefinirSenha(() => navigation.goBack())}
                 loading={carregando}
                 style={styles.botaoAcao}
@@ -122,8 +137,11 @@ export default function RecuperarSenhaScreen() {
 
               <TouchableOpacity
                 onPress={solicitarCodigo}
-                style={styles.btnReenviar}
+                style={[styles.btnReenviar, carregando && styles.btnReenviarDesabilitado]}
                 disabled={carregando}
+                accessibilityRole="button"
+                accessibilityLabel="Reenviar código de recuperação"
+                accessibilityState={{ disabled: carregando }}
               >
                 <Text style={styles.textoReenviar}>
                   Não recebeu? <Text style={styles.textoReenviarDestaque}>Reenviar código</Text>

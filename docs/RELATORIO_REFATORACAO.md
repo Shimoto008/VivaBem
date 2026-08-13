@@ -144,6 +144,12 @@
 O app passou a usar Supabase Auth de verdade: o CPF vira um e-mail interno
 (`user_<cpf>@cuidadorapp.com`) e a sessão persiste em `AsyncStorage`.
 
+> **Atualização posterior:** o e-mail interno derivado do CPF foi abandonado. O
+> cadastro passou a pedir o e-mail real do usuário, que é a identidade no
+> Supabase Auth, e o login passou a ser por **e-mail + senha** — sem isso não
+> havia como enviar o e-mail de recuperação de senha. O CPF continua obrigatório
+> e único no banco, mas não é mais credencial de acesso. Veja `docs/DATABASE.md`.
+
 - `src/services/authService.js` concentra cadastro, login e logout:
   - **Pré-checagem de CPF** em `cuidadores`/`familiares` com `.maybeSingle()`,
     antes de chamar o Auth — a fonte da verdade sobre "CPF já existe" passou a

@@ -34,10 +34,31 @@ export const getStyles = (themeColors) =>
       borderRadius: 16,
       height: 54,
     },
+    // Centralizado e espaçado para conferir caractere por caractere com o
+    // e-mail aberto ao lado, mas sem exagero: o token pode ser mais longo que
+    // os 6 dígitos padrão e precisa caber na linha.
+    inputCodigo: {
+      textAlign: 'center',
+      fontSize: 20,
+      letterSpacing: 4,
+      fontWeight: '700',
+      color: themeColors.textPrimary || '#212529',
+    },
+    textoAjudaCodigo: {
+      fontSize: 13,
+      lineHeight: 18,
+      textAlign: 'center',
+      color: themeColors.textSecondary || '#6C757D',
+      marginTop: -8,
+      marginBottom: 16,
+    },
     btnReenviar: {
       marginTop: 16,
       alignItems: 'center',
       paddingVertical: 8,
+    },
+    btnReenviarDesabilitado: {
+      opacity: 0.5,
     },
     textoReenviar: {
       fontSize: 14,

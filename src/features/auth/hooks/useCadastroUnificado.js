@@ -10,6 +10,7 @@ import { useSession } from '../../../contexts/SessionContext';
 import { aplicarMascaraCPF, aplicarMascaraTelefone } from '../../../utils/masks';
 import {
   validarCPFObrigatorio,
+  validarEmailObrigatorio,
   validarNomeCompleto,
   validarTelefoneObrigatorio,
 } from '../../../utils/validators';
@@ -42,6 +43,7 @@ export function useCadastroUnificado(tipoInicial = TIPOS_CADASTRO.FAMILIAR) {
   );
   const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
+  const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
   const [senha, setSenha] = useState('');
   const [especialidade, setEspecialidade] = useState('');
@@ -74,6 +76,9 @@ export function useCadastroUnificado(tipoInicial = TIPOS_CADASTRO.FAMILIAR) {
 
     const erroCpf = validarCPFObrigatorio(cpf);
     if (erroCpf) novosErros.cpf = erroCpf;
+
+    const erroEmail = validarEmailObrigatorio(email);
+    if (erroEmail) novosErros.email = erroEmail;
 
     const erroTelefone = validarTelefoneObrigatorio(telefone);
     if (erroTelefone) novosErros.telefone = erroTelefone;
@@ -120,6 +125,7 @@ export function useCadastroUnificado(tipoInicial = TIPOS_CADASTRO.FAMILIAR) {
         await cadastrarEConectarCuidador({
           nome,
           cpf,
+          email,
           telefone,
           senha,
           especialidade: especialidadeFinal(),
@@ -131,12 +137,12 @@ export function useCadastroUnificado(tipoInicial = TIPOS_CADASTRO.FAMILIAR) {
       }
 
       if (tipo === TIPOS_CADASTRO.FAMILIAR) {
-        await cadastrarEConectarFamiliar({ nome, cpf, telefone, senha });
+        await cadastrarEConectarFamiliar({ nome, cpf, email, telefone, senha });
         await recarregarPerfil();
         return;
       }
 
-      await cadastrarEConectarIdoso({ nome, cpf, telefone, senha });
+      await cadastrarEConectarIdoso({ nome, cpf, email, telefone, senha });
       await recarregarPerfil();
     } catch (erro) {
       Alert.alert('Erro ao cadastrar', erro.message || 'Não foi possível concluir o cadastro.');
@@ -151,6 +157,7 @@ export function useCadastroUnificado(tipoInicial = TIPOS_CADASTRO.FAMILIAR) {
     tituloBotao: TITULOS_BOTAO[tipo],
     nome,
     cpf,
+    email,
     telefone,
     senha,
     especialidade,
@@ -162,17 +169,13 @@ export function useCadastroUnificado(tipoInicial = TIPOS_CADASTRO.FAMILIAR) {
     selecionarTipo,
     alterarNome: setNome,
     alterarCpf,
+    alterarEmail: setEmail,
     alterarTelefone,
     alterarSenha: setSenha,
     alterarOutraEspecialidade: setOutraEspecialidade,
     selecionarEspecialidade: (esp) => {
       setEspecialidade(esp);
       setModalEspecialidadeVisivel(false);
-    },
-    reabrirListaEspecialidade: () => {
-      setEspecialidade('');
-      setOutraEspecialidade('');
-      setModalEspecialidadeVisivel(true);
     },
     salvar,
   };

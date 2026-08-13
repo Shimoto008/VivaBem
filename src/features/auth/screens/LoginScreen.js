@@ -20,14 +20,14 @@ import { getLogoSource } from '../../../constants/brandAssets';
 import { ROUTES } from '../../../constants/routeNames';
 
 /**
- * Login por CPF: o e-mail exigido pelo Supabase Auth é derivado do CPF dentro
- * de `authService`, então o usuário nunca precisa conhecer esse e-mail interno.
+ * Login por e-mail + senha: é o mesmo e-mail informado no cadastro e usado no
+ * Supabase Auth, o que permite a recuperação de senha por e-mail.
  */
 export default function LoginScreen() {
   const navigation = useNavigation();
   const { themeColors, isDarkMode } = useTheme();
   const styles = getStyles(themeColors);
-  const { cpf, senha, erros, entrando, alterarCpf, alterarSenha, entrar } = useLogin();
+  const { email, senha, erros, entrando, alterarEmail, alterarSenha, entrar } = useLogin();
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -42,7 +42,7 @@ export default function LoginScreen() {
         >
           <ScreenHeader
             title="Entrar na Conta"
-            subtitle="Use o CPF e a senha do seu cadastro"
+            subtitle="Use o e-mail e a senha do seu cadastro"
             onBack={() => navigation.goBack()}
           />
 
@@ -50,14 +50,15 @@ export default function LoginScreen() {
 
           <Card>
             <Input
-              label="CPF"
-              placeholder="000.000.000-00"
-              value={cpf}
-              onChangeText={alterarCpf}
-              keyboardType="numeric"
+              label="E-mail"
+              placeholder="exemplo@email.com"
+              value={email}
+              onChangeText={alterarEmail}
+              keyboardType="email-address"
               autoCapitalize="none"
-              maxLength={14}
-              error={erros.cpf}
+              autoCorrect={false}
+              textContentType="emailAddress"
+              error={erros.email}
             />
 
             <Input
