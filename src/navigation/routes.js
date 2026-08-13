@@ -8,6 +8,8 @@ import OnboardingScreen from '../features/onboarding/screens/OnboardingScreen';
 import HomeScreen from '../features/home/screens/HomeScreen';
 import LoginScreen from '../features/auth/screens/LoginScreen';
 import CadastroUnificadoScreen from '../features/auth/screens/CadastroUnificadoScreen';
+import RecuperarSenhaScreen from '../features/auth/screens/RecuperarSenhaScreen'; // ✅ Importação da nova tela
+
 import HomeCuidadorScreen from '../features/cuidador/screens/HomeCuidadorScreen';
 import HomeFamiliarScreen from '../features/familiar/screens/HomeFamiliarScreen';
 import IdosoAutonomoScreen from '../features/idoso/screens/IdosoAutonomoScreen';
@@ -43,6 +45,7 @@ export default function StackRoutes() {
           <Stack.Screen name={ROUTES.HOME} component={HomeScreen} />
           <Stack.Screen name={ROUTES.LOGIN} component={LoginScreen} />
           <Stack.Screen name={ROUTES.CADASTRO} component={CadastroUnificadoScreen} />
+          <Stack.Screen name={ROUTES.RECUPERAR_SENHA} component={RecuperarSenhaScreen} />
         </>
       ) : tipoUsuario === 'cuidador' ? (
         <>
@@ -60,7 +63,6 @@ export default function StackRoutes() {
           <Stack.Screen name={ROUTES.MEDICACAO} component={MedicacaoScreen} />
           <Stack.Screen name={ROUTES.CALENDARIO} component={CalendarioScreen} />
           <Stack.Screen name={ROUTES.OBSERVACOES} component={ObservacoesScreen} />
-          {/* ✅ Usando o mesmo nome da importação acima */}
           <Stack.Screen name={ROUTES.EXERCICIOS} component={ExerciciosScreen} />
         </>
       ) : (

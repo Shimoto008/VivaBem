@@ -13,20 +13,33 @@ export const getStyles = (themeColors, accentColor) =>
     viewPrincipal: {
       flex: 1,
     },
+    seletorHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'space-between',
+      marginTop: 16,
+      marginBottom: 10,
+    },
     seletorTitulo: {
       fontSize: 13,
       fontWeight: '700',
       color: themeColors.textSecondary || '#6C757D',
-      marginTop: 16,
-      marginBottom: 12,
       textTransform: 'uppercase',
       letterSpacing: 1,
+    },
+    seletorDica: {
+      fontSize: 11,
+      fontWeight: '500',
+      color: accentColor,
+      fontStyle: 'italic',
+    },
+    seletorContainer: {
+      marginBottom: 12,
     },
     seletorRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       gap: 10,
-      marginBottom: 16,
     },
     cardTipo: {
       flex: 1,
@@ -42,11 +55,11 @@ export const getStyles = (themeColors, accentColor) =>
         ios: {
           shadowColor: '#000000',
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.08,
-          shadowRadius: 10,
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
         },
         android: {
-          elevation: 4,
+          elevation: 3,
         },
       }),
     },
@@ -56,11 +69,11 @@ export const getStyles = (themeColors, accentColor) =>
         ios: {
           shadowColor: '#000000',
           shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.16,
-          shadowRadius: 12,
+          shadowOpacity: 0.12,
+          shadowRadius: 10,
         },
         android: {
-          elevation: 8,
+          elevation: 6,
         },
       }),
     },
@@ -83,13 +96,44 @@ export const getStyles = (themeColors, accentColor) =>
       fontWeight: '700',
     },
 
-    /* BALÃO DE INFORMAÇÃO */
-    balaoInfo: {
-      borderRadius: 14,
+    /* BALÃO DE PENSAMENTO / POPOVER COM TRIÂNGULO APONTADOR DINÂMICO */
+    balaoPensamentoWrapper: {
+      marginTop: 8,
+      width: '100%',
+      zIndex: 10,
+    },
+    containerTriangulo: {
+      width: '100%',
+      height: 10,
+      justifyContent: 'center',
+    },
+    trianguloPensamento: {
+      width: 0,
+      height: 0,
+      backgroundColor: 'transparent',
+      borderStyle: 'solid',
+      borderLeftWidth: 8,
+      borderRightWidth: 8,
+      borderBottomWidth: 10,
+      borderLeftColor: 'transparent',
+      borderRightColor: 'transparent',
+    },
+    balaoPensamento: {
+      width: '100%',
+      borderRadius: 16,
       padding: 14,
-      marginBottom: 16,
-      borderLeftWidth: 4,
-      borderWidth: 1,
+      borderWidth: 1.5,
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.15,
+          shadowRadius: 12,
+        },
+        android: {
+          elevation: 8,
+        },
+      }),
     },
     balaoHeader: {
       flexDirection: 'row',
@@ -107,31 +151,36 @@ export const getStyles = (themeColors, accentColor) =>
     balaoTitulo: {
       fontSize: 14,
       fontWeight: '700',
+      flex: 1,
+    },
+    botaoFecharBalao: {
+      padding: 2,
     },
     balaoTexto: {
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 13,
+      lineHeight: 18,
       color: themeColors.textPrimary || '#2B3036',
       fontWeight: '500',
     },
 
-    /* CARD ELEVADO - DADOS PESSOAIS COM SOMBRA PRETA DE PROSPERIDADE */
+    /* CARD ELEVADO PREMIUM - DADOS PESSOAIS */
     cardDadosPessoais: {
       backgroundColor: themeColors.surface || '#FFFFFF',
-      borderRadius: 20,
-      padding: 18,
-      marginVertical: 8,
+      borderRadius: 24,
+      padding: 20,
+      marginTop: 8,
+      marginBottom: 12,
       borderWidth: 1,
-      borderColor: 'rgba(0,0,0,0.03)',
+      borderColor: 'rgba(0, 0, 0, 0.04)',
       ...Platform.select({
         ios: {
           shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.12,
-          shadowRadius: 16,
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.09,
+          shadowRadius: 20,
         },
         android: {
-          elevation: 6,
+          elevation: 7,
         },
       }),
     },
@@ -139,7 +188,8 @@ export const getStyles = (themeColors, accentColor) =>
       fontSize: 16,
       fontWeight: '700',
       color: themeColors.textPrimary || '#1A1D20',
-      marginBottom: 14,
+      marginBottom: 16,
+      letterSpacing: 0.3,
     },
     wrapperEspecialidade: {
       marginTop: 6,
@@ -176,17 +226,18 @@ export const getStyles = (themeColors, accentColor) =>
       marginLeft: 4,
     },
     botaoAcao: {
-      marginTop: 24,
-      borderRadius: 14,
+      marginTop: 12,
+      borderRadius: 16,
+      height: 54,
       ...Platform.select({
         ios: {
           shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.18,
+          shadowRadius: 10,
         },
         android: {
-          elevation: 5,
+          elevation: 6,
         },
       }),
     },

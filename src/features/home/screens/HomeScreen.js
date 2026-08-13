@@ -30,9 +30,7 @@ export default function HomeScreen() {
       >
         <Image style={styles.img} source={getLogoSource(isDarkMode)} />
 
-        <Text style={styles.titulo}>Área de Login</Text>
-        <Text style={styles.subtitulo}>Auxiliar cuidadores de idoso</Text>
-
+        
         <View style={[styles.buttonContainer, { gap: 12, width: '100%' }]}>
           <Button
             title="Criar conta"

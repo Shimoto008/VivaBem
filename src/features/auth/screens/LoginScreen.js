@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +17,7 @@ import { spacing, typography } from '../../../theme';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useLogin } from '../hooks/useLogin';
 import { getLogoSource } from '../../../constants/brandAssets';
+import { ROUTES } from '../../../constants/routeNames';
 
 /**
  * Login por CPF: o e-mail exigido pelo Supabase Auth é derivado do CPF dentro
@@ -70,17 +72,33 @@ export default function LoginScreen() {
               error={erros.senha}
             />
 
+            {/* BOTAO DE ESQUECI MINHA SENHA ALINHADO Á DIREITA */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate(ROUTES.RECUPERAR_SENHA || 'RecuperarSenha')}
+              accessibilityRole="button"
+              accessibilityLabel="Esqueci minha senha"
+              style={styles.linkEsqueciSenha}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.textoEsqueciSenha}>Esqueci minha senha</Text>
+            </TouchableOpacity>
+
             <Button title="Entrar" onPress={entrar} loading={entrando} />
           </Card>
 
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            accessibilityRole="button"
-            accessibilityLabel="Voltar para a escolha de perfil e criar uma conta"
-            style={styles.linkCadastro}
-          >
-            <Text style={styles.textoLink}>Ainda não tenho conta — quero me cadastrar</Text>
-          </TouchableOpacity>
+          {/* ÁREA INFERIOR DE REDIRECIONAMENTO */}
+          <View style={styles.containerLinksInferiores}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              accessibilityRole="button"
+              accessibilityLabel="Voltar para a escolha de perfil e criar uma conta"
+              style={styles.linkCadastro}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.textoSubtituloLink}>Não tem uma conta?</Text>
+              <Text style={styles.textoLink}>Criar conta</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -103,6 +121,32 @@ const getStyles = (colors) =>
       alignSelf: 'center',
       marginVertical: spacing.lg,
     },
-    linkCadastro: { alignSelf: 'center', marginTop: spacing.xl, padding: spacing.sm },
-    textoLink: { ...typography.bodyBold, color: colors.primary },
+    linkEsqueciSenha: {
+      alignSelf: 'flex-end',
+      marginBottom: spacing.lg,
+      marginTop: -spacing.xs,
+      paddingVertical: 4,
+    },
+    textoEsqueciSenha: {
+      ...typography.caption,
+      color: colors.primary,
+      fontWeight: '600',
+    },
+    containerLinksInferiores: {
+      alignItems: 'center',
+      marginTop: spacing.xl,
+    },
+    linkCadastro: {
+      alignItems: 'center',
+      padding: spacing.sm,
+    },
+    textoSubtituloLink: {
+      ...typography.caption,
+      color: colors.textSecondary || '#6C757D',
+      marginBottom: 2,
+    },
+    textoLink: { 
+      ...typography.bodyBold, 
+      color: colors.primary 
+    },
   });
