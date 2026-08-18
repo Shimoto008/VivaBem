@@ -61,6 +61,7 @@ export default function StackRoutes() {
         <>
           <Stack.Screen name={ROUTES.HOME_IDOSO} component={IdosoAutonomoScreen} />
           <Stack.Screen name={ROUTES.MEDICACAO} component={MedicacaoScreen} />
+          <Stack.Screen name={ROUTES.RELATORIO} component={RelatorioScreen} />
           <Stack.Screen name={ROUTES.CALENDARIO} component={CalendarioScreen} />
           <Stack.Screen name={ROUTES.OBSERVACOES} component={ObservacoesScreen} />
           <Stack.Screen name={ROUTES.EXERCICIOS} component={ExerciciosScreen} />

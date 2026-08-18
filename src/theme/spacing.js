@@ -19,3 +19,6 @@ export const radius = {
   xl: 20,
   full: 999,
 };
+
+/** Área mínima de toque (WCAG 2.2 / Apple HIG) para botões e ícones clicáveis. */
+export const touchMin = 44;

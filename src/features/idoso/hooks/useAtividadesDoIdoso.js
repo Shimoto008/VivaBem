@@ -1,17 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import {
-  escutarPacientesDoCuidador,
-  listarPacientesPorCuidador,
-} from '../../../services/pacienteService';
+import { listarAtividadesPorIdoso } from '../../../services/atividadeService';
 
 /**
- * Busca os pacientes vinculados ao cuidador através das conexões.
- * Recarrega ao focar a tela, por pull-to-refresh e via Realtime quando
- * uma conexão fica ativa (ou um paciente é cadastrado/alterado).
+ * Rotina que o próprio idoso autônomo cadastra (`atividades.idoso_id`).
+ * Não usa `pacientes` — essa tabela é só o idoso vinculado pelo familiar.
  */
-export function usePacientes(cuidadorId) {
-  const [pacientes, setPacientes] = useState([]);
+export function useAtividadesDoIdoso(idosoId) {
+  const [atividades, setAtividades] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
   const [erro, setErro] = useState(null);
@@ -26,9 +22,9 @@ export function usePacientes(cuidadorId) {
 
   const carregar = useCallback(
     async (silencioso = false) => {
-      if (!cuidadorId) {
+      if (!idosoId) {
         if (montadoRef.current) {
-          setPacientes([]);
+          setAtividades([]);
           setCarregando(false);
           setAtualizando(false);
         }
@@ -37,9 +33,9 @@ export function usePacientes(cuidadorId) {
       if (!silencioso && montadoRef.current) setCarregando(true);
       if (montadoRef.current) setErro(null);
       try {
-        const lista = await listarPacientesPorCuidador(cuidadorId);
+        const lista = await listarAtividadesPorIdoso(idosoId);
         if (!montadoRef.current) return;
-        setPacientes(lista);
+        setAtividades(lista);
       } catch (err) {
         if (!montadoRef.current) return;
         setErro(err);
@@ -49,8 +45,12 @@ export function usePacientes(cuidadorId) {
         setAtualizando(false);
       }
     },
-    [cuidadorId]
+    [idosoId]
   );
+
+  useEffect(() => {
+    carregar();
+  }, [carregar]);
 
   useFocusEffect(
     useCallback(() => {
@@ -58,20 +58,10 @@ export function usePacientes(cuidadorId) {
     }, [carregar])
   );
 
-  useEffect(() => {
-    if (!cuidadorId) return undefined;
-
-    const cancelarEscuta = escutarPacientesDoCuidador(cuidadorId, () => {
-      carregar(true);
-    });
-
-    return cancelarEscuta;
-  }, [cuidadorId, carregar]);
-
   const recarregar = useCallback(() => {
     setAtualizando(true);
     return carregar(true);
   }, [carregar]);
 
-  return { pacientes, carregando, atualizando, erro, recarregar };
+  return { atividades, carregando, atualizando, erro, recarregar };
 }

@@ -28,7 +28,8 @@ alter table cuidadores
 -- Campos editáveis no perfil do cuidador (Biografia e Formação Acadêmica).
 alter table cuidadores
   add column if not exists formacao text,
-  add column if not exists biografia text;
+  add column if not exists biografia text,
+  add column if not exists foto_url text;
 
 -- E-mail do cadastro, gravado junto do perfil para manter os dados do usuário
 -- consistentes sem depender de uma leitura em auth.users. Sem `unique`: a
@@ -83,6 +84,7 @@ create table if not exists pacientes (
 );
 
 create index if not exists idx_pacientes_familiar on pacientes (familiar_id);
+create index if not exists idx_pacientes_cpf on pacientes (cpf);
 ```
 
 ## 3. Tabela `atividades` (agenda, relatórios, medicação, observações)
@@ -102,6 +104,33 @@ create index if not exists idx_atividades_paciente on atividades (paciente_id);
 create index if not exists idx_atividades_cuidador on atividades (cuidador_id, created_at desc);
 ```
 
+Duas origens na **mesma tabela** (depois da migração 3.1):
+
+- **Cuidador → paciente:** `paciente_id` + `cuidador_id` (idoso da tabela `pacientes`, cadastrado pelo familiar).
+- **Idoso autônomo:** `idoso_id` (conta em `idosos`). Ele mesmo registra a rotina na aba **Rotina**.
+
+### 3.1. Migração — rotina do idoso autônomo
+
+Rode **depois** de existir a tabela `idosos` (seção 5). Sem isto o cadastro na aba Rotina falha.
+
+```sql
+alter table atividades
+  alter column paciente_id drop not null,
+  alter column cuidador_id drop not null;
+
+alter table atividades
+  add column if not exists idoso_id uuid references idosos(id) on delete cascade;
+
+alter table atividades drop constraint if exists atividades_origem_check;
+alter table atividades add constraint atividades_origem_check check (
+  (idoso_id is not null and paciente_id is null and cuidador_id is null)
+  or
+  (idoso_id is null and paciente_id is not null and cuidador_id is not null)
+);
+
+create index if not exists idx_atividades_idoso on atividades (idoso_id, created_at desc);
+```
+
 ## 4. Tabela `familiares` (também ligada ao Supabase Auth)
 
 ```sql
@@ -111,6 +140,7 @@ create table if not exists familiares (
   cpf text unique,
   telefone text,
   email text,
+  foto_url text,
   created_at timestamptz not null default now()
 );
 ```
@@ -119,6 +149,7 @@ Se a tabela já existir com `id uuid default gen_random_uuid()`, ajuste:
 
 ```sql
 alter table familiares add column if not exists email text;
+alter table familiares add column if not exists foto_url text;
 alter table familiares add constraint familiares_cpf_unico unique (cpf);
 alter table familiares
   add constraint familiares_id_auth_fk
@@ -140,11 +171,13 @@ create table if not exists idosos (
   email text,
   contato_emergencia text,
   preferencias text,
+  foto_url text,
   created_at timestamptz not null default now()
 );
 
 -- Para bases criadas antes do cadastro por e-mail:
 alter table idosos add column if not exists email text;
+alter table idosos add column if not exists foto_url text;
 
 alter table idosos enable row level security;
 
@@ -240,10 +273,14 @@ usuário sai e volta para a tela (o que dispara uma nova leitura do histórico).
 
 ```sql
 alter publication supabase_realtime add table mensagens;
+alter publication supabase_realtime add table conexoes;
+alter publication supabase_realtime add table pacientes;
 ```
 
 Pelo painel, o mesmo efeito: **Database → Replication → `supabase_realtime`** e
-ligue a tabela `mensagens`. Para conferir se já está publicada:
+ligue as tabelas `mensagens`, `conexoes` e `pacientes`. Sem `conexoes`/`pacientes`
+publicadas, a lista de idosos do cuidador só atualiza ao puxar a tela ou
+relogar. Para conferir se já está publicada:
 
 ```sql
 select tablename from pg_publication_tables where pubname = 'supabase_realtime';
@@ -260,6 +297,57 @@ select tablename from pg_publication_tables where pubname = 'supabase_realtime';
 >
 > Se o canal não conectar, o app escreve um aviso no console
 > (`[Realtime] Canal "chat" não conectou...`) em vez de falhar em silêncio.
+
+---
+
+## 6.2. Foto de perfil (coluna `foto_url` + Storage)
+
+A foto escolhida no app é enviada ao bucket `avatars` e a URL pública fica
+em `foto_url` no perfil (`cuidadores`, `familiares`, `idosos`). Sem estes
+comandos o picker abre, mas o upload falha.
+
+```sql
+alter table cuidadores add column if not exists foto_url text;
+alter table familiares add column if not exists foto_url text;
+alter table idosos add column if not exists foto_url text;
+
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+-- Leitura pública (o app renderiza a URL direto no <Image>).
+create policy "avatars_public_read"
+  on storage.objects for select
+  using (bucket_id = 'avatars');
+
+-- Cada usuário só envia/substitui arquivos na pasta com o próprio uid.
+create policy "avatars_insert_own"
+  on storage.objects for insert to authenticated
+  with check (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "avatars_update_own"
+  on storage.objects for update to authenticated
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "avatars_delete_own"
+  on storage.objects for delete to authenticated
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+```
+
+Pelo painel: **Storage → New bucket** com o nome `avatars`, marcado como
+**public**. Se as policies já existirem, o `create policy` acima falha —
+ignore ou apague a policy antiga antes.
+
+Caminho gravado pelo app: `{userId}/avatar.jpg` (upsert).
 
 ---
 
@@ -337,6 +425,39 @@ create policy "familiares visiveis para autenticados" on familiares
 > $$;
 > grant execute on function cpf_ja_cadastrado(text) to anon, authenticated;
 > ```
+
+## 8.1. Exclusão da própria conta (exigência da Play Store)
+
+O app chama `rpc('excluir_minha_conta')` a partir do botão **Excluir minha conta**
+nas configurações de cada perfil. A função apaga o usuário em `auth.users`;
+os perfis em `cuidadores` / `familiares` / `idosos` (e o que estiver em cascade)
+somem junto pelas foreign keys `on delete cascade`.
+
+Rode no SQL Editor **como postgres** (o papel padrão do editor):
+
+```sql
+create or replace function public.excluir_minha_conta()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  uid uuid := auth.uid();
+begin
+  if uid is null then
+    raise exception 'nao autenticado';
+  end if;
+
+  delete from auth.users where id = uid;
+end;
+$$;
+
+revoke all on function public.excluir_minha_conta() from public;
+grant execute on function public.excluir_minha_conta() to authenticated;
+```
+
+> Sem esta função o botão avisa que a exclusão ainda não está configurada no banco.
 
 ## 9. Contas antigas (login por CPF com e-mail interno)
 

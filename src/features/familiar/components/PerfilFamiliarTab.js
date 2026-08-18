@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,14 +9,16 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import {
   PreferenciasAparencia,
   SecaoInstitucional,
   BotaoLogout,
+  BotaoExcluirConta,
   Input,
   Button,
+  AvatarPerfil,
 } from '../../../components/ui';
 import { radius, spacing, typography } from '../../../theme';
 import { useSession } from '../../../contexts/SessionContext';
@@ -25,6 +27,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { atualizarPerfilFamiliar } from '../../../services/familiarService';
 import { aplicarMascaraTelefone, somenteDigitos } from '../../../utils/masks';
 import { validarNomeCompleto, validarTelefoneObrigatorio } from '../../../utils/validators';
+import { useFotoPerfil } from '../../../hooks/useFotoPerfil';
 
 import MapaCuidador from '../screens/MapaCuidador';
 
@@ -33,6 +36,16 @@ export default function PerfilFamiliarTab() {
   const { conexao, carregando: carregandoConexao } = useConexaoFamiliarContext();
   const { primaryColor, themeColors } = useTheme();
   const styles = getStyles(themeColors);
+
+  const persistirFoto = useCallback(
+    (fotoUrl) => atualizarPerfilFamiliar(perfil?.id, { foto_url: fotoUrl }),
+    [perfil?.id]
+  );
+  const { enviando: enviandoFoto, selecionarEEnviar } = useFotoPerfil({
+    userId: perfil?.id,
+    persistirUrl: persistirFoto,
+    atualizarPerfilLocal,
+  });
 
   const [modalMapaVisivel, setModalMapaVisivel] = useState(false);
   const [modalConfigVisivel, setModalConfigVisivel] = useState(false);
@@ -96,9 +109,16 @@ export default function PerfilFamiliarTab() {
 
       <View style={styles.card}>
         <View style={styles.linhaCentralizada}>
-          <View style={[styles.avatar, { backgroundColor: primaryColor }]}>
-            <FontAwesome5 name="user" size={28} color={themeColors.white} />
-          </View>
+          <AvatarPerfil
+            uri={perfil?.foto_url}
+            size={60}
+            onPress={selecionarEEnviar}
+            carregando={enviandoFoto}
+            iconName="user"
+            iconFamily="FontAwesome5"
+            iconSize={28}
+            accessibilityLabel="Alterar foto de perfil"
+          />
           <View style={styles.infoPerfil}>
             <Text style={styles.nome}>{perfil?.nome || 'Nome do Familiar'}</Text>
             <Text style={styles.textoSecundario}>Familiar cadastrado</Text>
@@ -196,6 +216,7 @@ export default function PerfilFamiliarTab() {
 
             <View style={styles.divisorLogout} />
             <BotaoLogout />
+            <BotaoExcluirConta />
           </ScrollView>
         </View>
       </Modal>
@@ -271,13 +292,6 @@ const getStyles = (colors) =>
       justifyContent: 'center',
     },
     linhaCentralizada: { flexDirection: 'row', alignItems: 'center' },
-    avatar: {
-      width: 60,
-      height: 60,
-      borderRadius: radius.full,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     infoPerfil: { flex: 1, marginLeft: spacing.lg },
     infoConexao: { flex: 1, marginLeft: spacing.md },
     nome: { ...typography.title2, color: colors.textPrimary },

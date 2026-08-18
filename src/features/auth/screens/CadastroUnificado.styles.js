@@ -28,7 +28,7 @@ export const getStyles = (themeColors, accentColor) =>
       letterSpacing: 1,
     },
     seletorDica: {
-      fontSize: 11,
+      fontSize: 14,
       fontWeight: '500',
       color: accentColor,
       fontStyle: 'italic',
@@ -220,7 +220,7 @@ export const getStyles = (themeColors, accentColor) =>
       color: themeColors.placeholder || '#ADB5BD',
     },
     erroEspecialidade: {
-      fontSize: 12,
+      fontSize: 14,
       color: themeColors.danger,
       marginTop: 4,
       marginLeft: 4,

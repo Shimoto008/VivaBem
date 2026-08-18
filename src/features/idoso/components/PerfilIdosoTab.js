@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -16,17 +16,30 @@ import {
   PreferenciasAparencia,
   SecaoInstitucional,
   BotaoLogout,
+  BotaoExcluirConta,
+  AvatarPerfil,
 } from '../../../components/ui';
 import { getStyles } from '../screens/IdosoAutonomo.styles';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useSession } from '../../../contexts/SessionContext';
 import { atualizarPerfilIdoso } from '../../../services/idosoService';
 import { aplicarMascaraCPF, aplicarMascaraTelefone, somenteDigitos } from '../../../utils/masks';
+import { useFotoPerfil } from '../../../hooks/useFotoPerfil';
 
 export function PerfilIdosoTab() {
   const { perfil: idoso, atualizarPerfilLocal, carregando } = useSession();
   const { themeColors, primaryColor } = useTheme();
   const styles = getStyles(themeColors);
+
+  const persistirFoto = useCallback(
+    (fotoUrl) => atualizarPerfilIdoso(idoso?.id, { foto_url: fotoUrl }),
+    [idoso?.id]
+  );
+  const { enviando: enviandoFoto, selecionarEEnviar } = useFotoPerfil({
+    userId: idoso?.id,
+    persistirUrl: persistirFoto,
+    atualizarPerfilLocal,
+  });
 
   const [editando, setEditando] = useState(false);
   const [telefoneEdicao, setTelefoneEdicao] = useState('');
@@ -89,9 +102,17 @@ export function PerfilIdosoTab() {
 
       <View style={styles.card}>
         <View style={styles.linhaCentralizada}>
-          <View style={[styles.avatar, { backgroundColor: `${primaryColor}22` }]}>
-            <MaterialIcons name="person" size={36} color={primaryColor} />
-          </View>
+          <AvatarPerfil
+            uri={idoso.foto_url}
+            size={64}
+            onPress={selecionarEEnviar}
+            carregando={enviandoFoto}
+            iconName="person"
+            iconSize={36}
+            backgroundColor={`${primaryColor}22`}
+            iconColor={primaryColor}
+            accessibilityLabel="Alterar foto de perfil"
+          />
           <View style={styles.infoPerfil}>
             <Text style={styles.nome}>{idoso.nome}</Text>
             <Text style={styles.textoSecundario}>
@@ -183,6 +204,7 @@ export function PerfilIdosoTab() {
             <SecaoInstitucional />
             <View style={styles.divisorLogout} />
             <BotaoLogout />
+            <BotaoExcluirConta />
           </ScrollView>
         </View>
       </Modal>

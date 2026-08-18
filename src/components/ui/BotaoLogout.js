@@ -63,10 +63,11 @@ const getStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
+      minHeight: 52,
       padding: spacing.lg,
       borderRadius: radius.md,
       marginTop: spacing.md,
-      marginBottom: spacing.xxxl,
+      marginBottom: spacing.sm,
       backgroundColor: `${colors.danger}18`,
     },
     texto: {

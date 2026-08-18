@@ -1,6 +1,9 @@
 export function interpretarMedicacao(atividade) {
   try {
-    const dados = JSON.parse(atividade.conteudo);
+    const dados =
+      typeof atividade.conteudo === 'string'
+        ? JSON.parse(atividade.conteudo)
+        : atividade.conteudo;
 
     return {
       id: atividade.id,

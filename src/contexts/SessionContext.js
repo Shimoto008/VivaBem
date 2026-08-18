@@ -8,6 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { supabase } from '../services/supabaseClient';
+import { excluirMinhaConta } from '../services/authService';
 
 /**
  * Logo após o cadastro a sessão nasce antes da linha de perfil existir no
@@ -184,6 +185,21 @@ export function SessionProvider({ children }) {
     }
   }, []);
 
+  const excluirConta = useCallback(async () => {
+    setCarregando(true);
+    try {
+      await excluirMinhaConta();
+      if (montadoRef.current) {
+        setSession(null);
+        setPerfil(null);
+        setTipoUsuario(null);
+        setPerfilAusente(false);
+      }
+    } finally {
+      if (montadoRef.current) setCarregando(false);
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       session,
@@ -195,6 +211,7 @@ export function SessionProvider({ children }) {
       recarregarPerfil,
       atualizarPerfilLocal,
       deslogar,
+      excluirConta,
       iniciarRecuperacaoSenha,
       finalizarRecuperacaoSenha,
     }),
@@ -207,6 +224,7 @@ export function SessionProvider({ children }) {
       recarregarPerfil,
       atualizarPerfilLocal,
       deslogar,
+      excluirConta,
       iniciarRecuperacaoSenha,
       finalizarRecuperacaoSenha,
     ]

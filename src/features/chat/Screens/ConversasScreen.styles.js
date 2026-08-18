@@ -54,8 +54,7 @@ export const getStyles = (colors, primaryColor) =>
       flex: 1,
     },
     data: {
-      ...typography.caption,
-      fontSize: 11,
+      ...typography.caption2,
       color: colors.textTertiary,
     },
     preview: {

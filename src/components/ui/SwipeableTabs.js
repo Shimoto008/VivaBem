@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 
 /**
  * Permite trocar de aba deslizando o dedo (swipe) para os lados, além de
@@ -12,8 +12,16 @@ import { ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
  * aba role de forma independente como antes.
  *
  * `tabs`: [{ key, ... }] na MESMA ORDEM dos `children`.
+ * `refreshByTab`: { [tabKey]: { refreshing, onRefresh, tintColor? } }
  */
-export function SwipeableTabs({ tabs, abaAtiva, onChangeAba, children, contentContainerStyle }) {
+export function SwipeableTabs({
+  tabs,
+  abaAtiva,
+  onChangeAba,
+  children,
+  contentContainerStyle,
+  refreshByTab,
+}) {
   const scrollRef = useRef(null);
   const { width } = useWindowDimensions();
   const paginas = React.Children.toArray(children);
@@ -43,16 +51,30 @@ export function SwipeableTabs({ tabs, abaAtiva, onChangeAba, children, contentCo
       onMomentumScrollEnd={aoTerminarGesto}
       style={styles.pager}
     >
-      {paginas.map((pagina, indice) => (
-        <ScrollView
-          key={tabs[indice]?.key ?? indice}
-          style={{ width }}
-          contentContainerStyle={contentContainerStyle}
-          showsVerticalScrollIndicator={false}
-        >
-          {pagina}
-        </ScrollView>
-      ))}
+      {paginas.map((pagina, indice) => {
+        const tabKey = tabs[indice]?.key;
+        const refresh = tabKey ? refreshByTab?.[tabKey] : null;
+        return (
+          <ScrollView
+            key={tabKey ?? indice}
+            style={{ width }}
+            contentContainerStyle={contentContainerStyle}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              refresh ? (
+                <RefreshControl
+                  refreshing={!!refresh.refreshing}
+                  onRefresh={refresh.onRefresh}
+                  tintColor={refresh.tintColor}
+                  colors={refresh.tintColor ? [refresh.tintColor] : undefined}
+                />
+              ) : undefined
+            }
+          >
+            {pagina}
+          </ScrollView>
+        );
+      })}
     </ScrollView>
   );
 }

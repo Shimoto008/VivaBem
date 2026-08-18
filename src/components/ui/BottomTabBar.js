@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { spacing } from '../../theme';
+import { spacing, touchMin, typography } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const FAMILIAS_DE_ICONE = { MaterialIcons, FontAwesome5 };
@@ -35,7 +35,7 @@ export function BottomTabBar({ tabs, abaAtiva, onSelect }) {
             accessibilityState={{ selected: ativa }}
             accessibilityLabel={tab.label}
           >
-            <IconeComponente name={tab.icon} size={tab.size ?? 26} color={ativa ? themeColors.primary : themeColors.textSecondary} />
+            <IconeComponente name={tab.icon} size={tab.size ?? 28} color={ativa ? themeColors.primary : themeColors.textSecondary} />
             <Text style={[styles.label, ativa && styles.labelAtivo]}>{tab.label}</Text>
           </TouchableOpacity>
         );
@@ -54,7 +54,7 @@ const getStyles = (colors) =>
       borderTopColor: colors.border,
       justifyContent: 'space-around',
     },
-    item: { alignItems: 'center', flex: 1 },
-    label: { fontSize: 11, color: colors.textSecondary, marginTop: 4 },
+    item: { alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: touchMin + 8 },
+    label: { ...typography.caption2, color: colors.textSecondary, marginTop: 4 },
     labelAtivo: { color: colors.primary, fontWeight: '600' },
   });

@@ -13,9 +13,13 @@ import PerfilFamiliarTab from '../components/PerfilFamiliarTab';
 import { BottomTabBar, ScreenHeader, SwipeableTabs } from '../../../components/ui';
 import { useSession } from '../../../contexts/SessionContext';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { ConexaoFamiliarProvider } from '../../../contexts/ConexaoFamiliarContext';
+import {
+  ConexaoFamiliarProvider,
+  useConexaoFamiliarContext,
+} from '../../../contexts/ConexaoFamiliarContext';
 import { ROUTES } from '../../../constants/routeNames';
 import { spacing } from '../../../theme';
+import { useAtividadesDoFamiliar } from '../hooks/useAtividadesDoFamiliar';
 
 const ABAS = [
   { key: 'home', label: 'Início', icon: 'home', iconFamily: 'MaterialIcons' },
@@ -30,57 +34,85 @@ const ABAS = [
  * inferior porque a BottomTabBar já soma o inset de baixo sozinha.
  */
 export default function HomeFamiliarScreen() {
-  const navigation = useNavigation();
   const { perfil: familiar } = useSession();
-  const { themeColors, primaryColor } = useTheme();
+  const { themeColors } = useTheme();
   const styles = getStyles(themeColors);
-  const [abaAtiva, setAbaAtiva] = useState('home');
-
-  const primeiroNome = familiar?.nome ? familiar.nome.split(' ')[0] : 'Familiar';
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ConexaoFamiliarProvider familiarId={familiar?.id}>
-        <View style={styles.conteudo}>
-          <SwipeableTabs
-            tabs={ABAS}
-            abaAtiva={abaAtiva}
-            onChangeAba={setAbaAtiva}
-            contentContainerStyle={styles.scrollContent}
-          >
-            <View>
-              <View style={localStyles.headerComChat}>
-                <View style={localStyles.headerTexto}>
-                  <ScreenHeader
-                    title={`Olá, ${primeiroNome}`}
-                    subtitle="Acompanhe a rotina de quem você ama"
-                  />
-                </View>
-                <TouchableOpacity
-                  style={[localStyles.btnChat, { backgroundColor: `${primaryColor}15` }]}
-                  onPress={() => navigation.navigate(ROUTES.CONVERSAS)}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityLabel="Abrir conversas"
-                >
-                  <MaterialIcons name="chat" size={22} color={primaryColor} />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.blocoConexao}>
-                <ConexaoCuidadorCard />
-              </View>
-              <AtividadesFamiliarList />
-            </View>
-
-            <IdososScreen />
-
-            <PerfilFamiliarTab />
-          </SwipeableTabs>
-
-          <BottomTabBar tabs={ABAS} abaAtiva={abaAtiva} onSelect={setAbaAtiva} />
-        </View>
+        <HomeFamiliarConteudo familiar={familiar} />
       </ConexaoFamiliarProvider>
     </SafeAreaView>
+  );
+}
+
+function HomeFamiliarConteudo({ familiar }) {
+  const navigation = useNavigation();
+  const { conexao } = useConexaoFamiliarContext();
+  const { themeColors, primaryColor } = useTheme();
+  const styles = getStyles(themeColors);
+  const [abaAtiva, setAbaAtiva] = useState('home');
+
+  const cuidadorId = conexao?.cuidadores?.id ?? null;
+  const { atividades, carregando, atualizando, erro, recarregar } =
+    useAtividadesDoFamiliar(cuidadorId);
+
+  const primeiroNome = familiar?.nome ? familiar.nome.split(' ')[0] : 'Familiar';
+
+  return (
+    <View style={styles.conteudo}>
+      <SwipeableTabs
+        tabs={ABAS}
+        abaAtiva={abaAtiva}
+        onChangeAba={setAbaAtiva}
+        contentContainerStyle={styles.scrollContent}
+        refreshByTab={{
+          home: {
+            refreshing: atualizando,
+            onRefresh: recarregar,
+            tintColor: themeColors.primary,
+          },
+        }}
+      >
+        <View>
+          <View style={localStyles.headerComChat}>
+            <View style={localStyles.headerTexto}>
+              <ScreenHeader
+                title={`Olá, ${primeiroNome}`}
+                subtitle="Acompanhe a rotina de quem você ama"
+                mostrarAvatar
+                avatarUri={familiar?.foto_url}
+              />
+            </View>
+            <TouchableOpacity
+              style={[localStyles.btnChat, { backgroundColor: `${primaryColor}15` }]}
+              onPress={() => navigation.navigate(ROUTES.CONVERSAS)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Abrir conversas"
+            >
+              <MaterialIcons name="chat" size={22} color={primaryColor} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.blocoConexao}>
+            <ConexaoCuidadorCard />
+          </View>
+          <AtividadesFamiliarList
+            conexao={conexao}
+            atividades={atividades}
+            carregando={carregando}
+            erro={erro}
+          />
+        </View>
+
+        <IdososScreen />
+
+        <PerfilFamiliarTab />
+      </SwipeableTabs>
+
+      <BottomTabBar tabs={ABAS} abaAtiva={abaAtiva} onSelect={setAbaAtiva} />
+    </View>
   );
 }
 
@@ -93,9 +125,9 @@ const localStyles = StyleSheet.create({
   headerTexto: { flex: 1 },
   btnChat: {
     marginTop: spacing.lg + 4,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },

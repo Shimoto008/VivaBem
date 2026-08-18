@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   Alert,
   ActivityIndicator,
   TouchableOpacity,
@@ -11,8 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import * as ImagePicker from 'expo-image-picker';
-import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import {
   Input,
@@ -20,22 +18,33 @@ import {
   PreferenciasAparencia,
   SecaoInstitucional,
   BotaoLogout,
+  BotaoExcluirConta,
+  AvatarPerfil,
 } from '../../../components/ui';
 import { radius, spacing, typography } from '../../../theme';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useSession } from '../../../contexts/SessionContext';
 import { atualizarPerfilCuidador } from '../../../services/cuidadorService';
 import { aplicarMascaraTelefone, somenteDigitos } from '../../../utils/masks';
+import { useFotoPerfil } from '../../../hooks/useFotoPerfil';
 
 const DURACAO_FEEDBACK_COPIA_MS = 2000;
-const QUALIDADE_FOTO = 0.7;
 
 export function PerfilCuidadorTab() {
   const { perfil: cuidador, atualizarPerfilLocal, carregando } = useSession();
   const { themeColors, primaryColor } = useTheme();
   const styles = getStyles(themeColors);
 
-  const [foto, setFoto] = useState(null);
+  const persistirFoto = useCallback(
+    (fotoUrl) => atualizarPerfilCuidador(cuidador?.id, { foto_url: fotoUrl }),
+    [cuidador?.id]
+  );
+  const { enviando: enviandoFoto, selecionarEEnviar } = useFotoPerfil({
+    userId: cuidador?.id,
+    persistirUrl: persistirFoto,
+    atualizarPerfilLocal,
+  });
+
   const [editando, setEditando] = useState(false);
   const [telefoneEdicao, setTelefoneEdicao] = useState('');
   const [especialidadeEdicao, setEspecialidadeEdicao] = useState('');
@@ -69,23 +78,6 @@ export function PerfilCuidadorTab() {
       );
     } catch {
       Alert.alert('Não foi possível copiar', 'Copie o código manualmente e envie ao familiar.');
-    }
-  }
-
-  async function selecionarFoto() {
-    try {
-      const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissao.granted) {
-        Alert.alert('Permissão necessária', 'Autorize o acesso à galeria para escolher uma foto.');
-        return;
-      }
-      const resultado = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: QUALIDADE_FOTO,
-      });
-      if (!resultado.canceled) setFoto(resultado.assets[0].uri);
-    } catch {
-      Alert.alert('Não foi possível abrir a galeria', 'Tente novamente em alguns instantes.');
     }
   }
 
@@ -145,19 +137,16 @@ export function PerfilCuidadorTab() {
 
       <View style={styles.card}>
         <View style={styles.linhaCentralizada}>
-          <TouchableOpacity
-            onPress={selecionarFoto}
-            accessibilityRole="button"
+          <AvatarPerfil
+            uri={cuidador.foto_url}
+            size={60}
+            onPress={selecionarEEnviar}
+            carregando={enviandoFoto}
+            iconName="user-nurse"
+            iconFamily="FontAwesome5"
+            iconSize={28}
             accessibilityLabel="Alterar foto de perfil"
-          >
-            {foto ? (
-              <Image source={{ uri: foto }} style={styles.foto} />
-            ) : (
-              <View style={[styles.avatar, { backgroundColor: primaryColor }]}>
-                <FontAwesome5 name="user-nurse" size={28} color={themeColors.white} />
-              </View>
-            )}
-          </TouchableOpacity>
+          />
 
           <View style={styles.infoPerfil}>
             <Text style={styles.nome}>{cuidador.nome}</Text>
@@ -290,6 +279,7 @@ export function PerfilCuidadorTab() {
             <View style={styles.divisorLogout} />
 
             <BotaoLogout />
+            <BotaoExcluirConta />
           </ScrollView>
         </View>
       </Modal>
@@ -331,20 +321,12 @@ const getStyles = (colors) =>
       borderColor: colors.border,
     },
     linhaCentralizada: { flexDirection: 'row', alignItems: 'center' },
-    avatar: {
-      width: 60,
-      height: 60,
-      borderRadius: radius.full,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    foto: { width: 60, height: 60, borderRadius: radius.full },
     infoPerfil: { flex: 1, marginLeft: spacing.lg },
     nome: { ...typography.title2, color: colors.textPrimary },
     textoSecundario: { ...typography.caption, color: colors.textSecondary, marginTop: 2 },
     botaoEditar: {
-      width: 36,
-      height: 36,
+      width: 44,
+      height: 44,
       borderRadius: radius.full,
       alignItems: 'center',
       justifyContent: 'center',

@@ -9,6 +9,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { useSession } from '../../../contexts/SessionContext';
 import { ROUTES } from '../../../constants/routeNames';
 import { aplicarMascaraTelefone } from '../../../utils/masks';
+import { AvatarPerfil } from '../../../components/ui';
 
 const CHAVE_PERMISSAO_WHATSAPP = '@permissao_whatsapp_emergencia';
 
@@ -151,8 +152,20 @@ export function DiaADiaTab() {
     <View style={styles.containerAbas}>
       {/* CARD DE BOAS-VINDAS */}
       <View style={styles.boasVindasCard}>
-        <Text style={styles.saudacao}>{obterSaudacao()},</Text>
-        <Text style={styles.nomeDestaque}>{primeiroNome}</Text>
+        <View style={styles.boasVindasTopo}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.saudacao}>{obterSaudacao()},</Text>
+            <Text style={styles.nomeDestaque}>{primeiroNome}</Text>
+          </View>
+          <AvatarPerfil
+            uri={idoso?.foto_url}
+            size={56}
+            iconName="person"
+            iconSize={28}
+            backgroundColor={`${primaryColor}22`}
+            iconColor={primaryColor}
+          />
+        </View>
         <Text style={styles.subtituloBoasVindas}>
           Acompanhe suas rotinas, faça seus exercícios e acione a emergência quando precisar.
         </Text>

@@ -5,7 +5,7 @@ export function useHomeCuidador(cuidadorId) {
   const [abaAtiva, setAbaAtiva] = useState('home');
   const [pacienteSelecionadoId, setPacienteSelecionadoId] = useState(null);
 
-  const { pacientes, carregando, erro, recarregar } = usePacientes(cuidadorId);
+  const { pacientes, carregando, atualizando, erro, recarregar } = usePacientes(cuidadorId);
 
   const pacienteSelecionado = pacientes.find((p) => p.id === pacienteSelecionadoId) ?? null;
 
@@ -19,6 +19,7 @@ export function useHomeCuidador(cuidadorId) {
     setAbaAtiva,
     pacientes,
     carregandoPacientes: carregando,
+    atualizandoPacientes: atualizando,
     erroPacientes: erro,
     recarregarPacientes: recarregar,
     pacienteSelecionado,

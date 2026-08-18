@@ -6,8 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 import { getStyles } from '../screens/HomeCuidador.styles';
 import { PainelPaciente } from './PainelPaciente/PainelPaciente';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { EmptyState } from '../../../components/ui';
+import { EmptyState, AvatarPerfil } from '../../../components/ui';
 import { ROUTES } from '../../../constants/routeNames';
+import { useSession } from '../../../contexts/SessionContext';
 
 const CARDS_ATALHO = [
   {
@@ -46,6 +47,7 @@ const CARDS_ATALHO = [
 
 export function ResumoTab({ controlador }) {
   const navigation = useNavigation();
+  const { perfil: cuidador } = useSession();
   const { themeColors: colors } = useTheme();
   const styles = getStyles(colors);
   const {
@@ -77,7 +79,16 @@ export function ResumoTab({ controlador }) {
     <View style={styles.containerAbas}>
       {/* 1. CABEÇALHO SUPERIOR DA TELA COM O ÍCONE DE CHAT NO CANTO DIREITO */}
       <View style={localStyles.headerTopo}>
-        <Text style={[styles.secaoTitulo, { marginBottom: 0 }]}>Início</Text>
+        <View style={localStyles.headerEsquerda}>
+          <AvatarPerfil
+            uri={cuidador?.foto_url}
+            size={40}
+            iconName="user-nurse"
+            iconFamily="FontAwesome5"
+            iconSize={18}
+          />
+          <Text style={[styles.secaoTitulo, { marginBottom: 0 }]}>Início</Text>
+        </View>
 
         <TouchableOpacity
           style={[localStyles.btnChatTopo, { backgroundColor: `${colors.primary}15` }]}
@@ -161,10 +172,15 @@ const localStyles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 4,
   },
+  headerEsquerda: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   btnChatTopo: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
   },

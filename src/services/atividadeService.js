@@ -4,21 +4,51 @@ import { ATIVIDADE_TIPOS } from '../constants/atividadeTipos';
 const TABELA = 'atividades';
 
 export async function listarAtividadesPorPaciente(pacienteId) {
+  if (!pacienteId) return [];
+  return listarAtividadesPorPacientes([pacienteId]);
+}
+
+export async function listarAtividadesPorPacientes(pacienteIds, { limite = 50 } = {}) {
+  if (!pacienteIds?.length) return [];
+
+  const { data, error } = await supabase
+    .from(TABELA)
+    .select('*, pacientes ( nome )')
+    .in('paciente_id', pacienteIds)
+    .order('created_at', { ascending: false })
+    .limit(limite);
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Rotina do idoso autônomo (conta em `idosos`, não o paciente do familiar). */
+export async function listarAtividadesPorIdoso(idosoId, { limite = 50 } = {}) {
+  if (!idosoId) return [];
+
   const { data, error } = await supabase
     .from(TABELA)
     .select('*')
-    .eq('paciente_id', pacienteId)
-    .order('created_at', { ascending: false });
+    .eq('idoso_id', idosoId)
+    .order('created_at', { ascending: false })
+    .limit(limite);
   if (error) throw error;
-  return data;
+  return data ?? [];
 }
 
-export async function criarAtividade({ pacienteId, cuidadorId, tipo, conteudo, dataReferencia = null }) {
+export async function criarAtividade({
+  pacienteId = null,
+  cuidadorId = null,
+  idosoId = null,
+  tipo,
+  conteudo,
+  dataReferencia = null,
+}) {
   const { data, error } = await supabase
     .from(TABELA)
     .insert([{
-      paciente_id: pacienteId,
-      cuidador_id: cuidadorId,
+      paciente_id: idosoId ? null : pacienteId,
+      cuidador_id: idosoId ? null : cuidadorId,
+      idoso_id: idosoId || null,
       tipo,
       conteudo,
       data_referencia: dataReferencia,

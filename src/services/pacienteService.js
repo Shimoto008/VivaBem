@@ -120,3 +120,45 @@ export async function excluirPaciente(pacienteId) {
   if (error) throw error;
   return true;
 }
+
+function avisarSeCanalFalhou(status, rotulo) {
+  if (status !== 'CHANNEL_ERROR' && status !== 'TIMED_OUT') return;
+  console.warn(
+    `[Realtime] Canal "${rotulo}" não conectou (${status}). Confirme que as tabelas ` +
+      '"conexoes" e "pacientes" estão publicadas no Realtime do Supabase (veja docs/DATABASE.md).'
+  );
+}
+
+/**
+ * Escuta mudanças em `conexoes` e `pacientes` para atualizar a lista do
+ * cuidador no instante em que um familiar se vincula ou cadastra um idoso.
+ *
+ * Sem `filter` no servidor: no React Native o filtro combinado com RLS
+ * costuma engolir o evento (mesmo padrão documentado em ChatServices).
+ */
+export function escutarPacientesDoCuidador(cuidadorId, onMudanca) {
+  if (!cuidadorId) return () => {};
+
+  const canal = supabase
+    .channel(`pacientes_cuidador_${cuidadorId}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: TABELA_CONEXOES },
+      (payload) => {
+        const linha = payload.new?.cuidador_id ? payload.new : payload.old;
+        if (linha?.cuidador_id === cuidadorId) onMudanca(payload);
+      }
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: TABELA },
+      () => {
+        onMudanca();
+      }
+    )
+    .subscribe((status) => avisarSeCanalFalhou(status, 'pacientes_cuidador'));
+
+  return () => {
+    supabase.removeChannel(canal);
+  };
+}

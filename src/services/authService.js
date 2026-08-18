@@ -374,3 +374,42 @@ export async function redefinirSenhaComCodigo({ email, codigo, novaSenha }) {
     await desfazerSessao();
   }
 }
+
+/**
+ * Apaga a conta autenticada (Auth + perfil em cascade) via função no banco.
+ * Remove também o avatar no Storage, se existir.
+ */
+export async function excluirMinhaConta() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.id) {
+    throw new DomainError('Sessão expirada. Faça login novamente.');
+  }
+
+  try {
+    await supabase.storage.from('avatars').remove([
+      `${user.id}/avatar.jpg`,
+      `${user.id}/avatar.jpeg`,
+      `${user.id}/avatar.png`,
+      `${user.id}/avatar.webp`,
+      `${user.id}/avatar.heic`,
+    ]);
+  } catch {
+    // Bucket pode não existir ainda; a exclusão da conta segue mesmo assim.
+  }
+
+  const { error } = await supabase.rpc('excluir_minha_conta');
+  if (error) {
+    const mensagem = (error.message ?? '').toLowerCase();
+    if (mensagem.includes('function') || mensagem.includes('does not exist') || error.code === '42883') {
+      throw new DomainError(
+        'A exclusão de conta ainda não está configurada no banco. Rode o SQL da seção 8.1 em docs/DATABASE.md.'
+      );
+    }
+    throw new DomainError('Não foi possível excluir a conta. Tente novamente.');
+  }
+
+  await supabase.auth.signOut();
+}

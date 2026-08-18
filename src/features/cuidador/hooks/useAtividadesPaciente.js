@@ -2,17 +2,19 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { ATIVIDADE_TIPOS } from '../../../constants/atividadeTipos';
 import {
   listarAtividadesPorPaciente,
+  listarAtividadesPorIdoso,
   criarAtividade,
   atualizarAtividade,
   removerAtividade,
 } from '../../../services/atividadeService';
 
 /**
- * Dados + regras de "agenda / relatórios / medicação / observação" de um
- * paciente — antes vivia inteiramente em memória dentro de UseHomeCuidador.
- * Agora é persistido (Supabase) e fica isolado num hook próprio.
+ * Dados + regras de "agenda / relatórios / medicação / observação".
+ * Com `cuidadorId`, grava no paciente do familiar. Sem cuidador, grava na
+ * rotina do idoso autônomo (`idoso_id` = o primeiro argumento).
  */
-export function useAtividadesPaciente(pacienteId, cuidadorId) {
+export function useAtividadesPaciente(alvoId, cuidadorId) {
+  const ehIdosoAutonomo = !cuidadorId;
   const [atividades, setAtividades] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [processando, setProcessando] = useState(false);
@@ -25,7 +27,7 @@ export function useAtividadesPaciente(pacienteId, cuidadorId) {
   const emAndamentoRef = useRef(false);
 
   const recarregar = useCallback(async () => {
-    if (!pacienteId) {
+    if (!alvoId) {
       setAtividades([]);
       setCarregando(false);
       return;
@@ -33,14 +35,16 @@ export function useAtividadesPaciente(pacienteId, cuidadorId) {
     setCarregando(true);
     setErro(null);
     try {
-      const lista = await listarAtividadesPorPaciente(pacienteId);
+      const lista = ehIdosoAutonomo
+        ? await listarAtividadesPorIdoso(alvoId)
+        : await listarAtividadesPorPaciente(alvoId);
       setAtividades(lista);
     } catch (err) {
       setErro(err);
     } finally {
       setCarregando(false);
     }
-  }, [pacienteId]);
+  }, [alvoId, ehIdosoAutonomo]);
 
   useEffect(() => {
     recarregar();
@@ -68,7 +72,11 @@ export function useAtividadesPaciente(pacienteId, cuidadorId) {
         if (itemEmEdicao) {
           await atualizarAtividade(itemEmEdicao.id, conteudo);
         } else {
-          await criarAtividade({ pacienteId, cuidadorId, tipo, conteudo, dataReferencia });
+          await criarAtividade(
+            ehIdosoAutonomo
+              ? { idosoId: alvoId, tipo, conteudo, dataReferencia }
+              : { pacienteId: alvoId, cuidadorId, tipo, conteudo, dataReferencia }
+          );
         }
         setItemEmEdicao(null);
         await recarregar();
@@ -80,7 +88,7 @@ export function useAtividadesPaciente(pacienteId, cuidadorId) {
         setProcessando(false);
       }
     },
-    [itemEmEdicao, pacienteId, cuidadorId, recarregar]
+    [itemEmEdicao, alvoId, cuidadorId, ehIdosoAutonomo, recarregar]
   );
 
   const excluir = useCallback(

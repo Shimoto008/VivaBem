@@ -30,6 +30,13 @@ export const getStyles = (themeColors) =>
         },
       }),
     },
+
+    boasVindasTopo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: spacing?.xs || 8,
+    },
     saudacao: {
       fontSize: typography?.sizes?.h3 || 20,
       fontWeight: '500',

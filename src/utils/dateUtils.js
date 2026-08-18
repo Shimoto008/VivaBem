@@ -32,6 +32,23 @@ export function formatarHoraPtBR(iso) {
   }
 }
 
+/** Data e hora no padrão brasileiro: 'DD/MM/AAAA às HH:mm'. */
+export function formatarDataHoraPtBR(iso) {
+  if (!iso) return '';
+  try {
+    const data = new Date(iso);
+    const dataFmt = data.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    const horaFmt = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return `${dataFmt} às ${horaFmt}`;
+  } catch {
+    return '';
+  }
+}
+
 /** Data curta com hora (ex.: '12 de ago. 14:32'). Usado na lista de conversas. */
 export function formatarDataHoraCurtaPtBR(iso) {
   if (!iso) return '';

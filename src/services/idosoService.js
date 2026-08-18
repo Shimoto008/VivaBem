@@ -36,6 +36,7 @@ export async function atualizarPerfilIdoso(id, campos) {
     payload.preferencias = campos.preferencias?.trim?.() || campos.preferencias || null;
   }
   if (campos.nome !== undefined) payload.nome = campos.nome.trim();
+  if (campos.foto_url !== undefined) payload.foto_url = campos.foto_url || null;
 
   const { data, error } = await supabase
     .from(TABELA)

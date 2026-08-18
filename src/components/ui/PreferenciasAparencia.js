@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Switch, StyleSheet } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { radius, shadows, spacing, typography } from '../../theme';
+import { radius, shadows, spacing, typography, touchMin } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { OPCOES_CORES_APP } from '../../constants/coresApp';
 
@@ -45,7 +45,9 @@ export function PreferenciasAparencia() {
               accessibilityState={{ selected: selecionada }}
               style={[styles.bolaCor, { backgroundColor: cor.hex }, selecionada && styles.bolaCorSelecionada]}
             >
-              {selecionada ? <MaterialIcons name="check" size={16} color={themeColors.white} /> : null}
+              {selecionada ? (
+                <MaterialIcons name="check" size={20} color={themeColors.white} />
+              ) : null}
             </TouchableOpacity>
           );
         })}
@@ -68,7 +70,8 @@ const getStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingVertical: spacing.xs,
+      minHeight: touchMin,
+      paddingVertical: spacing.sm,
     },
     linhaEsquerda: { flexDirection: 'row', alignItems: 'center' },
     opcaoTexto: { ...typography.bodyBold, color: colors.textPrimary, marginLeft: spacing.md },
@@ -80,8 +83,8 @@ const getStyles = (colors) =>
       marginTop: spacing.md,
     },
     bolaCor: {
-      width: 36,
-      height: 36,
+      width: touchMin,
+      height: touchMin,
       borderRadius: radius.full,
       justifyContent: 'center',
       alignItems: 'center',

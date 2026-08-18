@@ -5,19 +5,18 @@ const STORAGE_KEY = '@vivabem:theme-preferences';
 const DEFAULT_PRIMARY_COLOR = '#3B82F6';
 
 /**
- * Paletas neutras atualizadas:
- * No modo claro (LIGHT_PALETTE), alteramos o background para #FFFFFF
- * e os textos primário/secundário para o preto puro (#000000).
+ * Paletas neutras com hierarquia de texto e contraste AA em fundo claro
+ * (textSecondary deixa de ser preto puro para títulos e legendas se distinguirem).
  */
 const LIGHT_PALETTE = {
-  background: '#FFFFFF', // <--- Alterado de #F8F9FA para Branco Puro
+  background: '#FFFFFF',
   surface: '#FFFFFF',
-  border: '#E1E8ED',
-  divider: '#F1F3F5',
-  textPrimary: '#000000', // <--- Alterado para Preto Puro
-  textSecondary: '#000000', // <--- Alterado para Preto Puro
-  textTertiary: '#777777',
-  placeholder: '#A1A1A1',
+  border: '#D0D5DD',
+  divider: '#E8EAED',
+  textPrimary: '#111111',
+  textSecondary: '#3D3D3D',
+  textTertiary: '#5C5C5C',
+  placeholder: '#6B6B6B',
   overlay: 'rgba(0, 0, 0, 0.4)',
 };
 

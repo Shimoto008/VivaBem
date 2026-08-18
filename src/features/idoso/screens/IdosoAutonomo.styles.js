@@ -50,6 +50,13 @@ export const getStyles = (colors) =>
       marginTop: spacing.sm,
       lineHeight: 22,
     },
+    subtituloRotina: {
+      ...typography.body,
+      color: colors.textSecondary,
+      marginTop: spacing.sm,
+      marginBottom: spacing.lg,
+      lineHeight: 22,
+    },
 
     secaoTitulo: {
       ...typography.title3,
@@ -160,24 +167,16 @@ export const getStyles = (colors) =>
       ...sombraForte,
     },
     linhaCentralizada: { flexDirection: 'row', alignItems: 'center' },
-    avatar: {
-      width: 64,
-      height: 64,
-      borderRadius: radius.full,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     infoPerfil: { flex: 1, marginLeft: spacing.lg },
     nome: { ...typography.title2, color: colors.textPrimary, fontSize: 22 },
     textoSecundario: {
       ...typography.body,
       color: colors.textSecondary,
       marginTop: 4,
-      fontSize: 15,
     },
     botaoEditar: {
-      width: 40,
-      height: 40,
+      width: 44,
+      height: 44,
       borderRadius: radius.full,
       alignItems: 'center',
       justifyContent: 'center',

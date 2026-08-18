@@ -28,9 +28,15 @@ const ABAS = [
 export default function HomeCuidadorScreen() {
   const { perfil: cuidador } = useSession();
   const controlador = useHomeCuidador(cuidador?.id);
-  const { abaAtiva, setAbaAtiva } = controlador;
+  const { abaAtiva, setAbaAtiva, atualizandoPacientes, recarregarPacientes } = controlador;
   const { themeColors } = useTheme();
   const styles = getStyles(themeColors);
+
+  const refreshPacientes = {
+    refreshing: atualizandoPacientes,
+    onRefresh: recarregarPacientes,
+    tintColor: themeColors.primary,
+  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
@@ -40,6 +46,10 @@ export default function HomeCuidadorScreen() {
           abaAtiva={abaAtiva}
           onChangeAba={setAbaAtiva}
           contentContainerStyle={styles.scrollContent}
+          refreshByTab={{
+            home: refreshPacientes,
+            pacientes: refreshPacientes,
+          }}
         >
           <ResumoTab controlador={controlador} />
           <PacientesTab controlador={controlador} />
