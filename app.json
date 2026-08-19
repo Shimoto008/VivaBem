@@ -20,7 +20,16 @@
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/VivaBem.png"
       },
-      "package": "com.vivabem.app"
+      "package": "com.vivabem.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "SUA_CHAVE_DO_GOOGLE_MAPS_AQUI"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,8 +38,13 @@
       "expo-font",
       "@react-native-community/datetimepicker",
       "expo-asset",
-      "expo-location",
-  "expo-image-picker"
+      "expo-image-picker",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "O VivaBem precisa da sua localização para encontrar cuidadores próximos."
+        }
+      ]
     ],
     "extra": {
       "eas": {

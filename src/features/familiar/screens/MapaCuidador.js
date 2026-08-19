@@ -19,20 +19,28 @@ import { radius, spacing, typography } from '../../../theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+// Posição padrão fallback garantida para evitar lat/lng undefined
+const POSICAO_PADRAO = {
+  latitude: -23.55052,
+  longitude: -46.633308,
+  latitudeDelta: 0.05,
+  longitudeDelta: 0.05,
+};
+
 export default function MapaCuidador() {
   const navigation = useNavigation();
   const { themeColors, primaryColor } = useTheme();
   const styles = getStyles(themeColors, primaryColor);
 
-  // Busca cuidadores no raio padrão (10 km).
-  const { minhaPosicao, cuidadoresProximos, loading, error } = useBuscarCuidadores(10000);
+  const { minhaPosicao, cuidadoresProximos = [], loading, error } = useBuscarCuidadores(10000);
 
   const [cuidadorSelecionado, setCuidadorSelecionado] = useState(null);
   const [listaExpandida, setListaExpandida] = useState(false);
 
+  // Garante que a latitude/longitude sejam números válidos
   const regiaoInicial = {
-    latitude: minhaPosicao?.latitude || -23.55052,
-    longitude: minhaPosicao?.longitude || -46.633308,
+    latitude: Number(minhaPosicao?.latitude) || POSICAO_PADRAO.latitude,
+    longitude: Number(minhaPosicao?.longitude) || POSICAO_PADRAO.longitude,
     latitudeDelta: 0.05,
     longitudeDelta: 0.05,
   };
@@ -59,30 +67,35 @@ export default function MapaCuidador() {
         style={styles.mapa}
         provider={PROVIDER_DEFAULT}
         initialRegion={regiaoInicial}
-        showsUserLocation
-        showsMyLocationButton
+        showsUserLocation={!!minhaPosicao}
+        showsMyLocationButton={!!minhaPosicao}
       >
-        {cuidadoresProximos.map((cuidador) => {
-          if (!cuidador.lat || !cuidador.lng) return null;
+        {Array.isArray(cuidadoresProximos) &&
+          cuidadoresProximos.map((cuidador) => {
+            const lat = Number(cuidador?.lat);
+            const lng = Number(cuidador?.lng);
 
-          return (
-            <Marker
-              key={cuidador.id}
-              coordinate={{ latitude: Number(cuidador.lat), longitude: Number(cuidador.lng) }}
-              pinColor={cuidadorSelecionado?.id === cuidador.id ? '#10B981' : primaryColor}
-              onPress={() => setCuidadorSelecionado(cuidador)}
-            >
-              <Callout
-                style={styles.callout}
-                onPress={() => handleIniciarChat(cuidador)}
+            // Se as coordenadas do cuidador forem inválidas, ignora para não fechar o app
+            if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return null;
+
+            return (
+              <Marker
+                key={cuidador.id}
+                coordinate={{ latitude: lat, longitude: lng }}
+                pinColor={cuidadorSelecionado?.id === cuidador.id ? '#10B981' : primaryColor}
+                onPress={() => setCuidadorSelecionado(cuidador)}
               >
-                <Text style={styles.calloutNome}>{cuidador.nome}</Text>
-                <Text style={styles.calloutEspecialidade}>{cuidador.especialidade}</Text>
-                <Text style={styles.calloutAcao}>Toque para conversar</Text>
-              </Callout>
-            </Marker>
-          );
-        })}
+                <Callout
+                  style={styles.callout}
+                  onPress={() => handleIniciarChat(cuidador)}
+                >
+                  <Text style={styles.calloutNome}>{cuidador.nome}</Text>
+                  <Text style={styles.calloutEspecialidade}>{cuidador.especialidade}</Text>
+                  <Text style={styles.calloutAcao}>Toque para conversar</Text>
+                </Callout>
+              </Marker>
+            );
+          })}
       </MapView>
 
       <View style={[styles.abaInferior, listaExpandida && styles.abaInferiorExpandida]}>
@@ -94,7 +107,7 @@ export default function MapaCuidador() {
           <View style={styles.barraAlca} />
           <View style={styles.linhaHeaderAba}>
             <Text style={styles.tituloAba}>
-              Cuidadores Cadastrados ({cuidadoresProximos.length})
+              Cuidadores Cadastrados ({cuidadoresProximos?.length || 0})
             </Text>
             <MaterialIcons
               name={listaExpandida ? 'keyboard-arrow-down' : 'keyboard-arrow-up'}
@@ -128,9 +141,7 @@ export default function MapaCuidador() {
                   styles.cardCuidador,
                   isSelecionado && { borderColor: primaryColor, borderWidth: 2 },
                 ]}
-                onPress={() => {
-                  setCuidadorSelecionado(item);
-                }}
+                onPress={() => setCuidadorSelecionado(item)}
                 activeOpacity={0.7}
               >
                 <View style={styles.avatarIcone}>
