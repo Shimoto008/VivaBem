@@ -23,7 +23,7 @@ import { useAtividadesDoFamiliar } from '../hooks/useAtividadesDoFamiliar';
 
 const ABAS = [
   { key: 'home', label: 'Início', icon: 'home', iconFamily: 'MaterialIcons' },
-  { key: 'idosos', label: 'Pacientes', icon: 'people-alt', iconFamily: 'MaterialIcons' },
+  { key: 'idosos', label: 'Idosos', icon: 'people-alt', iconFamily: 'MaterialIcons' },
   { key: 'perfil', label: 'Perfil', icon: 'person', iconFamily: 'MaterialIcons' },
 ];
 

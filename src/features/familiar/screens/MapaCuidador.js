@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import MapView, { Marker, Callout, PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
@@ -65,7 +65,7 @@ export default function MapaCuidador() {
     <View style={styles.container}>
       <MapView
         style={styles.mapa}
-        provider={PROVIDER_DEFAULT}
+        provider={PROVIDER_GOOGLE}
         initialRegion={regiaoInicial}
         showsUserLocation={!!minhaPosicao}
         showsMyLocationButton={!!minhaPosicao}

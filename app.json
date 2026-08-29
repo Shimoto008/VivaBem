@@ -18,7 +18,7 @@
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/VivaBem.png"
+        "foregroundImage": "./assets/logo_apk.png"
       },
       "package": "com.vivabem.app",
       "permissions": [
@@ -27,7 +27,7 @@
       ],
       "config": {
         "googleMaps": {
-          "apiKey": "SUA_CHAVE_DO_GOOGLE_MAPS_AQUI"
+          "apiKey": "AIzaSyAETmPXHsfOtLrCAPyQgIdky7VXNd5kyM8"
         }
       }
     },
