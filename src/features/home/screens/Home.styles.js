@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { spacing, typography } from '../../../theme';
 
-export const getStyles = (colors) =>
+export const getStyles = () =>
   StyleSheet.create({
     container: {
       flex: 1,

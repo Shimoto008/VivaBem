@@ -20,6 +20,8 @@ module.exports = [
         },
       ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
 ];

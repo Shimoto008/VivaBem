@@ -58,6 +58,8 @@ export function AtividadesFamiliarList({
   sempreMostrarCategorias = false,
   emptySemVinculo,
   emptySemAtividades,
+  emptyCategoriaVazia,
+  emptyFiltroSemAtividades,
   onPressAtividade,
 }) {
   const { themeColors } = useTheme();
@@ -191,7 +193,9 @@ export function AtividadesFamiliarList({
                 themeColors={themeColors}
               >
                 {itens.length === 0 ? (
-                  <Text style={styles.categoriaVazio}>Nenhum registro nesta categoria.</Text>
+                  <Text style={styles.categoriaVazio}>
+                    {emptyCategoriaVazia ?? 'Nenhum registro nesta categoria.'}
+                  </Text>
                 ) : (
                   itens.map(renderCard)
                 )}
@@ -202,11 +206,15 @@ export function AtividadesFamiliarList({
           ? (
             <EmptyState
               icon={categoriaFiltrada?.icone ?? 'inbox'}
-              title={`Nenhuma ${categoriaFiltrada?.rotulo?.toLowerCase() ?? 'atividade'}`}
+              title={
+                emptyFiltroSemAtividades?.title ??
+                `Nenhuma ${categoriaFiltrada?.rotulo?.toLowerCase() ?? 'atividade'}`
+              }
               description={
-                sempreMostrarCategorias
+                emptyFiltroSemAtividades?.description ??
+                (sempreMostrarCategorias
                   ? 'Toque na categoria acima para adicionar.'
-                  : 'Quando o cuidador registrar algo nesta categoria, aparecerá aqui.'
+                  : 'Quando o cuidador registrar algo nesta categoria, aparecerá aqui.')
               }
             />
             )

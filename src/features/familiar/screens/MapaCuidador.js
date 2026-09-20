@@ -7,6 +7,7 @@ import {
   FlatList,
   TouchableOpacity,
   Dimensions,
+  Platform,
 } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -26,6 +27,8 @@ const POSICAO_PADRAO = {
   latitudeDelta: 0.05,
   longitudeDelta: 0.05,
 };
+
+const MAP_PROVIDER = Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined;
 
 export default function MapaCuidador() {
   const navigation = useNavigation();
@@ -63,40 +66,58 @@ export default function MapaCuidador() {
 
   return (
     <View style={styles.container}>
-      <MapView
-        style={styles.mapa}
-        provider={PROVIDER_GOOGLE}
-        initialRegion={regiaoInicial}
-        showsUserLocation={!!minhaPosicao}
-        showsMyLocationButton={!!minhaPosicao}
-      >
-        {Array.isArray(cuidadoresProximos) &&
-          cuidadoresProximos.map((cuidador) => {
-            const lat = Number(cuidador?.lat);
-            const lng = Number(cuidador?.lng);
+      {Platform.OS === 'web' ? (
+        <View style={styles.mapaFallback}>
+          <MaterialIcons name="map" size={44} color={primaryColor} />
+          <Text style={styles.tituloFallback}>Mapa indisponível no navegador</Text>
+          <Text style={styles.textoFallback}>
+            Abra o app no Android ou iOS para visualizar o mapa de cuidadores próximos.
+          </Text>
+        </View>
+      ) : (
+        <MapView
+          style={styles.mapa}
+          provider={MAP_PROVIDER}
+          initialRegion={regiaoInicial}
+          loadingEnabled
+          loadingIndicatorColor={primaryColor}
+          showsUserLocation={!!minhaPosicao}
+          showsMyLocationButton={!!minhaPosicao}
+        >
+          {Array.isArray(cuidadoresProximos) &&
+            cuidadoresProximos.map((cuidador) => {
+              const lat = Number(cuidador?.lat);
+              const lng = Number(cuidador?.lng);
 
-            // Se as coordenadas do cuidador forem inválidas, ignora para não fechar o app
-            if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return null;
+              if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return null;
 
-            return (
-              <Marker
-                key={cuidador.id}
-                coordinate={{ latitude: lat, longitude: lng }}
-                pinColor={cuidadorSelecionado?.id === cuidador.id ? '#10B981' : primaryColor}
-                onPress={() => setCuidadorSelecionado(cuidador)}
-              >
-                <Callout
-                  style={styles.callout}
-                  onPress={() => handleIniciarChat(cuidador)}
+              return (
+                <Marker
+                  key={cuidador.id}
+                  coordinate={{ latitude: lat, longitude: lng }}
+                  pinColor={cuidadorSelecionado?.id === cuidador.id ? '#10B981' : primaryColor}
+                  onPress={() => setCuidadorSelecionado(cuidador)}
                 >
-                  <Text style={styles.calloutNome}>{cuidador.nome}</Text>
-                  <Text style={styles.calloutEspecialidade}>{cuidador.especialidade}</Text>
-                  <Text style={styles.calloutAcao}>Toque para conversar</Text>
-                </Callout>
-              </Marker>
-            );
-          })}
-      </MapView>
+                  <Callout
+                    style={styles.callout}
+                    onPress={() => handleIniciarChat(cuidador)}
+                  >
+                    <Text style={styles.calloutNome}>{cuidador.nome}</Text>
+                    <Text style={styles.calloutEspecialidade}>{cuidador.especialidade}</Text>
+                    <Text style={styles.calloutAcao}>Toque para conversar</Text>
+                  </Callout>
+                </Marker>
+              );
+            })}
+        </MapView>
+      )}
+
+      {error ? (
+        <View style={styles.avisoMapa}>
+          <MaterialIcons name="warning" size={18} color={themeColors.danger || '#EF4444'} />
+          <Text style={styles.textoErroMapa}>{error}</Text>
+        </View>
+      ) : null}
 
       <View style={[styles.abaInferior, listaExpandida && styles.abaInferiorExpandida]}>
         <TouchableOpacity
@@ -197,6 +218,45 @@ const getStyles = (colors, primaryColor) =>
       marginVertical: spacing.lg,
     },
     mapa: { flex: 1, width: '100%', height: '100%' },
+    mapaFallback: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: spacing.xl,
+      backgroundColor: colors.background,
+    },
+    tituloFallback: {
+      ...typography.title3,
+      color: colors.textPrimary,
+      marginTop: spacing.md,
+      textAlign: 'center',
+    },
+    textoFallback: {
+      ...typography.caption,
+      color: colors.textSecondary,
+      marginTop: spacing.xs,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    avisoMapa: {
+      position: 'absolute',
+      top: spacing.md,
+      left: spacing.md,
+      right: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.sm,
+    },
+    textoErroMapa: {
+      ...typography.caption,
+      color: colors.danger || '#EF4444',
+      flex: 1,
+    },
     callout: { padding: spacing.xs, minWidth: 150, alignItems: 'center' },
     calloutNome: { ...typography.title3 },
     calloutEspecialidade: { ...typography.caption, color: colors.textSecondary },

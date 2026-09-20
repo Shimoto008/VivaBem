@@ -39,7 +39,6 @@ function obterNotifications() {
   }
   if (!Notifications) {
     // Require sob demanda evita o aviso nativo do Expo Go ao carregar o módulo.
-    // eslint-disable-next-line global-require
     Notifications = require('expo-notifications');
     try {
       Notifications.setNotificationHandler({

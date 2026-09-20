@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -54,10 +54,12 @@ export default function PerfilFamiliarTab() {
   const [erros, setErros] = useState({});
   const [salvando, setSalvando] = useState(false);
 
-  useEffect(() => {
+  function abrirConfiguracoes() {
     setNomeEdicao(perfil?.nome ?? '');
     setTelefoneEdicao(aplicarMascaraTelefone(perfil?.telefone ?? ''));
-  }, [perfil?.nome, perfil?.telefone, modalConfigVisivel]);
+    setErros({});
+    setModalConfigVisivel(true);
+  }
 
   const conectado = !!conexao;
   const cuidador = conexao?.cuidadores ?? null;
@@ -98,7 +100,7 @@ export default function PerfilFamiliarTab() {
       <View style={styles.headerTopo}>
         <Text style={styles.tituloPagina}>Meu Perfil</Text>
         <TouchableOpacity
-          onPress={() => setModalConfigVisivel(true)}
+          onPress={abrirConfiguracoes}
           style={styles.botaoConfiguracoes}
           accessibilityRole="button"
           accessibilityLabel="Abrir configurações"

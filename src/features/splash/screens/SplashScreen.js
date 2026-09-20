@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Animated, Dimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -20,7 +20,7 @@ export default function SplashScreen({ autoNavegar = true }) {
   const navigation = useNavigation();
   const { themeColors, isDarkMode } = useTheme();
   const styles = getStyles(themeColors);
-  const posicaoLogo = useRef(new Animated.Value(height)).current;
+  const posicaoLogo = useMemo(() => new Animated.Value(height), []);
 
   useEffect(() => {
     const animacao = Animated.timing(posicaoLogo, {

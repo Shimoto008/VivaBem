@@ -175,8 +175,8 @@ export async function cadastrarEConectarCuidador({
   telefone,
   especialidade,
   senha,
-  latitude = null,  // 👈 Adicionado parâmetro opcional de latitude
-  longitude = null, // 👈 Adicionado parâmetro opcional de longitude
+  latitude = null,
+  longitude = null,
 }) {
   const cpfLimpo = normalizarCpf(cpf);
   const emailLimpo = normalizarEmail(email);
@@ -200,8 +200,8 @@ export async function cadastrarEConectarCuidador({
         telefone: somenteDigitos(telefone),
         especialidade: especialidade ? especialidade.trim() : null,
         codigo: gerarCodigoCuidador(),
-        latitude,  // 👈 Repassado para o banco (dispara a Trigger PostGIS)
-        longitude, // 👈 Repassado para o banco (dispara a Trigger PostGIS)
+        latitude,
+        longitude,
       },
     ])
     .select()

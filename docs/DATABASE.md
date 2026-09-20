@@ -63,6 +63,63 @@ alter table cuidadores
 > (`src/services/cuidadorService.js`). É uma solução do lado do cliente; o
 > ideal a longo prazo é gerar via função/trigger no banco.
 
+### 1.1. Localização para busca de cuidadores
+
+A tela **Buscar Cuidadores Próximos** usa `latitude`, `longitude` e a função
+RPC `buscar_cuidadores_proximos`. Se o mapa abrir sem cuidadores ou a busca
+retornar erro, confirme que este bloco também foi executado no Supabase.
+
+```sql
+create extension if not exists postgis;
+
+alter table cuidadores
+  add column if not exists latitude double precision,
+  add column if not exists longitude double precision;
+
+create or replace function public.buscar_cuidadores_proximos(
+  p_lat double precision,
+  p_lng double precision,
+  p_raio_metros integer default 10000
+)
+returns table (
+  id uuid,
+  nome text,
+  especialidade text,
+  lat double precision,
+  lng double precision,
+  distancia_metros double precision
+)
+language sql
+stable
+as $$
+  select
+    c.id,
+    c.nome,
+    c.especialidade,
+    c.latitude as lat,
+    c.longitude as lng,
+    st_distance(
+      st_setsrid(st_makepoint(p_lng, p_lat), 4326)::geography,
+      st_setsrid(st_makepoint(c.longitude, c.latitude), 4326)::geography
+    ) as distancia_metros
+  from cuidadores c
+  where c.latitude is not null
+    and c.longitude is not null
+    and st_dwithin(
+      st_setsrid(st_makepoint(p_lng, p_lat), 4326)::geography,
+      st_setsrid(st_makepoint(c.longitude, c.latitude), 4326)::geography,
+      p_raio_metros
+    )
+  order by distancia_metros asc;
+$$;
+
+grant execute on function public.buscar_cuidadores_proximos(
+  double precision,
+  double precision,
+  integer
+) to anon, authenticated;
+```
+
 ## 2. Tabela `pacientes` (idosos cadastrados pelo familiar)
 
 Regra de negócio: quem cadastra o idoso é o **familiar**; o cuidador só

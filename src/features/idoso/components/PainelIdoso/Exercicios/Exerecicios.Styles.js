@@ -92,6 +92,7 @@ export const getStyles = (themeColors, primaryColor) =>
     },
     videoWrapper: {
       width: '100%',
+      aspectRatio: 16 / 9,
       backgroundColor: '#000000',
       overflow: 'hidden',
     },
@@ -180,10 +181,4 @@ export const getStyles = (themeColors, primaryColor) =>
       lineHeight: 23,
       color: '#6C757D',
     },
-    videoWrapper: {
-  width: '100%',
-  aspectRatio: 16 / 9,
-  backgroundColor: '#000000',
-  overflow: 'hidden',
-},
   });

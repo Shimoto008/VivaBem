@@ -155,6 +155,7 @@ export function ResumoTab({ controlador }) {
                 idoso={pacienteSelecionado}
                 cuidadorId={cuidadorId}
                 onFechar={limparPacienteSelecionado}
+                modo="resumo"
               />
             )}
           </View>

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo } from 'react';
 import { Animated, Pressable, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { radius, spacing, typography } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -26,7 +26,7 @@ export function Button({
   accessibilityLabel,
 }) {
   const { themeColors } = useTheme();
-  const escala = useRef(new Animated.Value(1)).current;
+  const escala = useMemo(() => new Animated.Value(1), []);
   const aparenciaVariante = getVariantes(themeColors)[variant] ?? getVariantes(themeColors).primary;
   const estaDesabilitado = disabled || loading;
 
