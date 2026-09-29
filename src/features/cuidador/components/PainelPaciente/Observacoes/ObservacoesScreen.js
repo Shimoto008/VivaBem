@@ -21,6 +21,18 @@ import { radius, spacing, typography } from '../../../../../theme';
 import { ObservacaoForm } from './ObservacoesForm/ObservacoesForm';
 import { ObservacaoCard } from './ObservacoesCard/ObservacoesCard';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
+import { mostrarErro } from '../../../../../utils/alertaErro';
+
+/** Registros antigos podem ter texto puro em vez de JSON. */
+function interpretarConteudo(conteudo) {
+  try {
+    const dados = JSON.parse(conteudo);
+    if (dados && typeof dados === 'object') return dados;
+  } catch {
+    // cai no retorno abaixo
+  }
+  return { categoria: '', texto: String(conteudo ?? '') };
+}
 
 export default function ObservacoesScreen({ route }) {
   const idoso = route?.params?.idoso;
@@ -28,7 +40,7 @@ export default function ObservacoesScreen({ route }) {
 
   const navigation = useNavigation();
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   const [novaObservacao, setNovaObservacao] = useState(false);
   const [categoria, setCategoria] = useState('');
@@ -41,7 +53,7 @@ export default function ObservacoesScreen({ route }) {
     return atividades
       .filter((item) => item.tipo === ATIVIDADE_TIPOS.OBSERVACAO)
       .map((item) => {
-        const dados = JSON.parse(item.conteudo);
+        const dados = interpretarConteudo(item.conteudo);
 
         return {
           id: item.id,
@@ -75,7 +87,12 @@ export default function ObservacoesScreen({ route }) {
       texto: texto.trim(),
     });
 
-    await salvar(ATIVIDADE_TIPOS.OBSERVACAO, observacao, null);
+    try {
+      await salvar(ATIVIDADE_TIPOS.OBSERVACAO, observacao, null);
+    } catch (erro) {
+      mostrarErro(erro, 'Não foi possível salvar a observação.');
+      return;
+    }
 
     cancelarEdicao();
     setCategoria('');
@@ -89,7 +106,13 @@ export default function ObservacoesScreen({ route }) {
       {
         text: 'Excluir',
         style: 'destructive',
-        onPress: () => excluir(item.original.id),
+        onPress: async () => {
+          try {
+            await excluir(item.original.id);
+          } catch (erro) {
+            mostrarErro(erro, 'Não foi possível excluir a observação.');
+          }
+        },
       },
     ]);
   }

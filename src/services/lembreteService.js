@@ -1,3 +1,4 @@
+// @ts-check
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
@@ -184,9 +185,7 @@ export async function agendarLembreteMedicacao({ id, nome, quantidade, horario }
     if (__DEV__) {
       console.warn('[VivaBem] Falha ao agendar lembrete:', erro?.message ?? erro);
     }
-    throw new DomainError(
-      erro?.message ?? 'Não foi possível agendar o lembrete neste dispositivo.'
-    );
+    throw new DomainError('Não foi possível agendar o lembrete neste dispositivo.');
   }
 
   return { hora: momento.hora, minuto: momento.minuto };

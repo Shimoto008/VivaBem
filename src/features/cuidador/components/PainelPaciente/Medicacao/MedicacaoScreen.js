@@ -23,13 +23,14 @@ import { radius, spacing, typography } from '../../../../../theme';
 import { MedicacaoForm } from './MedicacaoForm/MedicacaoForm';
 import { MedicacaoCard } from './MedicacaoCard/MedicacaoCard';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
+import { mostrarErro } from '../../../../../utils/alertaErro';
 
 export default function MedicacaoScreen({ route }) {
   const idoso = route?.params?.idoso;
   const cuidadorId = route?.params?.cuidadorId;
   const navigation = useNavigation();
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   const [novaMedicacao, setNovaMedicacao] = useState(false);
   const [nomeMedicacao, setNomeMedicacao] = useState('');
@@ -75,8 +76,12 @@ export default function MedicacaoScreen({ route }) {
         text: 'Excluir',
         style: 'destructive',
         onPress: async () => {
-          await excluir(item.original.id);
-          await removerLembrete(item.id);
+          try {
+            await excluir(item.original.id);
+            await removerLembrete(item.id);
+          } catch (erro) {
+            mostrarErro(erro, 'Não foi possível excluir a medicação.');
+          }
         },
       },
     ]);
@@ -95,15 +100,20 @@ export default function MedicacaoScreen({ route }) {
       horario,
     });
 
-    await salvar(ATIVIDADE_TIPOS.MEDICACAO, medicacao, null);
+    try {
+      await salvar(ATIVIDADE_TIPOS.MEDICACAO, medicacao, null);
 
-    if (idEmEdicao) {
-      await reagendarSeAtivo({
-        id: idEmEdicao,
-        nome: nomeMedicacao,
-        quantidade,
-        horario,
-      });
+      if (idEmEdicao) {
+        await reagendarSeAtivo({
+          id: idEmEdicao,
+          nome: nomeMedicacao,
+          quantidade,
+          horario,
+        });
+      }
+    } catch (erro) {
+      mostrarErro(erro, 'Não foi possível salvar a medicação.');
+      return;
     }
 
     cancelarEdicao();

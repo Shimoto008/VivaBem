@@ -1,11 +1,19 @@
+// @ts-check
 import { supabase } from './supabaseClient';
 import { somenteDigitos } from '../utils/masks';
+import { lancarErroSupabase } from './errors';
+
+/** @typedef {import('../types/models').Paciente} Paciente */
 
 const TABELA = 'pacientes';
 const TABELA_CONEXOES = 'conexoes';
 const STATUS_CONEXAO_ATIVA = 'ativa';
 
-/** Cria um novo paciente vinculado ao familiar. */
+/**
+ * Cria um novo paciente vinculado ao familiar.
+ * @param {{ familiarId: string, nome: string, idade?: string | number | null, cpf?: string }} dados
+ * @returns {Promise<Paciente>}
+ */
 export async function criarPaciente({ familiarId, nome, idade, cpf }) {
   const { data, error } = await supabase
     .from(TABELA)
@@ -20,11 +28,15 @@ export async function criarPaciente({ familiarId, nome, idade, cpf }) {
     .select()
     .single();
 
-  if (error) throw error;
+  lancarErroSupabase(error, 'Não foi possível cadastrar o idoso.');
   return data;
 }
 
-/** Lista pacientes cadastrados por um familiar. */
+/**
+ * Lista pacientes cadastrados por um familiar.
+ * @param {string} familiarId
+ * @returns {Promise<Paciente[]>}
+ */
 export async function listarPacientesPorFamiliar(familiarId) {
   const { data, error } = await supabase
     .from(TABELA)
@@ -32,13 +44,15 @@ export async function listarPacientesPorFamiliar(familiarId) {
     .eq('familiar_id', familiarId)
     .order('created_at', { ascending: true });
 
-  if (error) throw error;
-  return data;
+  lancarErroSupabase(error, 'Não foi possível carregar os idosos cadastrados.');
+  return data ?? [];
 }
 
 /**
  * Lista pacientes que um cuidador acompanha, seguindo o caminho
  * cuidador → conexoes → familiares → pacientes.
+ * @param {string} cuidadorId
+ * @returns {Promise<Paciente[]>}
  */
 export async function listarPacientesPorCuidador(cuidadorId) {
   const { data: conexoes, error: erroConexao } = await supabase
@@ -47,7 +61,7 @@ export async function listarPacientesPorCuidador(cuidadorId) {
     .eq('cuidador_id', cuidadorId)
     .eq('status', STATUS_CONEXAO_ATIVA);
 
-  if (erroConexao) throw erroConexao;
+  lancarErroSupabase(erroConexao, 'Não foi possível carregar suas conexões.');
   if (!conexoes || conexoes.length === 0) return [];
 
   const familiaresIds = conexoes.map((conexao) => conexao.familiar_id);
@@ -58,40 +72,17 @@ export async function listarPacientesPorCuidador(cuidadorId) {
     .in('familiar_id', familiaresIds)
     .order('created_at', { ascending: true });
 
-  if (error) throw error;
-  return data;
-}
-
-/** Busca um paciente específico pelo ID. */
-export async function buscarPacientePorId(pacienteId) {
-  const { data, error } = await supabase.from(TABELA).select('*').eq('id', pacienteId).single();
-
-  if (error) throw error;
-  return data;
-}
-
-/** Atualiza os dados básicos de um paciente. */
-export async function atualizarPaciente(pacienteId, { nome, idade, cpf }) {
-  const { data, error } = await supabase
-    .from(TABELA)
-    .update({
-      nome: nome.trim(),
-      idade: idade ? Number(idade) : null,
-      cpf: somenteDigitos(cpf),
-    })
-    .eq('id', pacienteId)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
+  lancarErroSupabase(error, 'Não foi possível carregar os pacientes.');
+  return data ?? [];
 }
 
 /**
  * Atualiza a ficha de saúde de um paciente (alergias, tipo sanguíneo,
- * contato de emergência, observações médicas). Separado de
- * `atualizarPaciente` porque é preenchido pelo familiar em um momento
- * diferente do cadastro básico (nome/idade/cpf).
+ * contato de emergência, observações médicas), preenchida pelo familiar em
+ * um momento diferente do cadastro básico (nome/idade/cpf).
+ * @param {string} pacienteId
+ * @param {{ alergias?: string, tipoSanguineo?: string, contatoEmergencia?: string, observacoesMedicas?: string }} dados
+ * @returns {Promise<Paciente>}
  */
 export async function atualizarSaudePaciente(
   pacienteId,
@@ -109,20 +100,12 @@ export async function atualizarSaudePaciente(
     .select()
     .single();
 
-  if (error) throw error;
+  lancarErroSupabase(error, 'Não foi possível salvar a ficha de saúde.');
   return data;
 }
 
-/** Remove um paciente. */
-export async function excluirPaciente(pacienteId) {
-  const { error } = await supabase.from(TABELA).delete().eq('id', pacienteId);
-
-  if (error) throw error;
-  return true;
-}
-
 function avisarSeCanalFalhou(status, rotulo) {
-  if (status !== 'CHANNEL_ERROR' && status !== 'TIMED_OUT') return;
+  if (!__DEV__ || (status !== 'CHANNEL_ERROR' && status !== 'TIMED_OUT')) return;
   console.warn(
     `[Realtime] Canal "${rotulo}" não conectou (${status}). Confirme que as tabelas ` +
       '"conexoes" e "pacientes" estão publicadas no Realtime do Supabase (veja docs/DATABASE.md).'
@@ -135,6 +118,10 @@ function avisarSeCanalFalhou(status, rotulo) {
  *
  * Sem `filter` no servidor: no React Native o filtro combinado com RLS
  * costuma engolir o evento (mesmo padrão documentado em ChatServices).
+ *
+ * @param {string} cuidadorId
+ * @param {(payload?: any) => void} onMudanca
+ * @returns {() => void} função para cancelar a escuta
  */
 export function escutarPacientesDoCuidador(cuidadorId, onMudanca) {
   if (!cuidadorId) return () => {};
@@ -145,7 +132,9 @@ export function escutarPacientesDoCuidador(cuidadorId, onMudanca) {
       'postgres_changes',
       { event: '*', schema: 'public', table: TABELA_CONEXOES },
       (payload) => {
-        const linha = payload.new?.cuidador_id ? payload.new : payload.old;
+        const novo = /** @type {{ cuidador_id?: string }} */ (payload.new);
+        const antigo = /** @type {{ cuidador_id?: string }} */ (payload.old);
+        const linha = novo?.cuidador_id ? novo : antigo;
         if (linha?.cuidador_id === cuidadorId) onMudanca(payload);
       }
     )

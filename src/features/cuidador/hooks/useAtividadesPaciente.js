@@ -1,5 +1,7 @@
+// @ts-check
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { ATIVIDADE_TIPOS } from '../../../constants/atividadeTipos';
+import { useMontadoRef } from '../../../hooks/useMontadoRef';
 import {
   listarAtividadesPorPaciente,
   listarAtividadesPorIdoso,
@@ -25,6 +27,7 @@ export function useAtividadesPaciente(alvoId, cuidadorId) {
    * duplo rápido ainda passaria. O ref barra a segunda chamada na hora.
    */
   const emAndamentoRef = useRef(false);
+  const montadoRef = useMontadoRef();
 
   const recarregar = useCallback(async () => {
     if (!alvoId) {
@@ -38,13 +41,13 @@ export function useAtividadesPaciente(alvoId, cuidadorId) {
       const lista = ehIdosoAutonomo
         ? await listarAtividadesPorIdoso(alvoId)
         : await listarAtividadesPorPaciente(alvoId);
-      setAtividades(lista);
+      if (montadoRef.current) setAtividades(lista);
     } catch (err) {
-      setErro(err);
+      if (montadoRef.current) setErro(err);
     } finally {
-      setCarregando(false);
+      if (montadoRef.current) setCarregando(false);
     }
-  }, [alvoId, ehIdosoAutonomo]);
+  }, [alvoId, ehIdosoAutonomo, montadoRef]);
 
   useEffect(() => {
     recarregar();
@@ -78,17 +81,17 @@ export function useAtividadesPaciente(alvoId, cuidadorId) {
               : { pacienteId: alvoId, cuidadorId, tipo, conteudo, dataReferencia }
           );
         }
-        setItemEmEdicao(null);
+        if (montadoRef.current) setItemEmEdicao(null);
         await recarregar();
       } catch (err) {
-        setErro(err);
+        if (montadoRef.current) setErro(err);
         throw err;
       } finally {
         emAndamentoRef.current = false;
-        setProcessando(false);
+        if (montadoRef.current) setProcessando(false);
       }
     },
-    [itemEmEdicao, alvoId, cuidadorId, ehIdosoAutonomo, recarregar]
+    [itemEmEdicao, alvoId, cuidadorId, ehIdosoAutonomo, recarregar, montadoRef]
   );
 
   const excluir = useCallback(
@@ -102,14 +105,14 @@ export function useAtividadesPaciente(alvoId, cuidadorId) {
         await removerAtividade(atividadeId);
         await recarregar();
       } catch (err) {
-        setErro(err);
+        if (montadoRef.current) setErro(err);
         throw err;
       } finally {
         emAndamentoRef.current = false;
-        setProcessando(false);
+        if (montadoRef.current) setProcessando(false);
       }
     },
-    [recarregar]
+    [recarregar, montadoRef]
   );
 
   return {

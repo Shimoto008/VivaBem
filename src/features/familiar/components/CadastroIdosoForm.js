@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import { Input, Button } from '../../../components/ui';
@@ -17,7 +17,7 @@ export function CadastroIdosoForm({
   onSalvar,
 }) {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   return (
     <View style={styles.container}>

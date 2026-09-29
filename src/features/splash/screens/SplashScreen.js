@@ -19,7 +19,7 @@ const DURACAO_TOTAL_SPLASH_MS = 5500;
 export default function SplashScreen({ autoNavegar = true }) {
   const navigation = useNavigation();
   const { themeColors, isDarkMode } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const posicaoLogo = useMemo(() => new Animated.Value(height), []);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -21,7 +21,7 @@ export function MedicacaoForm({
   processando,
 }) {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const [mostrarHorario, setMostrarHorario] = useState(false);
 
   return (

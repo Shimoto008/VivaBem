@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -104,14 +104,14 @@ export default function CadastroUnificadoScreen() {
     salvar,
   } = useCadastroUnificado(tipoInicial);
 
-  const styles = getStyles(themeColors, accentColor);
+  const styles = useMemo(() => getStyles(themeColors, accentColor), [themeColors, accentColor]);
   const precisaEspecialidade = tipo === TIPOS_CADASTRO.CUIDADOR;
 
   const perfilSelecionadoInfo = OPCOES_TIPO.find((item) => item.key === tipo);
 
   const handleSelecionarTipo = useCallback(
     (key) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       
       if (tipo === key) {
@@ -223,12 +223,12 @@ export default function CadastroUnificadoScreen() {
                     <View
                       style={[
                         styles.balaoPensamento,
-                        { borderColor: accentColor, backgroundColor: themeColors.surface || '#FFFFFF' },
+                        { borderColor: accentColor, backgroundColor: themeColors.surface },
                       ]}
                     >
                       <View style={styles.balaoHeader}>
                         <View style={[styles.badgeIcon, { backgroundColor: accentColor }]}>
-                          <MaterialIcons name="lightbulb" size={14} color="#FFF" />
+                          <MaterialIcons name="lightbulb" size={14} color={themeColors.white} />
                         </View>
                         <Text style={[styles.balaoTitulo, { color: accentColor }]}>
                           Perfil {perfilSelecionadoInfo.label}
@@ -238,7 +238,7 @@ export default function CadastroUnificadoScreen() {
                           style={styles.botaoFecharBalao}
                           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         >
-                          <MaterialIcons name="close" size={18} color={themeColors.textSecondary || '#6C757D'} />
+                          <MaterialIcons name="close" size={18} color={themeColors.textSecondary} />
                         </TouchableOpacity>
                       </View>
                       

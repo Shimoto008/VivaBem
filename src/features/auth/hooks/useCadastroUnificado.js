@@ -1,3 +1,4 @@
+// @ts-check
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import * as Location from 'expo-location';
@@ -119,7 +120,8 @@ export function useCadastroUnificado(tipoInicial = TIPOS_CADASTRO.FAMILIAR) {
             longitude = loc.coords.longitude;
           }
         } catch (e) {
-          console.warn('Não foi possível obter o GPS durante o cadastro:', e);
+          // Cadastro segue sem localização; o cuidador só não aparece no mapa até atualizar o perfil.
+          if (__DEV__) console.warn('Não foi possível obter o GPS durante o cadastro:', e?.message ?? e);
         }
 
         await cadastrarEConectarCuidador({

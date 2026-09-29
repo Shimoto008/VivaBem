@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -23,7 +24,7 @@ export default function ConversasScreen() {
   const navigation = useNavigation();
   const { themeColors, primaryColor } = useTheme();
   const { user, perfil, tipoUsuario } = useSession();
-  const styles = getStyles(themeColors, primaryColor);
+  const styles = useMemo(() => getStyles(themeColors, primaryColor), [themeColors, primaryColor]);
   const euId = user?.id ?? perfil?.id;
 
   const { conversas, carregando, atualizando, erro, atualizarManualmente } = useConversas(euId);
@@ -33,12 +34,46 @@ export default function ConversasScreen() {
       ? 'Nenhuma conversa iniciada. Encontre cuidadores no mapa para solicitar o código de conexão!'
       : 'Quando um familiar iniciar uma conversa com você, ela aparecerá aqui.';
 
-  function abrirConversa(item) {
-    navigation.navigate(ROUTES.CHAT, {
-      destinatarioId: item.destinatarioId,
-      nomeDestinatario: item.nomeDestinatario,
-    });
-  }
+  const abrirConversa = useCallback(
+    (item) => {
+      navigation.navigate(ROUTES.CHAT, {
+        destinatarioId: item.destinatarioId,
+        nomeDestinatario: item.nomeDestinatario,
+      });
+    },
+    [navigation]
+  );
+
+  const keyExtractor = useCallback((item, index) => String(item?.destinatarioId ?? index), []);
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => abrirConversa(item)}
+        activeOpacity={0.75}
+        accessibilityRole="button"
+        accessibilityLabel={`Abrir conversa com ${item.nomeDestinatario}`}
+      >
+        <View style={styles.avatar}>
+          <MaterialIcons name="person" size={22} color={themeColors.textOnPrimary} />
+        </View>
+        <View style={styles.info}>
+          <View style={styles.linhaTitulo}>
+            <Text style={styles.nome} numberOfLines={1}>
+              {item.nomeDestinatario}
+            </Text>
+            <Text style={styles.data}>{formatarDataHoraCurtaPtBR(item.ultimaMensagemEm)}</Text>
+          </View>
+          <Text style={styles.preview} numberOfLines={1}>
+            {item.ultimaMensagem || 'Sem mensagens'}
+          </Text>
+        </View>
+        <MaterialIcons name="chevron-right" size={22} color={themeColors.textTertiary} />
+      </TouchableOpacity>
+    ),
+    [styles, themeColors.textOnPrimary, themeColors.textTertiary, abrirConversa]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -58,7 +93,12 @@ export default function ConversasScreen() {
       ) : (
         <FlatList
           data={conversas}
-          keyExtractor={(item) => String(item.destinatarioId)}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={7}
+          removeClippedSubviews={Platform.OS === 'android'}
           contentContainerStyle={[
             styles.lista,
             conversas.length === 0 && styles.listaVazia,
@@ -77,33 +117,6 @@ export default function ConversasScreen() {
               description={erro || emptyDescription}
             />
           }
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => abrirConversa(item)}
-              activeOpacity={0.75}
-              accessibilityRole="button"
-              accessibilityLabel={`Abrir conversa com ${item.nomeDestinatario}`}
-            >
-              <View style={styles.avatar}>
-                <MaterialIcons name="person" size={22} color={themeColors.textOnPrimary} />
-              </View>
-              <View style={styles.info}>
-                <View style={styles.linhaTitulo}>
-                  <Text style={styles.nome} numberOfLines={1}>
-                    {item.nomeDestinatario}
-                  </Text>
-                  <Text style={styles.data}>
-                    {formatarDataHoraCurtaPtBR(item.ultimaMensagemEm)}
-                  </Text>
-                </View>
-                <Text style={styles.preview} numberOfLines={1}>
-                  {item.ultimaMensagem || 'Sem mensagens'}
-                </Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={22} color={themeColors.textTertiary} />
-            </TouchableOpacity>
-          )}
         />
       )}
     </SafeAreaView>

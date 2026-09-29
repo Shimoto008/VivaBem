@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -7,7 +7,7 @@ import { spacing, typography } from '../../../../theme';
 
 export function EmptyPacienteMessage() {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   return (
     <View style={styles.container}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -51,7 +51,7 @@ Tecnologias: React Native (Expo) e Supabase.`;
  */
 export function SecaoInstitucional() {
   const { themeColors, primaryColor } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const [modalAtivo, setModalAtivo] = useState(null);
 
   const conteudo =

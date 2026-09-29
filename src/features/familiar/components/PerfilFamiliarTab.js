@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -35,7 +35,7 @@ export default function PerfilFamiliarTab() {
   const { perfil, carregando, atualizarPerfilLocal } = useSession();
   const { conexao, carregando: carregandoConexao } = useConexaoFamiliarContext();
   const { primaryColor, themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   const persistirFoto = useCallback(
     (fotoUrl) => atualizarPerfilFamiliar(perfil?.id, { foto_url: fotoUrl }),

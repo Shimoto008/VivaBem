@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, FlatList, ScrollView } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../../../../contexts/ThemeContext';
-import { getStyles } from '../Exercicios/Exerecicios.Styles';
+import { getStyles } from './Exercicios.styles';
 
 // CATEGORIAS
 const CATEGORIAS = ['Todos', 'Alongamento', 'Pernas', 'Braços', 'Dança'];
@@ -138,54 +138,95 @@ const EXERCICIOS_DATA = [
   },
 ];
 
+const keyExtractor = (item) => item.id;
+
 export default function ExerciciosScreen() {
   const { themeColors, primaryColor } = useTheme();
   const [categoriaAtiva, setCategoriaAtiva] = useState('Todos');
-  
-  const styles = getStyles(themeColors, primaryColor);
 
-  const exerciciosFiltrados = categoriaAtiva === 'Todos'
-    ? EXERCICIOS_DATA
-    : EXERCICIOS_DATA.filter((item) => item.categoria === categoriaAtiva);
+  const styles = useMemo(() => getStyles(themeColors, primaryColor), [themeColors, primaryColor]);
+
+  const exerciciosFiltrados = useMemo(
+    () =>
+      categoriaAtiva === 'Todos'
+        ? EXERCICIOS_DATA
+        : EXERCICIOS_DATA.filter((item) => item.categoria === categoriaAtiva),
+    [categoriaAtiva]
+  );
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <View style={styles.cardExercicio}>
+        <View style={styles.videoWrapper}>
+          <YoutubePlayer height={190} play={false} videoId={item.youtubeId} />
+        </View>
+
+        <View style={styles.infoContainer}>
+          <Text style={styles.tituloExercicio}>{item.titulo}</Text>
+
+          <View style={styles.labelsRow}>
+            <View style={styles.labelBadge}>
+              <MaterialIcons name="schedule" size={18} color={primaryColor} />
+              <Text style={styles.labelTexto}>{item.duracao}</Text>
+            </View>
+
+            <View style={styles.labelBadgeCinza}>
+              <MaterialIcons name="fitness-center" size={18} color={themeColors.textSecondary} />
+              <Text style={styles.labelTextoCinza}>{item.categoria}</Text>
+            </View>
+
+            <View style={styles.labelBadgeVerde}>
+              <MaterialIcons name="sentiment-very-satisfied" size={18} color={themeColors.success} />
+              <Text style={styles.labelTextoVerde}>{item.nivel}</Text>
+            </View>
+          </View>
+
+          <View style={styles.cardIncentivo}>
+            <MaterialIcons name="thumb-up" size={20} color={primaryColor} />
+            <Text style={styles.textoIncentivo}>{item.incentivo}</Text>
+          </View>
+
+          <Text style={styles.descricaoExercicio}>{item.descricao}</Text>
+        </View>
+      </View>
+    ),
+    [styles, primaryColor, themeColors.textSecondary, themeColors.success]
+  );
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors?.background || '#F8F9FA' }]}>
-      
-      {/* CABEÇALHO MOTIVACIONAL PROFISSIONAL */}
+    <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.tagMotivacional}>
-          <MaterialIcons name="local-fire-department" size={16} color="#4169E1" />
+          <MaterialIcons name="local-fire-department" size={16} color={primaryColor} />
           <Text style={styles.textoTagMotivacional}>Sua saúde em 1º lugar</Text>
         </View>
-        
+
         <View style={styles.headerTituloRow}>
-          <Text style={[styles.tituloHeader, { color: themeColors?.textPrimary || '#1A1D20' }]}>
-            Mova-se no seu ritmo
-          </Text>
-          <MaterialIcons name="favorite" size={26} color="#4169E1" />
+          <Text style={styles.tituloHeader}>Mova-se no seu ritmo</Text>
+          <MaterialIcons name="favorite" size={26} color={primaryColor} />
         </View>
 
-        <Text style={[styles.subtituloHeader, { color: themeColors?.textSecondary || '#6C757D' }]}>
+        <Text style={styles.subtituloHeader}>
           Assista aos vídeos explicativos e faça os exercícios no conforto da sua casa.
         </Text>
       </View>
 
-      {/* FILTRO DE CATEGORIAS */}
       <View style={styles.categoriasContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollCategorias}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollCategorias}
+        >
           {CATEGORIAS.map((cat) => {
             const selecionado = categoriaAtiva === cat;
             return (
               <TouchableOpacity
                 key={cat}
-                style={[
-                  styles.btnCategoria,
-                  selecionado && { backgroundColor: primaryColor || '#4169E1' },
-                ]}
+                style={[styles.btnCategoria, selecionado && styles.btnCategoriaSelecionado]}
                 onPress={() => setCategoriaAtiva(cat)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.txtCategoria, selecionado && { color: '#FFFFFF' }]}>
+                <Text style={[styles.txtCategoria, selecionado && styles.txtCategoriaSelecionado]}>
                   {cat}
                 </Text>
               </TouchableOpacity>
@@ -194,60 +235,18 @@ export default function ExerciciosScreen() {
         </ScrollView>
       </View>
 
-      {/* LISTA DE VÍDEOS */}
+      {/* Cada item tem um WebView do YouTube: poucos por lote para não pesar na memória. */}
       <FlatList
         data={exerciciosFiltrados}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        initialNumToRender={3}
+        maxToRenderPerBatch={2}
+        windowSize={5}
         contentContainerStyle={styles.listaPadding}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <View style={[styles.cardExercicio, { backgroundColor: themeColors?.surface || '#FFFFFF' }]}>
-            
-            {/* PLAYER DE VÍDEO DO YOUTUBE (Altura ajustada para eliminar bordas pretas) */}
-            <View style={styles.videoWrapper}>
-              <YoutubePlayer
-                height={190}
-                play={false}
-                videoId={item.youtubeId}
-              />
-            </View>
-
-            {/* INFORMAÇÕES E LABELS ABAIXO DO VÍDEO */}
-            <View style={styles.infoContainer}>
-              
-              {/* TÍTULO DO EXERCÍCIO */}
-              <Text style={styles.tituloExercicio}>{item.titulo}</Text>
-
-              {/* LABELS INTERATIVAS */}
-              <View style={styles.labelsRow}>
-                <View style={styles.labelBadge}>
-                  <MaterialIcons name="schedule" size={18} color={primaryColor || '#4169E1'} />
-                  <Text style={styles.labelTexto}>{item.duracao}</Text>
-                </View>
-
-                <View style={styles.labelBadgeCinza}>
-                  <MaterialIcons name="fitness-center" size={18} color="#495057" />
-                  <Text style={styles.labelTextoCinza}>{item.categoria}</Text>
-                </View>
-
-                <View style={styles.labelBadgeVerde}>
-                  <MaterialIcons name="sentiment-very-satisfied" size={18} color="#2E7D32" />
-                  <Text style={styles.labelTextoVerde}>{item.nivel}</Text>
-                </View>
-              </View>
-
-              {/* BOX DE INCENTIVO COM BORDA DE DESTAQUE */}
-              <View style={styles.cardIncentivo}>
-                <MaterialIcons name="thumb-up" size={20} color="#4169E1" />
-                <Text style={styles.textoIncentivo}>{item.incentivo}</Text>
-              </View>
-
-              {/* DESCRIÇÃO COMPLETA */}
-              <Text style={styles.descricaoExercicio}>{item.descricao}</Text>
-            </View>
-          </View>
-        )}
       />
     </View>
   );
 }
+

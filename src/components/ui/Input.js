@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, TextInput, Text, StyleSheet } from 'react-native';
 import { radius, spacing, typography } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -10,7 +10,7 @@ import { useTheme } from '../../contexts/ThemeContext';
  */
 export function Input({ label, error, value, onChangeText, style, ...rest }) {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const [focado, setFocado] = useState(false);
 
   const corDaBorda = error ? themeColors.danger : focado ? themeColors.primary : themeColors.border;

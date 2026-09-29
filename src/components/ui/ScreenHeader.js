@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { spacing, typography, touchMin } from '../../theme';
@@ -8,7 +8,7 @@ import { AvatarPerfil } from './AvatarPerfil';
 /** Cabeçalho padrão de tela, com botão de voltar e avatar opcionais. */
 export function ScreenHeader({ title, subtitle, onBack, avatarUri, mostrarAvatar = false }) {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   return (
     <View style={styles.container}>
       {onBack ? (

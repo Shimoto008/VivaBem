@@ -21,6 +21,7 @@ import { useTheme } from '../../../../../contexts/ThemeContext';
 import { EmptyState, ScreenHeader } from '../../../../../components/ui';
 import { radius, spacing, typography } from '../../../../../theme';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
+import { mostrarErro } from '../../../../../utils/alertaErro';
 
 export default function RelatorioScreen({ route }) {
   const idoso = route?.params?.idoso;
@@ -28,7 +29,7 @@ export default function RelatorioScreen({ route }) {
 
   const navigation = useNavigation();
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   const [novoRelatorio, setNovoRelatorio] = useState(false);
   const [conteudo, setConteudo] = useState('');
@@ -49,7 +50,12 @@ export default function RelatorioScreen({ route }) {
       return;
     }
 
-    await salvar(ATIVIDADE_TIPOS.RELATORIO, conteudo.trim(), null);
+    try {
+      await salvar(ATIVIDADE_TIPOS.RELATORIO, conteudo.trim(), null);
+    } catch (erro) {
+      mostrarErro(erro, 'Não foi possível salvar o relatório.');
+      return;
+    }
 
     setConteudo('');
     setNovoRelatorio(false);
@@ -62,7 +68,11 @@ export default function RelatorioScreen({ route }) {
         text: 'Excluir',
         style: 'destructive',
         onPress: async () => {
-          await excluir(relatorio.id);
+          try {
+            await excluir(relatorio.id);
+          } catch (erro) {
+            mostrarErro(erro, 'Não foi possível excluir o relatório.');
+          }
         },
       },
     ]);

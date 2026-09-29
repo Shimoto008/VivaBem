@@ -1,30 +1,22 @@
+// @ts-check
 import { supabase } from './supabaseClient';
 import { somenteDigitos } from '../utils/masks';
+import { lancarErroSupabase } from './errors';
+
+/** @typedef {import('../types/models').Idoso} Idoso */
 
 const TABELA = 'idosos';
 
 /**
- * Cadastro do próprio idoso como usuário do app (perfil "Idoso").
- * Diferente de "pacientes" (idosos cadastrados pelo cuidador/familiar).
- * O `id` deve ser o mesmo de `auth.users` — use preferencialmente
- * `cadastrarEConectarIdoso` em authService.
+ * Atualiza o perfil do idoso usuário do app (perfil "Idoso"). O cadastro é
+ * feito por `cadastrarEConectarIdoso` em authService.
+ *
+ * @param {string} id
+ * @param {{ telefone?: string, contato_emergencia?: string | null, preferencias?: string | null, nome?: string, foto_url?: string | null }} campos
+ * @returns {Promise<Idoso>}
  */
-export async function criarIdoso({ id, nome, cpf, telefone }) {
-  const { data, error } = await supabase
-    .from(TABELA)
-    .insert([{
-      id,
-      nome: nome.trim(),
-      cpf: somenteDigitos(cpf),
-      telefone: somenteDigitos(telefone),
-    }])
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
 export async function atualizarPerfilIdoso(id, campos) {
+  /** @type {Record<string, any>} */
   const payload = {};
   if (campos.telefone !== undefined) payload.telefone = somenteDigitos(campos.telefone);
   if (campos.contato_emergencia !== undefined) {
@@ -44,6 +36,6 @@ export async function atualizarPerfilIdoso(id, campos) {
     .eq('id', id)
     .select()
     .single();
-  if (error) throw error;
+  lancarErroSupabase(error, 'Não foi possível salvar o perfil.');
   return data;
 }

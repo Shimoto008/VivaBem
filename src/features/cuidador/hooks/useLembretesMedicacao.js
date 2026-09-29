@@ -1,3 +1,4 @@
+// @ts-check
 import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
@@ -7,6 +8,7 @@ import {
   listarMedicacoesComLembrete,
 } from '../../../services/lembreteService';
 import { abrirDespertadorNativo } from '../../../utils/nativeAlarm';
+import { useMontadoRef } from '../../../hooks/useMontadoRef';
 
 /**
  * Controla os lembretes diários de medicação. O estado real mora no
@@ -15,15 +17,17 @@ import { abrirDespertadorNativo } from '../../../utils/nativeAlarm';
  */
 export function useLembretesMedicacao() {
   const [idsComLembrete, setIdsComLembrete] = useState([]);
+  const montadoRef = useMontadoRef();
 
   const recarregar = useCallback(async () => {
+    let ids = [];
     try {
-      setIdsComLembrete(await listarMedicacoesComLembrete());
+      ids = await listarMedicacoesComLembrete();
     } catch {
       // Em ambientes sem suporte a notificações o resto da tela deve continuar funcionando.
-      setIdsComLembrete([]);
     }
-  }, []);
+    if (montadoRef.current) setIdsComLembrete(ids);
+  }, [montadoRef]);
 
   useEffect(() => {
     recarregar();
@@ -37,9 +41,13 @@ export function useLembretesMedicacao() {
   const alternarLembrete = useCallback(
     async (medicacao) => {
       if (temLembrete(medicacao.id)) {
-        await cancelarLembreteMedicacao(medicacao.id);
-        await recarregar();
-        Alert.alert('Lembrete desativado', `O aviso diário de ${medicacao.nome} foi removido.`);
+        try {
+          await cancelarLembreteMedicacao(medicacao.id);
+          await recarregar();
+          Alert.alert('Lembrete desativado', `O aviso diário de ${medicacao.nome} foi removido.`);
+        } catch {
+          Alert.alert('Erro', 'Não foi possível desativar o lembrete. Tente novamente.');
+        }
         return;
       }
 
@@ -55,7 +63,7 @@ export function useLembretesMedicacao() {
         // consegue agendar (permissão negada, medicação sem horário).
         Alert.alert(
           'Não foi possível criar o lembrete',
-          erro.message ?? 'Tente novamente em alguns instantes.',
+          erro?.message ?? 'Tente novamente em alguns instantes.',
           [
             { text: 'Fechar', style: 'cancel' },
             { text: 'Abrir despertador', onPress: abrirDespertadorNativo },

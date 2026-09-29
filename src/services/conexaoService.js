@@ -1,5 +1,8 @@
+// @ts-check
 import { supabase } from './supabaseClient';
-import { DomainError } from './errors';
+import { DomainError, lancarErroSupabase } from './errors';
+
+/** @typedef {import('../types/models').Conexao} Conexao */
 
 const TABELA = 'conexoes';
 const STATUS_ATIVA = 'ativa';
@@ -9,6 +12,9 @@ const STATUS_DESFEITA = 'desfeita';
  * Busca a conexão ATIVA do familiar (no máximo uma, garantida também por
  * índice único parcial no banco — ver docs/DATABASE.md). Já traz os dados
  * do cuidador via join para a UI não precisar de uma segunda chamada.
+ *
+ * @param {string} familiarId
+ * @returns {Promise<Conexao | null>}
  */
 export async function buscarConexaoAtivaDoFamiliar(familiarId) {
   const { data, error } = await supabase
@@ -17,7 +23,7 @@ export async function buscarConexaoAtivaDoFamiliar(familiarId) {
     .eq('familiar_id', familiarId)
     .eq('status', STATUS_ATIVA)
     .maybeSingle();
-  if (error) throw error;
+  lancarErroSupabase(error, 'Não foi possível verificar sua conexão com o cuidador.');
   return data; // null se não houver conexão ativa
 }
 
@@ -30,6 +36,10 @@ export async function buscarConexaoAtivaDoFamiliar(familiarId) {
  * Esta verificação é "defesa em profundidade": o banco também garante a
  * regra via índice único parcial, então mesmo em caso de concorrência
  * (duas chamadas simultâneas) a regra não pode ser violada.
+ *
+ * @param {string} familiarId
+ * @param {string} cuidadorId
+ * @returns {Promise<Conexao>}
  */
 export async function conectarComCuidador(familiarId, cuidadorId) {
   const conexaoAtiva = await buscarConexaoAtivaDoFamiliar(familiarId);
@@ -53,12 +63,16 @@ export async function conectarComCuidador(familiarId, cuidadorId) {
     if (error.code === '23505') {
       throw new DomainError('Você já possui uma conexão ativa com um cuidador.');
     }
-    throw error;
+    lancarErroSupabase(error, 'Não foi possível conectar ao cuidador.');
   }
 
   return data;
 }
 
+/**
+ * @param {string} conexaoId
+ * @returns {Promise<Conexao>}
+ */
 export async function desconectarDoCuidador(conexaoId) {
   const { data, error } = await supabase
     .from(TABELA)
@@ -66,6 +80,6 @@ export async function desconectarDoCuidador(conexaoId) {
     .eq('id', conexaoId)
     .select()
     .single();
-  if (error) throw error;
+  lancarErroSupabase(error, 'Não foi possível desfazer a conexão.');
   return data;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 
@@ -7,6 +7,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { useSession } from '../../../contexts/SessionContext';
 import { Input, Button, ScreenHeader } from '../../../components/ui';
 import { aplicarMascaraTelefone } from '../../../utils/masks';
+import { useMontadoRef } from '../../../hooks/useMontadoRef';
 
 import { CadastroIdosoForm } from '../components/CadastroIdosoForm';
 import { useCadastroPacienteForm } from '../hooks/useCadastroPacienteForm';
@@ -27,10 +28,12 @@ import {
 export default function IdososScreen() {
   const { perfil: familiar } = useSession();
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   const [idosos, setIdosos] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [erroCarregamento, setErroCarregamento] = useState(null);
+  const montadoRef = useMontadoRef();
   const [idosoSelecionado, setIdosoSelecionado] = useState(null);
   const [formularioAberto, setFormularioAberto] = useState(false);
 
@@ -49,14 +52,17 @@ export default function IdososScreen() {
 
     try {
       setCarregando(true);
+      setErroCarregamento(null);
       const lista = await listarPacientesPorFamiliar(familiar.id);
-      setIdosos(lista ?? []);
+      if (montadoRef.current) setIdosos(lista ?? []);
     } catch (erro) {
-      console.error('Erro ao buscar idosos:', erro.message);
+      if (montadoRef.current) {
+        setErroCarregamento(erro?.message || 'Não foi possível carregar os idosos cadastrados.');
+      }
     } finally {
-      setCarregando(false);
+      if (montadoRef.current) setCarregando(false);
     }
-  }, [familiar?.id]);
+  }, [familiar?.id, montadoRef]);
 
   useEffect(() => {
     buscarIdososDoBanco();
@@ -165,6 +171,11 @@ export default function IdososScreen() {
 
       {carregando ? (
         <ActivityIndicator size="large" color={themeColors.primary} style={styles.carregando} />
+      ) : erroCarregamento ? (
+        <View style={styles.cardVazio}>
+          <Text style={styles.textoVazio}>{erroCarregamento}</Text>
+          <Button title="Tentar novamente" variant="secondary" onPress={buscarIdososDoBanco} />
+        </View>
       ) : idosos.length === 0 ? (
         <View style={styles.cardVazio}>
           <Text style={styles.textoVazio}>Nenhum idoso cadastrado ainda.</Text>

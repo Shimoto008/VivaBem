@@ -1,3 +1,4 @@
+// @ts-check
 import { useCallback, useEffect, useState } from 'react';
 import {
   buscarConexaoAtivaDoFamiliar,
@@ -6,17 +7,23 @@ import {
 } from '../../../services/conexaoService';
 import { buscarCuidadorPorCodigo } from '../../../services/cuidadorService';
 import { DomainError } from '../../../services/errors';
+import { useMontadoRef } from '../../../hooks/useMontadoRef';
+
+/** @typedef {import('../../../types/models').Conexao} Conexao */
 
 /**
  * Toda a regra de "Familiar só pode estar conectado a um Cuidador por vez"
  * fica nesta camada (hook + services), nunca dentro de uma tela.
  * A tela só chama `conectarPorCodigo` / `desconectar` e lê `conexao`/`erro`.
+ *
+ * @param {string | undefined} familiarId
  */
 export function useConexaoFamiliar(familiarId) {
-  const [conexao, setConexao] = useState(null);
+  const [conexao, setConexao] = useState(/** @type {Conexao | null} */ (null));
   const [carregando, setCarregando] = useState(true);
   const [processando, setProcessando] = useState(false);
-  const [erro, setErro] = useState(null);
+  const [erro, setErro] = useState(/** @type {Error | null} */ (null));
+  const montadoRef = useMontadoRef();
 
   const recarregar = useCallback(async () => {
     if (!familiarId) {
@@ -28,36 +35,40 @@ export function useConexaoFamiliar(familiarId) {
     setErro(null);
     try {
       const conexaoAtiva = await buscarConexaoAtivaDoFamiliar(familiarId);
-      setConexao(conexaoAtiva);
+      if (montadoRef.current) setConexao(conexaoAtiva);
     } catch (err) {
-      setErro(err);
+      if (montadoRef.current) setErro(err);
     } finally {
-      setCarregando(false);
+      if (montadoRef.current) setCarregando(false);
     }
-  }, [familiarId]);
+  }, [familiarId, montadoRef]);
 
   useEffect(() => {
     recarregar();
   }, [recarregar]);
 
-  const conectarPorCodigo = useCallback(async (codigo) => {
-    setProcessando(true);
-    setErro(null);
-    try {
-      const cuidadorEncontrado = await buscarCuidadorPorCodigo(codigo);
-      if (!cuidadorEncontrado) {
-        throw new DomainError('Nenhum cuidador encontrado com esse código. Confira e tente novamente.');
+  const conectarPorCodigo = useCallback(
+    /** @param {string} codigo */
+    async (codigo) => {
+      setProcessando(true);
+      setErro(null);
+      try {
+        const cuidadorEncontrado = await buscarCuidadorPorCodigo(codigo);
+        if (!cuidadorEncontrado) {
+          throw new DomainError('Nenhum cuidador encontrado com esse código. Confira e tente novamente.');
+        }
+        const novaConexao = await conectarComCuidador(familiarId, cuidadorEncontrado.id);
+        if (montadoRef.current) setConexao(novaConexao);
+        return novaConexao;
+      } catch (err) {
+        if (montadoRef.current) setErro(err);
+        throw err;
+      } finally {
+        if (montadoRef.current) setProcessando(false);
       }
-      const novaConexao = await conectarComCuidador(familiarId, cuidadorEncontrado.id);
-      setConexao(novaConexao);
-      return novaConexao;
-    } catch (err) {
-      setErro(err);
-      throw err;
-    } finally {
-      setProcessando(false);
-    }
-  }, [familiarId]);
+    },
+    [familiarId, montadoRef]
+  );
 
   const desconectar = useCallback(async () => {
     if (!conexao) return;
@@ -65,14 +76,14 @@ export function useConexaoFamiliar(familiarId) {
     setErro(null);
     try {
       await desconectarDoCuidador(conexao.id);
-      setConexao(null);
+      if (montadoRef.current) setConexao(null);
     } catch (err) {
-      setErro(err);
+      if (montadoRef.current) setErro(err);
       throw err;
     } finally {
-      setProcessando(false);
+      if (montadoRef.current) setProcessando(false);
     }
-  }, [conexao]);
+  }, [conexao, montadoRef]);
 
   return { conexao, carregando, processando, erro, conectarPorCodigo, desconectar, recarregar };
 }

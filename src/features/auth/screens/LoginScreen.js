@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Text,
   Image,
@@ -26,7 +26,7 @@ import { ROUTES } from '../../../constants/routeNames';
 export default function LoginScreen() {
   const navigation = useNavigation();
   const { themeColors, isDarkMode } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const { email, senha, erros, entrando, alterarEmail, alterarSenha, entrar } = useLogin();
 
   return (
@@ -143,7 +143,7 @@ const getStyles = (colors) =>
     },
     textoSubtituloLink: {
       ...typography.caption,
-      color: colors.textSecondary || '#6C757D',
+      color: colors.textSecondary,
       marginBottom: 2,
     },
     textoLink: { 

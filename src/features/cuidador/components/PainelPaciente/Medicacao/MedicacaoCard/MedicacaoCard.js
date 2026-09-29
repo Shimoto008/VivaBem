@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -7,7 +7,7 @@ import { radius, shadows, spacing, typography } from '../../../../../../theme';
 
 export function MedicacaoCard({ medicacao, lembreteAtivo, onLembrete, onEditar, onExcluir }) {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   const textoLembrete = lembreteAtivo
     ? `Lembrete diário às ${medicacao.horario}`

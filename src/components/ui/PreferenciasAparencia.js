@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, Switch, StyleSheet } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { radius, shadows, spacing, typography, touchMin } from '../../theme';
@@ -13,7 +13,7 @@ const COR_TRILHA_DESLIGADA = '#767577';
  */
 export function PreferenciasAparencia() {
   const { isDarkMode, toggleDarkMode, primaryColor, setPrimaryColor, themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   return (
     <View style={styles.card}>

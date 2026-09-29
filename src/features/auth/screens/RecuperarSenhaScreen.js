@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -33,7 +33,7 @@ export default function RecuperarSenhaScreen() {
     redefinirSenha,
   } = useRecuperarSenha();
 
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   const handleVoltarPasso = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

@@ -1,5 +1,8 @@
+// @ts-check
 import { supabase } from './supabaseClient';
-import { somenteDigitos } from '../utils/masks';
+import { lancarErroSupabase } from './errors';
+
+/** @typedef {import('../types/models').Cuidador} Cuidador */
 
 const TABELA = 'cuidadores';
 const TAMANHO_CODIGO = 6;
@@ -8,6 +11,7 @@ const ALFABETO_CODIGO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 /**
  * Gera o código curto usado pelo Familiar para localizar e vincular o Cuidador.
+ * @returns {string}
  */
 export function gerarCodigoCuidador() {
   let codigo = '';
@@ -17,32 +21,25 @@ export function gerarCodigoCuidador() {
   return codigo;
 }
 
-export async function buscarCuidadorPorId(cuidadorId) {
-  const { data, error } = await supabase.from(TABELA).select('*').eq('id', cuidadorId).maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
-export async function buscarCuidadorPorCpf(cpf) {
-  const { data, error } = await supabase
-    .from(TABELA)
-    .select('*')
-    .eq('cpf', somenteDigitos(cpf))
-    .maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
+/**
+ * @param {string} codigo
+ * @returns {Promise<Cuidador | null>}
+ */
 export async function buscarCuidadorPorCodigo(codigo) {
   const { data, error } = await supabase
     .from(TABELA)
     .select('*')
     .eq('codigo', codigo.trim().toUpperCase())
     .maybeSingle();
-  if (error) throw error;
+  lancarErroSupabase(error, 'Não foi possível buscar o cuidador pelo código.');
   return data;
 }
 
+/**
+ * @param {string} cuidadorId
+ * @param {Partial<Cuidador>} dadosPerfil
+ * @returns {Promise<Cuidador>}
+ */
 export async function atualizarPerfilCuidador(cuidadorId, dadosPerfil) {
   const { data, error } = await supabase
     .from(TABELA)
@@ -50,6 +47,6 @@ export async function atualizarPerfilCuidador(cuidadorId, dadosPerfil) {
     .eq('id', cuidadorId)
     .select()
     .single();
-  if (error) throw error;
+  lancarErroSupabase(error, 'Não foi possível salvar o perfil.');
   return data;
 }

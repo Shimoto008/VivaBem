@@ -1,57 +1,57 @@
 import { StyleSheet, Platform } from 'react-native';
-import { radius, spacing, typography } from '../../../theme';
+import { radius, spacing } from '../../../theme';
 
-export const getStyles = (themeColors) =>
+const sombraCard = Platform.select({
+  ios: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+  },
+  android: { elevation: 4 },
+  default: {},
+});
+
+export const getStyles = (colors) =>
   StyleSheet.create({
     containerAbas: {
       flex: 1,
-      paddingHorizontal: spacing?.md || 16,
-      paddingTop: spacing?.sm || 12,
-      paddingBottom: spacing?.lg || 24,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.lg,
     },
 
     /* CARD DE BOAS-VINDAS EXPANDIDO */
     boasVindasCard: {
-      backgroundColor: themeColors?.surface || '#FFFFFF',
-      borderRadius: radius?.lg || 22,
-      padding: spacing?.md || 20,
-      marginBottom: spacing?.md || 20,
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      marginBottom: spacing.md,
       borderWidth: 1,
-      borderColor: 'rgba(0,0,0,0.04)',
-      ...Platform.select({
-        ios: {
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.08,
-          shadowRadius: 10,
-        },
-        android: {
-          elevation: 4,
-        },
-      }),
+      borderColor: colors.divider,
+      ...sombraCard,
     },
-
     boasVindasTopo: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
-      marginBottom: spacing?.xs || 8,
+      marginBottom: spacing.xs,
     },
     saudacao: {
-      fontSize: typography?.sizes?.h3 || 20,
+      fontSize: 20,
       fontWeight: '500',
-      color: themeColors?.textSecondary || '#6C757D',
+      color: colors.textSecondary,
     },
     nomeDestaque: {
       fontSize: 32,
       fontWeight: '800',
-      color: themeColors?.textPrimary || '#1A1D20',
-      marginBottom: spacing?.xs || 8,
+      color: colors.textPrimary,
+      marginBottom: spacing.xs,
     },
     subtituloBoasVindas: {
       fontSize: 18,
       lineHeight: 26,
-      color: themeColors?.textSecondary || '#495057',
+      color: colors.textSecondary,
       fontWeight: '400',
     },
 
@@ -59,119 +59,95 @@ export const getStyles = (themeColors) =>
     grid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: spacing?.sm || 12,
-      marginBottom: spacing?.lg || 24,
+      gap: spacing.sm,
+      marginBottom: spacing.lg,
     },
     cardAtalho: {
       width: '48%',
-      backgroundColor: themeColors?.surface || '#FFFFFF',
-      borderRadius: radius?.lg || 20,
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
       paddingVertical: 26,
-      paddingHorizontal: spacing?.xs || 12,
+      paddingHorizontal: spacing.xs,
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
-      borderColor: 'rgba(0,0,0,0.04)',
-      ...Platform.select({
-        ios: {
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.08,
-          shadowRadius: 10,
-        },
-        android: {
-          elevation: 4,
-        },
-      }),
+      borderColor: colors.divider,
+      ...sombraCard,
     },
     iconContainer: {
       width: 68,
       height: 68,
       borderRadius: 34,
-      backgroundColor: themeColors?.backgroundSecondary || '#F1F3F5',
+      backgroundColor: colors.primarySoft,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: spacing?.xs || 12,
+      marginBottom: spacing.xs,
     },
     cardTitle: {
       fontSize: 18,
       fontWeight: '700',
-      color: themeColors?.textPrimary || '#1A1D20',
+      color: colors.textPrimary,
       textAlign: 'center',
     },
 
     /* ÁREA DE EMERGÊNCIA */
-    headerEmergenciaRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing?.xs || 8,
-      marginTop: spacing?.xs || 8,
-      marginBottom: spacing?.xs || 10,
-    },
-    tituloEmergenciaDestaque: {
-      fontSize: 22,
-      fontWeight: '800',
-      color: themeColors?.danger || '#DC3545',
-    },
     cardEmergenciaContainer: {
-      backgroundColor: themeColors?.surface || '#FFFFFF',
-      borderRadius: radius?.md || 18,
-      padding: spacing?.md || 16,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
       borderWidth: 1.5,
-      borderColor: 'rgba(220, 53, 69, 0.25)',
+      borderColor: `${colors.danger}40`,
       ...Platform.select({
         ios: {
-          shadowColor: '#DC3545',
+          shadowColor: colors.danger,
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.15,
           shadowRadius: 10,
         },
-        android: {
-          elevation: 5,
-        },
+        android: { elevation: 5 },
+        default: {},
       }),
     },
     emergenciaRow: {
       flexDirection: 'row',
-      gap: spacing?.md || 16,
+      gap: spacing.md,
     },
     botaoEmergenciaPrincipal: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: spacing?.xs || 8,
-      backgroundColor: themeColors?.danger || '#DC3545', // Botão Vermelho
+      gap: spacing.xs,
+      backgroundColor: colors.danger,
       paddingVertical: 16,
-      borderRadius: radius?.sm || 14,
+      borderRadius: radius.sm,
       ...Platform.select({
         ios: {
-          shadowColor: '#DC3545',
+          shadowColor: colors.danger,
           shadowOffset: { width: 0, height: 3 },
           shadowOpacity: 0.25,
           shadowRadius: 6,
         },
-        android: {
-          elevation: 4,
-        },
+        android: { elevation: 4 },
+        default: {},
       }),
     },
     textoEmergenciaBranco: {
       fontSize: 17,
       fontWeight: '700',
-      color: '#FFFFFF',
+      color: colors.white,
     },
     botaoEmergenciaSecundarioCard: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: spacing?.xs || 6,
-      backgroundColor: themeColors?.backgroundSecondary || '#F8F9FA',
+      gap: spacing.xs,
+      backgroundColor: colors.background,
       borderWidth: 1.5,
-      borderColor: themeColors?.border || '#E9ECEF',
+      borderColor: colors.border,
       paddingVertical: 16,
-      borderRadius: radius?.sm || 14,
+      borderRadius: radius.sm,
     },
     textoEmergencia: {
       fontSize: 18,
@@ -181,11 +157,11 @@ export const getStyles = (themeColors) =>
     /* MINI ABAS (MODAIS) */
     fundoEscuroModal: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: colors.overlay,
       justifyContent: 'flex-end',
     },
     miniAbaModal: {
-      backgroundColor: themeColors?.surface || '#FFFFFF',
+      backgroundColor: colors.surface,
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
       padding: 20,
@@ -194,7 +170,7 @@ export const getStyles = (themeColors) =>
     barraHeaderModal: {
       width: 40,
       height: 5,
-      backgroundColor: themeColors?.border || '#DEE2E6',
+      backgroundColor: colors.border,
       borderRadius: 3,
       alignSelf: 'center',
       marginBottom: 15,
@@ -202,14 +178,14 @@ export const getStyles = (themeColors) =>
     tituloModal: {
       fontSize: 20,
       fontWeight: 'bold',
-      color: themeColors?.textPrimary || '#212529',
+      color: colors.textPrimary,
       textAlign: 'center',
       marginBottom: 16,
     },
     opcaoBotaoModal: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: themeColors?.backgroundSecondary || '#F8F9FA',
+      backgroundColor: colors.background,
       padding: 14,
       borderRadius: 14,
       marginBottom: 10,
@@ -220,11 +196,11 @@ export const getStyles = (themeColors) =>
     tituloOpcaoModal: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: themeColors?.textPrimary || '#212529',
+      color: colors.textPrimary,
     },
     subtituloOpcaoModal: {
       fontSize: 13,
-      color: themeColors?.textSecondary || '#6C757D',
+      color: colors.textSecondary,
     },
     botaoCancelarModal: {
       marginTop: 8,
@@ -234,6 +210,6 @@ export const getStyles = (themeColors) =>
     textoCancelarModal: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: themeColors?.textSecondary || '#6C757D',
+      color: colors.textSecondary,
     },
   });

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -30,7 +30,7 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const { themeColors, primaryColor } = useTheme();
   const { user, perfil } = useSession();
-  const styles = getStyles(themeColors, primaryColor);
+  const styles = useMemo(() => getStyles(themeColors, primaryColor), [themeColors, primaryColor]);
   const listaRef = useRef(null);
 
   const destinatarioId = route.params?.destinatarioId ?? null;
@@ -77,6 +77,30 @@ export default function ChatScreen() {
     }
   }
 
+  const keyExtractor = useCallback((item, index) => String(item?.id ?? index), []);
+
+  const renderItem = useCallback(
+    ({ item }) => {
+      const enviadoPorMim = item.remetente_id === euId;
+      return (
+        <View
+          style={[
+            styles.balaoMensagem,
+            enviadoPorMim ? styles.balaoMinhaMensagem : styles.balaoOutraMensagem,
+          ]}
+        >
+          <Text style={enviadoPorMim ? styles.textoMinhaMensagem : styles.textoOutraMensagem}>
+            {item.conteudo}
+          </Text>
+          <Text style={enviadoPorMim ? styles.horaMinhaMensagem : styles.horaOutraMensagem}>
+            {formatarHoraPtBR(item.created_at)}
+          </Text>
+        </View>
+      );
+    },
+    [euId, styles]
+  );
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <KeyboardAvoidingView
@@ -103,7 +127,12 @@ export default function ChatScreen() {
           <FlatList
             ref={listaRef}
             data={mensagens}
-            keyExtractor={(item) => String(item.id)}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            initialNumToRender={20}
+            maxToRenderPerBatch={10}
+            windowSize={9}
+            removeClippedSubviews={Platform.OS === 'android'}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"
             contentContainerStyle={[
@@ -119,28 +148,6 @@ export default function ChatScreen() {
                 description="Envie a primeira mensagem para iniciar a conversa."
               />
             }
-            renderItem={({ item }) => {
-              const enviadoPorMim = item.remetente_id === euId;
-              return (
-                <View
-                  style={[
-                    styles.balaoMensagem,
-                    enviadoPorMim ? styles.balaoMinhaMensagem : styles.balaoOutraMensagem,
-                  ]}
-                >
-                  <Text
-                    style={enviadoPorMim ? styles.textoMinhaMensagem : styles.textoOutraMensagem}
-                  >
-                    {item.conteudo}
-                  </Text>
-                  <Text
-                    style={enviadoPorMim ? styles.horaMinhaMensagem : styles.horaOutraMensagem}
-                  >
-                    {formatarHoraPtBR(item.created_at)}
-                  </Text>
-                </View>
-              );
-            }}
           />
         )}
 

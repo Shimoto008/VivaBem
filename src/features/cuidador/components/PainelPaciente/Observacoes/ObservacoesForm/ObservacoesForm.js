@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 
 import { useTheme } from '../../../../../../contexts/ThemeContext';
@@ -16,7 +16,7 @@ export function ObservacaoForm({
   processando,
 }) {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   return (
     <View style={styles.container}>

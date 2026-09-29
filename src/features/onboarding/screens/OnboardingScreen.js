@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -12,7 +12,7 @@ import { ROUTES } from '../../../constants/routeNames';
 export default function OnboardingScreen() {
   const navigation = useNavigation();
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const [passo, setPasso] = useState(0);
   const passoAtual = ONBOARDING_STEPS[passo];
   const ehUltimoPasso = passo === ONBOARDING_STEPS.length - 1;

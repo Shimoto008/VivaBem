@@ -1,3 +1,4 @@
+// @ts-check
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { entrarComEmail } from '../../../services/authService';

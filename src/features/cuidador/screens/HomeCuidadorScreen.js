@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getStyles } from './HomeCuidador.styles';
@@ -30,7 +30,7 @@ export default function HomeCuidadorScreen() {
   const controlador = useHomeCuidador(cuidador?.id);
   const { abaAtiva, setAbaAtiva, atualizandoPacientes, recarregarPacientes } = controlador;
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   const refreshPacientes = {
     refreshing: atualizandoPacientes,

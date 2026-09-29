@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { getStyles } from '../screens/HomeCuidador.styles';
@@ -11,7 +11,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
  */
 export function PacientesTab({ controlador }) {
   const { themeColors: colors } = useTheme();
-  const styles = getStyles(colors);
+  const styles = useMemo(() => getStyles(colors), [colors]);
   const {
     pacientes,
     carregandoPacientes,

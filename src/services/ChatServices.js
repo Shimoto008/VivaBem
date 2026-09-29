@@ -1,18 +1,19 @@
+// @ts-check
 import { supabase } from './supabaseClient';
-import { DomainError } from './errors';
+import { DomainError, mensagemErroAmigavel as mensagemErroGenerica } from './errors';
 
+/** No chat, falhas de RLS costumam ser sessão/conexão instável: mostramos o fallback. */
 function mensagemErroAmigavel(erro, fallback) {
-  if (erro instanceof DomainError) return erro.message;
-  const codigo = erro?.code ?? '';
-  const mensagem = (erro?.message ?? '').toLowerCase();
-  if (codigo === '42501' || mensagem.includes('row-level security') || mensagem.includes('rls')) {
-    return 'Não foi possível enviar a mensagem. Verifique sua conexão e tente novamente.';
-  }
-  return fallback;
+  if (erro?.code === '42501') return fallback;
+  return mensagemErroGenerica(erro, fallback);
 }
+
+/** @typedef {import('../types/models').Mensagem} Mensagem */
 
 /**
  * Histórico do par (eu ↔ outro). Schema: remetente_id, destinatario_id, conteudo.
+ * @param {{ euId: string, outroId: string }} participantes
+ * @returns {Promise<Mensagem[]>}
  */
 export async function buscarMensagens({ euId, outroId }) {
   const { data, error } = await supabase
@@ -30,17 +31,18 @@ export async function buscarMensagens({ euId, outroId }) {
 
 /**
  * Envia mensagem: remetente_id sempre via auth.getUser().
+ * @param {{ destinatarioId: string, conteudo: string }} dados
+ * @returns {Promise<Mensagem>}
  */
 export async function enviarMensagem({ destinatarioId, conteudo }) {
   const texto = (conteudo || '').trim();
   if (!texto) throw new DomainError('Digite uma mensagem antes de enviar.');
   if (!destinatarioId) throw new DomainError('Destinatário inválido.');
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: dadosUsuario, error: erroUsuario } = await supabase.auth.getUser();
+  const user = dadosUsuario?.user;
 
-  if (!user?.id) {
+  if (erroUsuario || !user?.id) {
     throw new DomainError('Sessão expirada. Faça login novamente.');
   }
 
@@ -71,7 +73,7 @@ export async function enviarMensagem({ destinatarioId, conteudo }) {
  * chat parece "só atualizar ao reabrir a tela" — daí o aviso explícito.
  */
 function avisarSeCanalFalhou(status, rotulo) {
-  if (status !== 'CHANNEL_ERROR' && status !== 'TIMED_OUT') return;
+  if (!__DEV__ || (status !== 'CHANNEL_ERROR' && status !== 'TIMED_OUT')) return;
   console.warn(
     `[Realtime] Canal "${rotulo}" não conectou (${status}). Confirme que a tabela ` +
       '"mensagens" está publicada no Realtime do Supabase (veja docs/DATABASE.md).'
@@ -151,6 +153,8 @@ export function escutarConversas(euId, onNovaMensagem) {
 
 /**
  * Lista conversas do usuário (agrupadas pelo outro participante).
+ * @param {string} euId
+ * @returns {Promise<Array<{ destinatarioId: string, nomeDestinatario: string, ultimaMensagem: string, ultimaMensagemEm: string | null }>>}
  */
 export async function listarConversas(euId) {
   const { data: mensagens, error } = await supabase
@@ -169,10 +173,18 @@ export async function listarConversas(euId) {
   }
 
   const outrosIds = [...porOutro.keys()];
-  const [{ data: familiares }, { data: cuidadores }] = await Promise.all([
+  const [
+    { data: familiares, error: erroFamiliares },
+    { data: cuidadores, error: erroCuidadores },
+  ] = await Promise.all([
     supabase.from('familiares').select('id, nome, telefone').in('id', outrosIds),
     supabase.from('cuidadores').select('id, nome, telefone').in('id', outrosIds),
   ]);
+
+  const erroPerfis = erroFamiliares ?? erroCuidadores;
+  if (erroPerfis) {
+    throw new DomainError(mensagemErroAmigavel(erroPerfis, 'Erro ao carregar os contatos das conversas.'));
+  }
 
   const mapaNomes = new Map();
   for (const f of familiares ?? []) mapaNomes.set(f.id, f);

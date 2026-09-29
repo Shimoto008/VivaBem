@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -23,7 +23,7 @@ const TAMANHO_CODIGO = 6;
 export function ConectarCuidadorModal({ visible, onClose }) {
   const { conectarPorCodigo, processando } = useConexaoFamiliarContext();
   const { themeColors, primaryColor } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const [codigo, setCodigo] = useState('');
   const [erroLocal, setErroLocal] = useState(null);
 

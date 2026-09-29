@@ -28,13 +28,14 @@ import {
   paraISODate,
 } from '../../../../../utils/dateUtils';
 import { EmptyPacienteMessage } from '../EmptyPacienteMessage';
+import { mostrarErro } from '../../../../../utils/alertaErro';
 
 export default function CalendarioScreen({ route }) {
   const idoso = route?.params?.idoso;
   const cuidadorId = route?.params?.cuidadorId;
   const navigation = useNavigation();
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   const hoje = new Date();
   const dataHoje = paraISODate(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
@@ -126,7 +127,11 @@ export default function CalendarioScreen({ route }) {
         text: 'Excluir',
         style: 'destructive',
         onPress: async () => {
-          await excluir(item.id);
+          try {
+            await excluir(item.id);
+          } catch (erro) {
+            mostrarErro(erro, 'Não foi possível excluir a atividade.');
+          }
         },
       },
     ]);
@@ -137,7 +142,12 @@ export default function CalendarioScreen({ route }) {
       return;
     }
 
-    await salvar(ATIVIDADE_TIPOS.AGENDA, conteudo.trim(), dataSelecionada);
+    try {
+      await salvar(ATIVIDADE_TIPOS.AGENDA, conteudo.trim(), dataSelecionada);
+    } catch (erro) {
+      mostrarErro(erro, 'Não foi possível salvar a atividade.');
+      return;
+    }
 
     cancelarEdicao();
     setConteudo('');

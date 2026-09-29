@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -11,31 +11,21 @@ import { getLogoSource } from '../../../constants/brandAssets';
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { themeColors, isDarkMode } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            flexGrow: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingBottom: 60, // <--- Empurra o conteúdo um pouco para cima do meio
-          },
-        ]}
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
         <Image style={styles.img} source={getLogoSource(isDarkMode)} />
 
-        
-        <View style={[styles.buttonContainer, { gap: 12, width: '100%' }]}>
+        <View style={styles.buttonContainer}>
           <Button
             title="Criar conta"
             onPress={() => navigation.navigate(ROUTES.CADASTRO)}
-            style={styles.ctaCriarConta}
             accessibilityLabel="Criar uma nova conta"
           />
 
@@ -43,7 +33,6 @@ export default function HomeScreen() {
             title="Já tenho conta (Entrar)"
             onPress={() => navigation.navigate(ROUTES.LOGIN)}
             variant="outline"
-            style={styles.ctaEntrar}
             accessibilityLabel="Entrar em uma conta existente"
           />
         </View>

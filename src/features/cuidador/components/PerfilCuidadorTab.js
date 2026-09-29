@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -33,7 +33,7 @@ const DURACAO_FEEDBACK_COPIA_MS = 2000;
 export function PerfilCuidadorTab() {
   const { perfil: cuidador, atualizarPerfilLocal, carregando } = useSession();
   const { themeColors, primaryColor } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   const persistirFoto = useCallback(
     (fotoUrl) => atualizarPerfilCuidador(cuidador?.id, { foto_url: fotoUrl }),

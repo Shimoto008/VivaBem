@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { spacing, typography } from '../../theme';
@@ -6,7 +6,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 
 export function EmptyState({ icon = 'inbox', title, description }) {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   return (
     <View style={styles.container}>
       <MaterialIcons name={icon} size={40} color={themeColors.textTertiary} />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Text, Alert, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { radius, spacing, typography } from '../../theme';
@@ -12,7 +12,7 @@ import { useSession } from '../../contexts/SessionContext';
 export function BotaoExcluirConta() {
   const { excluirConta } = useSession();
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const [excluindo, setExcluindo] = useState(false);
 
   function pedirSegundaConfirmacao() {

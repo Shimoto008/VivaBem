@@ -1,6 +1,7 @@
+// @ts-check
 import { supabase } from './supabaseClient';
 import { somenteDigitos } from '../utils/masks';
-import { DomainError } from './errors';
+import { DomainError, lancarErroSupabase, mensagemErroAmigavel } from './errors';
 import { gerarCodigoCuidador } from './cuidadorService';
 
 const TABELA_CUIDADORES = 'cuidadores';
@@ -63,7 +64,7 @@ async function buscarPerfilPorCpf(cpf) {
     .select('*')
     .eq('cpf', cpfLimpo)
     .maybeSingle();
-  if (erroCuidador) throw erroCuidador;
+  lancarErroSupabase(erroCuidador, 'Não foi possível verificar o CPF informado.');
   if (cuidador) return { tipo: 'cuidador', perfil: cuidador };
 
   const { data: familiar, error: erroFamiliar } = await supabase
@@ -71,7 +72,7 @@ async function buscarPerfilPorCpf(cpf) {
     .select('*')
     .eq('cpf', cpfLimpo)
     .maybeSingle();
-  if (erroFamiliar) throw erroFamiliar;
+  lancarErroSupabase(erroFamiliar, 'Não foi possível verificar o CPF informado.');
   if (familiar) return { tipo: 'familiar', perfil: familiar };
 
   const { data: idoso, error: erroIdoso } = await supabase
@@ -79,7 +80,7 @@ async function buscarPerfilPorCpf(cpf) {
     .select('*')
     .eq('cpf', cpfLimpo)
     .maybeSingle();
-  if (erroIdoso) throw erroIdoso;
+  lancarErroSupabase(erroIdoso, 'Não foi possível verificar o CPF informado.');
   if (idoso) return { tipo: 'idoso', perfil: idoso };
 
   return null;
@@ -115,7 +116,9 @@ async function criarOuReaproveitarUsuarioAuth(email, senha, metadados) {
     options: { data: metadados },
   });
 
-  if (error && !ehUsuarioJaRegistrado(error)) throw error;
+  if (error && !ehUsuarioJaRegistrado(error)) {
+    throw new DomainError(mensagemErroAmigavel(error, 'Não foi possível criar a conta. Tente novamente.'));
+  }
 
   if (!error && data.user?.id && !ehUsuarioFantasma(data.user)) {
     if (data.session) return data.user.id;
@@ -151,7 +154,9 @@ async function desfazerSessao() {
 }
 
 function traduzirErroDeInsercao(erro) {
-  if (erro?.code !== CODIGO_VIOLACAO_UNICIDADE) return erro;
+  if (erro?.code !== CODIGO_VIOLACAO_UNICIDADE) {
+    return new DomainError(mensagemErroAmigavel(erro, 'Não foi possível concluir o cadastro. Tente novamente.'));
+  }
 
   // A chave primária do perfil é o id do usuário do Auth: se ela colide, o
   // e-mail informado já tem um perfil — não é o CPF que está duplicado.
@@ -380,15 +385,15 @@ export async function redefinirSenhaComCodigo({ email, codigo, novaSenha }) {
  * Remove também o avatar no Storage, se existir.
  */
 export async function excluirMinhaConta() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: dadosUsuario, error: erroUsuario } = await supabase.auth.getUser();
+  const user = dadosUsuario?.user;
 
-  if (!user?.id) {
+  if (erroUsuario || !user?.id) {
     throw new DomainError('Sessão expirada. Faça login novamente.');
   }
 
   try {
+    // Bucket pode não existir ainda: o erro retornado é ignorado de propósito.
     await supabase.storage.from('avatars').remove([
       `${user.id}/avatar.jpg`,
       `${user.id}/avatar.jpeg`,
@@ -397,7 +402,7 @@ export async function excluirMinhaConta() {
       `${user.id}/avatar.heic`,
     ]);
   } catch {
-    // Bucket pode não existir ainda; a exclusão da conta segue mesmo assim.
+    // A exclusão da conta segue mesmo sem conseguir apagar o avatar.
   }
 
   const { error } = await supabase.rpc('excluir_minha_conta');
@@ -411,5 +416,5 @@ export async function excluirMinhaConta() {
     throw new DomainError('Não foi possível excluir a conta. Tente novamente.');
   }
 
-  await supabase.auth.signOut();
+  await desfazerSessao();
 }

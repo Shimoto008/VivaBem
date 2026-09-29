@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, ActivityIndicator, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getStyles } from '../screens/HomeFamiliar.styles';
@@ -6,6 +6,7 @@ import { Card, Badge, Button } from '../../../components/ui';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useConexaoFamiliarContext } from '../../../contexts/ConexaoFamiliarContext';
 import { ConectarCuidadorModal } from './ConectarCuidadorModal';
+import { mostrarErro } from '../../../utils/alertaErro';
 
 /**
  * Mostra claramente qual Cuidador está conectado agora (regra de negócio:
@@ -16,7 +17,7 @@ import { ConectarCuidadorModal } from './ConectarCuidadorModal';
 export function ConexaoCuidadorCard() {
   const { conexao, carregando, processando, desconectar } = useConexaoFamiliarContext();
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const [modalVisivel, setModalVisivel] = useState(false);
 
   function confirmarDesconexao() {
@@ -25,7 +26,17 @@ export function ConexaoCuidadorCard() {
       `Tem certeza que deseja se desconectar de ${conexao.cuidadores.nome}? Você perderá acesso às atividades publicadas por ele.`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Desconectar', style: 'destructive', onPress: () => desconectar() },
+        {
+          text: 'Desconectar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await desconectar();
+            } catch (erro) {
+              mostrarErro(erro, 'Não foi possível desconectar do cuidador.');
+            }
+          },
+        },
       ]
     );
   }

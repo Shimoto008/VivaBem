@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -36,7 +36,7 @@ const ABAS = [
 export default function HomeFamiliarScreen() {
   const { perfil: familiar } = useSession();
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
@@ -51,7 +51,7 @@ function HomeFamiliarConteudo({ familiar }) {
   const navigation = useNavigation();
   const { conexao } = useConexaoFamiliarContext();
   const { themeColors, primaryColor } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const [abaAtiva, setAbaAtiva] = useState('home');
 
   const cuidadorId = conexao?.cuidadores?.id ?? null;

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -29,7 +29,7 @@ import { useFotoPerfil } from '../../../hooks/useFotoPerfil';
 export function PerfilIdosoTab() {
   const { perfil: idoso, atualizarPerfilLocal, carregando } = useSession();
   const { themeColors, primaryColor } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   const persistirFoto = useCallback(
     (fotoUrl) => atualizarPerfilIdoso(idoso?.id, { foto_url: fotoUrl }),

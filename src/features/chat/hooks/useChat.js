@@ -1,3 +1,4 @@
+// @ts-check
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import {
@@ -5,6 +6,7 @@ import {
   enviarMensagem,
   escutarNovasMensagens,
 } from '../../../services/ChatServices';
+import { useMontadoRef } from '../../../hooks/useMontadoRef';
 
 /**
  * Toda a conversa de uma tela de chat: histórico, escuta em tempo real e envio.
@@ -17,6 +19,7 @@ export function useChat({ euId, destinatarioId }) {
   const [mensagemTexto, setMensagemTexto] = useState('');
   const [erro, setErro] = useState(null);
   const erroAlertadoRef = useRef(null);
+  const montadoRef = useMontadoRef();
 
   const adicionarSemDuplicar = useCallback((nova) => {
     setMensagens((anteriores) => {
@@ -40,7 +43,7 @@ export function useChat({ euId, destinatarioId }) {
         const dados = await buscarMensagens({ euId, outroId: destinatarioId });
         if (ativo) setMensagens(dados);
       } catch (err) {
-        if (ativo) setErro(err.message || 'Erro ao carregar mensagens.');
+        if (ativo) setErro(err?.message || 'Erro ao carregar mensagens.');
       } finally {
         if (ativo) setCarregando(false);
       }
@@ -91,6 +94,7 @@ export function useChat({ euId, destinatarioId }) {
 
     try {
       const salva = await enviarMensagem({ destinatarioId, conteudo: texto });
+      if (!montadoRef.current) return;
       setMensagens((anteriores) => {
         const semTemporaria = anteriores.filter((m) => m.id !== tempId);
         if (salva?.id && !semTemporaria.some((m) => m.id === salva.id)) {
@@ -99,17 +103,19 @@ export function useChat({ euId, destinatarioId }) {
         return semTemporaria;
       });
     } catch (err) {
+      if (!montadoRef.current) return;
       setMensagens((anteriores) => anteriores.filter((m) => m.id !== tempId));
-      setErro(err.message || 'Não foi possível enviar a mensagem.');
+      setErro(err?.message || 'Não foi possível enviar a mensagem.');
     } finally {
-      setEnviando(false);
+      if (montadoRef.current) setEnviando(false);
     }
-  }, [podeEnviar, mensagemTexto, euId, destinatarioId]);
+  }, [podeEnviar, mensagemTexto, euId, destinatarioId, montadoRef]);
 
   return {
     mensagens,
     carregando,
     enviando,
+    erro,
     mensagemTexto,
     setMensagemTexto,
     podeEnviar,

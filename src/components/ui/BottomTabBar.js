@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,7 +19,7 @@ const FAMILIAS_DE_ICONE = { MaterialIcons, FontAwesome5 };
 export function BottomTabBar({ tabs, abaAtiva, onSelect }) {
   const insets = useSafeAreaInsets();
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   return (
     <View style={[styles.container, { paddingBottom: spacing.sm + insets.bottom }]}>

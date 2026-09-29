@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { radius, spacing, shadows } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -6,7 +6,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 /** Card padrão: cantos arredondados, sombra suave, espaçamento consistente. */
 export function Card({ children, style, padded = true }) {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   return <View style={[styles.base, padded && styles.padding, style]}>{children}</View>;
 }
 

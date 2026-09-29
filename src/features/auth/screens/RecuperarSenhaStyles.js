@@ -4,19 +4,19 @@ export const getStyles = (themeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: themeColors.background || '#F4F5F7',
+      backgroundColor: themeColors.background,
     },
     contentScroll: {
       paddingHorizontal: 18,
       paddingBottom: 40,
     },
     cardForm: {
-      backgroundColor: themeColors.surface || '#FFFFFF',
+      backgroundColor: themeColors.surface,
       borderRadius: 24,
       padding: 20,
       marginTop: 16,
       borderWidth: 1,
-      borderColor: 'rgba(0, 0, 0, 0.04)',
+      borderColor: themeColors.divider,
       ...Platform.select({
         ios: {
           shadowColor: '#000000',
@@ -42,13 +42,13 @@ export const getStyles = (themeColors) =>
       fontSize: 20,
       letterSpacing: 4,
       fontWeight: '700',
-      color: themeColors.textPrimary || '#212529',
+      color: themeColors.textPrimary,
     },
     textoAjudaCodigo: {
       fontSize: 13,
       lineHeight: 18,
       textAlign: 'center',
-      color: themeColors.textSecondary || '#6C757D',
+      color: themeColors.textSecondary,
       marginTop: -8,
       marginBottom: 16,
     },
@@ -62,10 +62,10 @@ export const getStyles = (themeColors) =>
     },
     textoReenviar: {
       fontSize: 14,
-      color: themeColors.textSecondary || '#6C757D',
+      color: themeColors.textSecondary,
     },
     textoReenviarDestaque: {
-      color: themeColors.primary || '#007AFF',
+      color: themeColors.primary,
       fontWeight: '700',
     },
   });

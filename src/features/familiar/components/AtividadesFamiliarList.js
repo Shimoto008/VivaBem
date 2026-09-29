@@ -63,7 +63,7 @@ export function AtividadesFamiliarList({
   onPressAtividade,
 }) {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const [filtro, setFiltro] = useState(FILTRO_TODAS);
   const [abertas, setAbertas] = useState(ABERTAS_INICIAL);
   const temVinculo = vinculado ?? !!conexao;

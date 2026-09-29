@@ -4,7 +4,7 @@ export const getStyles = (themeColors, accentColor) =>
   StyleSheet.create({
     containerScroll: {
       flex: 1,
-      backgroundColor: themeColors.background || '#F4F5F7',
+      backgroundColor: themeColors.background,
     },
     contentScroll: {
       paddingHorizontal: 18,
@@ -23,7 +23,7 @@ export const getStyles = (themeColors, accentColor) =>
     seletorTitulo: {
       fontSize: 13,
       fontWeight: '700',
-      color: themeColors.textSecondary || '#6C757D',
+      color: themeColors.textSecondary,
       textTransform: 'uppercase',
       letterSpacing: 1,
     },
@@ -48,7 +48,7 @@ export const getStyles = (themeColors, accentColor) =>
       paddingVertical: 14,
       paddingHorizontal: 4,
       borderRadius: 16,
-      backgroundColor: themeColors.surface || '#FFFFFF',
+      backgroundColor: themeColors.surface,
       borderWidth: 2,
       borderColor: 'transparent',
       ...Platform.select({
@@ -64,7 +64,7 @@ export const getStyles = (themeColors, accentColor) =>
       }),
     },
     cardTipoAtivo: {
-      backgroundColor: themeColors.surface || '#FFFFFF',
+      backgroundColor: themeColors.surface,
       ...Platform.select({
         ios: {
           shadowColor: '#000000',
@@ -89,7 +89,7 @@ export const getStyles = (themeColors, accentColor) =>
     cardTipoLabel: {
       fontSize: 13,
       fontWeight: '600',
-      color: themeColors.textSecondary || '#6C757D',
+      color: themeColors.textSecondary,
       textAlign: 'center',
     },
     cardTipoLabelAtivo: {
@@ -159,19 +159,19 @@ export const getStyles = (themeColors, accentColor) =>
     balaoTexto: {
       fontSize: 13,
       lineHeight: 18,
-      color: themeColors.textPrimary || '#2B3036',
+      color: themeColors.textPrimary,
       fontWeight: '500',
     },
 
     /* CARD ELEVADO PREMIUM - DADOS PESSOAIS */
     cardDadosPessoais: {
-      backgroundColor: themeColors.surface || '#FFFFFF',
+      backgroundColor: themeColors.surface,
       borderRadius: 24,
       padding: 20,
       marginTop: 8,
       marginBottom: 12,
       borderWidth: 1,
-      borderColor: 'rgba(0, 0, 0, 0.04)',
+      borderColor: themeColors.divider,
       ...Platform.select({
         ios: {
           shadowColor: '#000000',
@@ -187,7 +187,7 @@ export const getStyles = (themeColors, accentColor) =>
     secaoTitulo: {
       fontSize: 16,
       fontWeight: '700',
-      color: themeColors.textPrimary || '#1A1D20',
+      color: themeColors.textPrimary,
       marginBottom: 16,
       letterSpacing: 0.3,
     },
@@ -197,7 +197,7 @@ export const getStyles = (themeColors, accentColor) =>
     rotuloEspecialidade: {
       fontSize: 14,
       fontWeight: '600',
-      color: themeColors.textPrimary || '#1A1D20',
+      color: themeColors.textPrimary,
       marginBottom: 6,
     },
     seletor: {
@@ -209,15 +209,15 @@ export const getStyles = (themeColors, accentColor) =>
       borderRadius: 12,
       backgroundColor: themeColors.surface,
       borderWidth: 1,
-      borderColor: themeColors.border || '#E9ECEF',
+      borderColor: themeColors.border,
     },
     seletorTextoPreenchido: {
       fontSize: 15,
-      color: themeColors.textPrimary || '#1A1D20',
+      color: themeColors.textPrimary,
     },
     seletorTextoVazio: {
       fontSize: 15,
-      color: themeColors.placeholder || '#ADB5BD',
+      color: themeColors.placeholder,
     },
     erroEspecialidade: {
       fontSize: 14,
@@ -248,6 +248,6 @@ export const getStyles = (themeColors, accentColor) =>
     },
     textoLinkLogin: {
       fontSize: 14,
-      color: themeColors.textSecondary || '#6C757D',
+      color: themeColors.textSecondary,
     },
   });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 
 import { useTheme } from '../../../../../../contexts/ThemeContext';
@@ -6,7 +6,7 @@ import { radius, spacing, typography } from '../../../../../../theme';
 
 export function RelatorioForm({ conteudo, setConteudo, onSalvar, onCancelar, processando }) {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   return (
     <View style={styles.container}>

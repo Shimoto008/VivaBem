@@ -1,14 +1,27 @@
+// @ts-check
 import { supabase } from './supabaseClient';
 import { ATIVIDADE_TIPOS } from '../constants/atividadeTipos';
+import { lancarErroSupabase } from './errors';
+
+/** @typedef {import('../types/models').Atividade} Atividade */
 
 const TABELA = 'atividades';
 
+/**
+ * @param {string} pacienteId
+ * @returns {Promise<Atividade[]>}
+ */
 export async function listarAtividadesPorPaciente(pacienteId) {
   if (!pacienteId) return [];
   return listarAtividadesPorPacientes([pacienteId]);
 }
 
-export async function listarAtividadesPorPacientes(pacienteIds, { limite = 50 } = {}) {
+/**
+ * @param {string[]} pacienteIds
+ * @param {{ limite?: number }} [opcoes]
+ * @returns {Promise<Atividade[]>}
+ */
+async function listarAtividadesPorPacientes(pacienteIds, { limite = 50 } = {}) {
   if (!pacienteIds?.length) return [];
 
   const { data, error } = await supabase
@@ -17,11 +30,16 @@ export async function listarAtividadesPorPacientes(pacienteIds, { limite = 50 } 
     .in('paciente_id', pacienteIds)
     .order('created_at', { ascending: false })
     .limit(limite);
-  if (error) throw error;
+  lancarErroSupabase(error, 'Não foi possível carregar as atividades.');
   return data ?? [];
 }
 
-/** Rotina do idoso autônomo (conta em `idosos`, não o paciente do familiar). */
+/**
+ * Rotina do idoso autônomo (conta em `idosos`, não o paciente do familiar).
+ * @param {string} idosoId
+ * @param {{ limite?: number }} [opcoes]
+ * @returns {Promise<Atividade[]>}
+ */
 export async function listarAtividadesPorIdoso(idosoId, { limite = 50 } = {}) {
   if (!idosoId) return [];
 
@@ -31,10 +49,14 @@ export async function listarAtividadesPorIdoso(idosoId, { limite = 50 } = {}) {
     .eq('idoso_id', idosoId)
     .order('created_at', { ascending: false })
     .limit(limite);
-  if (error) throw error;
+  lancarErroSupabase(error, 'Não foi possível carregar suas atividades.');
   return data ?? [];
 }
 
+/**
+ * @param {{ pacienteId?: string | null, cuidadorId?: string | null, idosoId?: string | null, tipo: string, conteudo: any, dataReferencia?: string | null }} dados
+ * @returns {Promise<Atividade>}
+ */
 export async function criarAtividade({
   pacienteId = null,
   cuidadorId = null,
@@ -55,10 +77,15 @@ export async function criarAtividade({
     }])
     .select()
     .single();
-  if (error) throw error;
+  lancarErroSupabase(error, 'Não foi possível salvar a atividade.');
   return data;
 }
 
+/**
+ * @param {string} atividadeId
+ * @param {any} conteudo
+ * @returns {Promise<Atividade>}
+ */
 export async function atualizarAtividade(atividadeId, conteudo) {
   const { data, error } = await supabase
     .from(TABELA)
@@ -66,13 +93,17 @@ export async function atualizarAtividade(atividadeId, conteudo) {
     .eq('id', atividadeId)
     .select()
     .single();
-  if (error) throw error;
+  lancarErroSupabase(error, 'Não foi possível atualizar a atividade.');
   return data;
 }
 
+/**
+ * @param {string} atividadeId
+ * @returns {Promise<void>}
+ */
 export async function removerAtividade(atividadeId) {
   const { error } = await supabase.from(TABELA).delete().eq('id', atividadeId);
-  if (error) throw error;
+  lancarErroSupabase(error, 'Não foi possível excluir a atividade.');
 }
 
 /**
@@ -81,6 +112,10 @@ export async function removerAtividade(atividadeId) {
  * pacientes dele). Os parâmetros opcionais já preparam a função para os
  * filtros/ordenação/paginação futuros pedidos no briefing, sem precisar
  * mudar a assinatura depois.
+ *
+ * @param {string} cuidadorId
+ * @param {{ tipo?: string, limite?: number }} [opcoes]
+ * @returns {Promise<Atividade[]>}
  */
 export async function listarAtividadesPorCuidador(cuidadorId, { tipo, limite = 50 } = {}) {
   let query = supabase
@@ -95,6 +130,6 @@ export async function listarAtividadesPorCuidador(cuidadorId, { tipo, limite = 5
   }
 
   const { data, error } = await query;
-  if (error) throw error;
-  return data;
+  lancarErroSupabase(error, 'Não foi possível carregar as atividades do cuidador.');
+  return data ?? [];
 }

@@ -11,7 +11,7 @@ import { radius, spacing, typography } from '../../../../theme';
 
 export function PainelPaciente({ idoso, cuidadorId, onFechar, modo = 'completo' }) {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const stylesLocais = getStylesLocais(themeColors);
   const { atividades, carregando, erro } = useAtividadesPaciente(idoso.id, cuidadorId);
   const mostrarResumo = modo !== 'atividades';

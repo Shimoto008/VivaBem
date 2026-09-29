@@ -81,7 +81,7 @@ export function ThemeProvider({ children }) {
           if (typeof preferencias.primaryColor === 'string') setPrimaryColorState(preferencias.primaryColor);
         }
       } catch (erro) {
-        console.warn('Não foi possível carregar as preferências de tema:', erro.message);
+        if (__DEV__) console.warn('Não foi possível carregar as preferências de tema:', erro?.message);
       } finally {
         if (ativo) setPreferenciasCarregadas(true);
       }
@@ -94,7 +94,7 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     if (!preferenciasCarregadas) return;
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ isDarkMode, primaryColor })).catch((erro) => {
-      console.warn('Não foi possível salvar as preferências de tema:', erro.message);
+      if (__DEV__) console.warn('Não foi possível salvar as preferências de tema:', erro?.message);
     });
   }, [isDarkMode, primaryColor, preferenciasCarregadas]);
 

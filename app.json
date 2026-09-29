@@ -24,12 +24,7 @@
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
-      ],
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyAETmPXHsfOtLrCAPyQgIdky7VXNd5kyM8"
-        }
-      }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

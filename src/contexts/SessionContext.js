@@ -9,6 +9,9 @@ import React, {
 } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { excluirMinhaConta } from '../services/authService';
+import { lancarErroSupabase, mensagemErroAmigavel } from '../services/errors';
+
+const MENSAGEM_ERRO_PERFIL = 'Não foi possível carregar seu perfil. Verifique sua conexão.';
 
 /**
  * Logo após o cadastro a sessão nasce antes da linha de perfil existir no
@@ -30,7 +33,7 @@ async function buscarPerfilDoUsuario(userId) {
     .select('*')
     .eq('id', userId)
     .maybeSingle();
-  if (erroCuidador) throw erroCuidador;
+  lancarErroSupabase(erroCuidador, MENSAGEM_ERRO_PERFIL);
   if (cuidador) return { perfil: cuidador, tipo: 'cuidador' };
 
   const { data: familiar, error: erroFamiliar } = await supabase
@@ -38,7 +41,7 @@ async function buscarPerfilDoUsuario(userId) {
     .select('*')
     .eq('id', userId)
     .maybeSingle();
-  if (erroFamiliar) throw erroFamiliar;
+  lancarErroSupabase(erroFamiliar, MENSAGEM_ERRO_PERFIL);
   if (familiar) return { perfil: familiar, tipo: 'familiar' };
 
   const { data: idoso, error: erroIdoso } = await supabase
@@ -46,7 +49,7 @@ async function buscarPerfilDoUsuario(userId) {
     .select('*')
     .eq('id', userId)
     .maybeSingle();
-  if (erroIdoso) throw erroIdoso;
+  lancarErroSupabase(erroIdoso, MENSAGEM_ERRO_PERFIL);
   if (idoso) return { perfil: idoso, tipo: 'idoso' };
 
   return null;
@@ -58,6 +61,7 @@ export function SessionProvider({ children }) {
   const [tipoUsuario, setTipoUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [perfilAusente, setPerfilAusente] = useState(false);
+  const [erroPerfil, setErroPerfil] = useState(null);
   const montadoRef = useRef(true);
   /**
    * A recuperação de senha precisa de uma sessão autenticada (o `verifyOtp`
@@ -69,6 +73,9 @@ export function SessionProvider({ children }) {
   const recuperandoSenhaRef = useRef(false);
 
   const carregarPerfil = useCallback(async (userId, { tentativas = 1 } = {}) => {
+    if (!montadoRef.current) return null;
+    setErroPerfil(null);
+
     if (!userId) {
       setPerfil(null);
       setTipoUsuario(null);
@@ -88,7 +95,7 @@ export function SessionProvider({ children }) {
           return encontrado.perfil;
         }
       } catch (erro) {
-        console.error('Erro ao carregar perfil:', erro.message);
+        if (montadoRef.current) setErroPerfil(mensagemErroAmigavel(erro, MENSAGEM_ERRO_PERFIL));
         break;
       }
 
@@ -105,20 +112,28 @@ export function SessionProvider({ children }) {
   useEffect(() => {
     montadoRef.current = true;
 
-    supabase.auth.getSession().then(({ data }) => {
-      const sessaoAtual = data?.session ?? null;
-      setSession(sessaoAtual);
-      if (sessaoAtual?.user) {
-        carregarPerfil(sessaoAtual.user.id, { tentativas: TENTATIVAS_BUSCA_PERFIL }).finally(() => {
-          if (montadoRef.current) setCarregando(false);
-        });
-      } else {
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!montadoRef.current) return;
+        const sessaoAtual = data?.session ?? null;
+        setSession(sessaoAtual);
+        if (sessaoAtual?.user) {
+          carregarPerfil(sessaoAtual.user.id, { tentativas: TENTATIVAS_BUSCA_PERFIL }).finally(() => {
+            if (montadoRef.current) setCarregando(false);
+          });
+        } else {
+          setCarregando(false);
+        }
+      })
+      .catch(() => {
+        if (!montadoRef.current) return;
+        setSession(null);
         setCarregando(false);
-      }
-    });
+      });
 
     const { data: listener } = supabase.auth.onAuthStateChange(async (_evento, novaSessao) => {
-      if (recuperandoSenhaRef.current) return;
+      if (recuperandoSenhaRef.current || !montadoRef.current) return;
 
       setSession(novaSessao);
       if (novaSessao?.user) {
@@ -127,6 +142,7 @@ export function SessionProvider({ children }) {
         setPerfil(null);
         setTipoUsuario(null);
         setPerfilAusente(false);
+        setErroPerfil(null);
       }
       if (montadoRef.current) setCarregando(false);
     });
@@ -138,7 +154,11 @@ export function SessionProvider({ children }) {
   }, [carregarPerfil]);
 
   const recarregarPerfil = useCallback(async () => {
-    const { data } = await supabase.auth.getUser();
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      if (montadoRef.current) setErroPerfil(mensagemErroAmigavel(error, MENSAGEM_ERRO_PERFIL));
+      return null;
+    }
     return carregarPerfil(data?.user?.id, { tentativas: TENTATIVAS_BUSCA_PERFIL });
   }, [carregarPerfil]);
 
@@ -155,8 +175,8 @@ export function SessionProvider({ children }) {
    */
   const finalizarRecuperacaoSenha = useCallback(async () => {
     recuperandoSenhaRef.current = false;
-    const { data } = await supabase.auth.getSession();
-    const sessaoAtual = data?.session ?? null;
+    const { data, error } = await supabase.auth.getSession();
+    const sessaoAtual = error ? null : data?.session ?? null;
     if (!montadoRef.current) return;
 
     setSession(sessaoAtual);
@@ -208,6 +228,7 @@ export function SessionProvider({ children }) {
       tipoUsuario,
       carregando,
       perfilAusente,
+      erroPerfil,
       recarregarPerfil,
       atualizarPerfilLocal,
       deslogar,
@@ -221,6 +242,7 @@ export function SessionProvider({ children }) {
       tipoUsuario,
       carregando,
       perfilAusente,
+      erroPerfil,
       recarregarPerfil,
       atualizarPerfilLocal,
       deslogar,

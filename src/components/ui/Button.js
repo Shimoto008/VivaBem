@@ -27,7 +27,8 @@ export function Button({
 }) {
   const { themeColors } = useTheme();
   const escala = useMemo(() => new Animated.Value(1), []);
-  const aparenciaVariante = getVariantes(themeColors)[variant] ?? getVariantes(themeColors).primary;
+  const variantes = useMemo(() => getVariantes(themeColors), [themeColors]);
+  const aparenciaVariante = variantes[variant] ?? variantes.primary;
   const estaDesabilitado = disabled || loading;
 
   const animarPara = (valor) => {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -25,7 +25,7 @@ export default function IdosoAutonomoScreen() {
   const { abaAtiva, setAbaAtiva } = useHomeIdoso();
   const { perfil: idoso } = useSession();
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
   const { atividades, carregando, atualizando, erro, recarregar } =
     useAtividadesDoIdoso(idoso?.id);
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -24,7 +24,7 @@ export function AtividadesIdosoTab({ atividades, carregando, erro }) {
   const navigation = useNavigation();
   const { perfil: idoso } = useSession();
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   function abrirCategoria(tipo) {
     const rota = ROTAS_POR_TIPO[tipo];

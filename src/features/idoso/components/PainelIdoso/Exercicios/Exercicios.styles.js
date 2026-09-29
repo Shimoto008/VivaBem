@@ -1,15 +1,16 @@
 import { StyleSheet, Platform } from 'react-native';
 
-export const getStyles = (themeColors, primaryColor) =>
+export const getStyles = (colors, primaryColor) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: colors.background,
     },
-    
+
     /* CABEÇALHO SENIOR - Espaçamento ajustado para não grudar no topo */
     header: {
       paddingHorizontal: 24,
-      paddingTop: Platform.OS === 'ios' ? 56 : 40, // Recuo de segurança para o topo
+      paddingTop: Platform.OS === 'ios' ? 56 : 40,
       paddingBottom: 16,
     },
     tagMotivacional: {
@@ -17,7 +18,7 @@ export const getStyles = (themeColors, primaryColor) =>
       alignItems: 'center',
       gap: 6,
       alignSelf: 'flex-start',
-      backgroundColor: 'rgba(65, 105, 225, 0.1)', // Azul Royal com opacidade
+      backgroundColor: colors.primarySoft,
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 20,
@@ -26,7 +27,7 @@ export const getStyles = (themeColors, primaryColor) =>
     textoTagMotivacional: {
       fontSize: 13,
       fontWeight: '700',
-      color: '#4169E1', // Azul Royal
+      color: primaryColor,
       letterSpacing: 0.3,
     },
     headerTituloRow: {
@@ -39,12 +40,14 @@ export const getStyles = (themeColors, primaryColor) =>
       fontWeight: '800',
       letterSpacing: -0.5,
       lineHeight: 34,
+      color: colors.textPrimary,
     },
     subtituloHeader: {
       fontSize: 15,
       marginTop: 8,
       lineHeight: 22,
       letterSpacing: -0.2,
+      color: colors.textSecondary,
     },
 
     /* CATEGORIAS (SCROLL HORIZONTAL) */
@@ -59,12 +62,18 @@ export const getStyles = (themeColors, primaryColor) =>
       paddingHorizontal: 20,
       paddingVertical: 10,
       borderRadius: 24,
-      backgroundColor: '#E9ECEF',
+      backgroundColor: colors.divider,
+    },
+    btnCategoriaSelecionado: {
+      backgroundColor: primaryColor,
     },
     txtCategoria: {
       fontSize: 15,
       fontWeight: '700',
-      color: '#495057',
+      color: colors.textSecondary,
+    },
+    txtCategoriaSelecionado: {
+      color: colors.textOnPrimary,
     },
 
     /* LISTA E CARDS */
@@ -77,7 +86,8 @@ export const getStyles = (themeColors, primaryColor) =>
       marginBottom: 24,
       overflow: 'hidden',
       borderWidth: 1,
-      borderColor: 'rgba(0,0,0,0.04)',
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
       ...Platform.select({
         ios: {
           shadowColor: '#000',
@@ -102,7 +112,7 @@ export const getStyles = (themeColors, primaryColor) =>
     tituloExercicio: {
       fontSize: 22,
       fontWeight: '800',
-      color: '#1A1D20',
+      color: colors.textPrimary,
       marginBottom: 12,
       letterSpacing: -0.3,
     },
@@ -118,7 +128,7 @@ export const getStyles = (themeColors, primaryColor) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      backgroundColor: `${primaryColor || '#4169E1'}15`,
+      backgroundColor: colors.primarySoft,
       paddingHorizontal: 12,
       paddingVertical: 8,
       borderRadius: 14,
@@ -126,13 +136,13 @@ export const getStyles = (themeColors, primaryColor) =>
     labelTexto: {
       fontSize: 14,
       fontWeight: '700',
-      color: primaryColor || '#4169E1',
+      color: primaryColor,
     },
     labelBadgeCinza: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      backgroundColor: '#F1F3F5',
+      backgroundColor: colors.divider,
       paddingHorizontal: 12,
       paddingVertical: 8,
       borderRadius: 14,
@@ -140,13 +150,13 @@ export const getStyles = (themeColors, primaryColor) =>
     labelTextoCinza: {
       fontSize: 14,
       fontWeight: '700',
-      color: '#495057',
+      color: colors.textSecondary,
     },
     labelBadgeVerde: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      backgroundColor: '#E8F5E9',
+      backgroundColor: `${colors.success}1A`,
       paddingHorizontal: 12,
       paddingVertical: 8,
       borderRadius: 14,
@@ -154,7 +164,7 @@ export const getStyles = (themeColors, primaryColor) =>
     labelTextoVerde: {
       fontSize: 14,
       fontWeight: '700',
-      color: '#2E7D32',
+      color: colors.success,
     },
 
     /* BOX DE INCENTIVO */
@@ -162,23 +172,23 @@ export const getStyles = (themeColors, primaryColor) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
-      backgroundColor: '#F0F4FF',
+      backgroundColor: colors.primarySoft,
       padding: 14,
       borderRadius: 16,
       marginBottom: 14,
       borderLeftWidth: 4,
-      borderLeftColor: '#4169E1',
+      borderLeftColor: primaryColor,
     },
     textoIncentivo: {
       fontSize: 14,
       fontWeight: '600',
-      color: '#2B4C7E',
+      color: colors.textPrimary,
       flex: 1,
       lineHeight: 20,
     },
     descricaoExercicio: {
       fontSize: 15,
       lineHeight: 23,
-      color: '#6C757D',
+      color: colors.textSecondary,
     },
   });

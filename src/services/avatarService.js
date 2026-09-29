@@ -1,3 +1,4 @@
+// @ts-check
 import { supabase } from './supabaseClient';
 import { DomainError } from './errors';
 
@@ -25,12 +26,15 @@ export async function uploadAvatar(userId, uriLocal) {
   if (!userId) throw new DomainError('Sessão expirada. Faça login novamente.');
   if (!uriLocal) throw new DomainError('Nenhuma imagem selecionada.');
 
-  const resposta = await fetch(uriLocal);
-  if (!resposta.ok) {
+  let arrayBuffer;
+  try {
+    const resposta = await fetch(uriLocal);
+    if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
+    arrayBuffer = await resposta.arrayBuffer();
+  } catch {
     throw new DomainError('Não foi possível ler a imagem selecionada.');
   }
 
-  const arrayBuffer = await resposta.arrayBuffer();
   const ext = extensaoDoArquivo(uriLocal);
   const caminho = `${userId}/avatar.${ext === 'jpeg' ? 'jpg' : ext}`;
 

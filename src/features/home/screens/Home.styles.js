@@ -1,17 +1,21 @@
 import { StyleSheet } from 'react-native';
-import { spacing, typography } from '../../../theme';
+import { spacing } from '../../../theme';
 
-export const getStyles = () =>
+export const getStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.background,
     },
     scroll: {
       flex: 1,
     },
     scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
       padding: spacing.xl,
+      paddingBottom: 60,
     },
     img: {
       width: 220,
@@ -20,23 +24,9 @@ export const getStyles = () =>
       resizeMode: 'contain',
       marginBottom: spacing.xs,
     },
-    titulo: {
-      ...typography.title1,
-      color: '#000000', // SÓ FUNCIONA SE FICAR DEPOIS DO ...typography
-      textAlign: 'center',
-      marginTop: -5, // Empurra para fora da área transparente da imagem
-    },
-    subtitulo: {
-      ...typography.body,
-      color: '#000000', // SÓ FUNCIONA SE FICAR DEPOIS DO ...typography
-      fontWeight: '600',
-      textAlign: 'center',
-      marginTop: spacing.xs,
-    },
     buttonContainer: {
       width: '100%',
+      gap: spacing.md,
       marginTop: spacing.xl,
     },
-    ctaCriarConta: {},
-    ctaEntrar: {},
   });

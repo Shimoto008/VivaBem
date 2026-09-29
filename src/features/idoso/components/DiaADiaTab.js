@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, Linking, Alert, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-import { getStyles } from '../../idoso/components/DiaADiatab.styles';
+import { getStyles } from './DiaADiaTab.styles';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useSession } from '../../../contexts/SessionContext';
 import { ROUTES } from '../../../constants/routeNames';
@@ -12,6 +12,11 @@ import { aplicarMascaraTelefone } from '../../../utils/masks';
 import { AvatarPerfil } from '../../../components/ui';
 
 const CHAVE_PERMISSAO_WHATSAPP = '@permissao_whatsapp_emergencia';
+
+/** Cores de identidade de marcas/serviços externos, independentes do tema. */
+const COR_WHATSAPP = '#25D366';
+const COR_POLICIA = '#0D47A1';
+const COR_BOMBEIROS = '#E65100';
 
 const ATALHOS = [
   {
@@ -47,7 +52,7 @@ export function DiaADiaTab() {
   const navigation = useNavigation();
   const { perfil: idoso } = useSession();
   const { themeColors, primaryColor } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
 
   const [modalWhatsappVisivel, setModalWhatsappVisivel] = useState(false);
   const [modalSosVisivel, setModalSosVisivel] = useState(false);
@@ -136,7 +141,11 @@ export function DiaADiaTab() {
             {
               text: 'Permitir',
               onPress: async () => {
-                await AsyncStorage.setItem(CHAVE_PERMISSAO_WHATSAPP, 'true');
+                try {
+                  await AsyncStorage.setItem(CHAVE_PERMISSAO_WHATSAPP, 'true');
+                } catch {
+                  // Sem persistir, a pergunta volta na próxima vez; o contato abre mesmo assim.
+                }
                 setModalWhatsappVisivel(true);
               },
             },
@@ -201,7 +210,7 @@ export function DiaADiaTab() {
             accessibilityRole="button"
             accessibilityLabel="Abrir opções de emergência pessoal"
           >
-            <MaterialIcons name="phone-in-talk" size={34} color="#FFFFFF" />
+            <MaterialIcons name="phone-in-talk" size={34} color={themeColors.white} />
             <Text style={styles.textoEmergenciaBranco}>Emergência</Text>
           </TouchableOpacity>
 
@@ -239,10 +248,10 @@ export function DiaADiaTab() {
 
             {/* OPÇÃO 1: MENSAGEM NO WHATSAPP */}
             <TouchableOpacity 
-              style={[styles.opcaoBotaoModal, { backgroundColor: '#E8F5E9' }]} 
+              style={[styles.opcaoBotaoModal, { backgroundColor: `${themeColors.success}1A` }]}
               onPress={enviarMensagemWhatsApp}
             >
-              <MaterialIcons name="message" size={26} color="#25D366" />
+              <MaterialIcons name="message" size={26} color={COR_WHATSAPP} />
               <View style={styles.textoContainerModal}>
                 <Text style={styles.tituloOpcaoModal}>Enviar WhatsApp</Text>
                 <Text style={styles.subtituloOpcaoModal}>Manda mensagem de socorro no WhatsApp</Text>
@@ -251,10 +260,10 @@ export function DiaADiaTab() {
 
             {/* OPÇÃO 2: LIGAÇÃO DIRETA VIA TELEFONE DO CELULAR */}
             <TouchableOpacity 
-              style={[styles.opcaoBotaoModal, { backgroundColor: '#FFEBEE' }]} 
+              style={[styles.opcaoBotaoModal, { backgroundColor: `${themeColors.danger}1A` }]}
               onPress={() => fazerChamada(contatoEmergencia)}
             >
-              <MaterialIcons name="phone" size={26} color="#D32F2F" />
+              <MaterialIcons name="phone" size={26} color={themeColors.danger} />
               <View style={styles.textoContainerModal}>
                 <Text style={styles.tituloOpcaoModal}>Ligar pelo Celular</Text>
                 <Text style={styles.subtituloOpcaoModal}>
@@ -293,7 +302,7 @@ export function DiaADiaTab() {
               style={styles.opcaoBotaoModal} 
               onPress={() => fazerChamada('192')}
             >
-              <MaterialIcons name="local-hospital" size={26} color="#D32F2F" />
+              <MaterialIcons name="local-hospital" size={26} color={themeColors.danger} />
               <View style={styles.textoContainerModal}>
                 <Text style={styles.tituloOpcaoModal}>SAMU</Text>
                 <Text style={styles.subtituloOpcaoModal}>Discar 192</Text>
@@ -304,7 +313,7 @@ export function DiaADiaTab() {
               style={styles.opcaoBotaoModal} 
               onPress={() => fazerChamada('190')}
             >
-              <MaterialIcons name="local-police" size={26} color="#0D47A1" />
+              <MaterialIcons name="local-police" size={26} color={COR_POLICIA} />
               <View style={styles.textoContainerModal}>
                 <Text style={styles.tituloOpcaoModal}>Polícia Militar</Text>
                 <Text style={styles.subtituloOpcaoModal}>Discar 190</Text>
@@ -315,7 +324,7 @@ export function DiaADiaTab() {
               style={styles.opcaoBotaoModal} 
               onPress={() => fazerChamada('193')}
             >
-              <MaterialIcons name="local-fire-department" size={26} color="#E65100" />
+              <MaterialIcons name="local-fire-department" size={26} color={COR_BOMBEIROS} />
               <View style={styles.textoContainerModal}>
                 <Text style={styles.tituloOpcaoModal}>Bombeiros</Text>
                 <Text style={styles.subtituloOpcaoModal}>Discar 193</Text>
@@ -326,7 +335,7 @@ export function DiaADiaTab() {
               style={styles.opcaoBotaoModal} 
               onPress={() => fazerChamada('100')}
             >
-              <MaterialIcons name="security" size={26} color="#2E7D32" />
+              <MaterialIcons name="security" size={26} color={themeColors.success} />
               <View style={styles.textoContainerModal}>
                 <Text style={styles.tituloOpcaoModal}>Disque 100</Text>
                 <Text style={styles.subtituloOpcaoModal}>Violência contra o Idoso</Text>

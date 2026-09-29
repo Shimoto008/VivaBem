@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Modal, View, Text, FlatList, TouchableOpacity, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 import { radius, spacing, typography, shadows } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -7,9 +7,26 @@ import { useTheme } from '../../contexts/ThemeContext';
  * Modal de seleção genérico (lista de opções). Substitui o Modal+FlatList
  * que estava reimplementado dentro da tela de cadastro do Cuidador.
  */
+const keyExtractor = (item, index) => String(item ?? index);
+
 export function SelectModal({ visible, title, options, onSelect, onClose }) {
   const { themeColors } = useTheme();
-  const styles = getStyles(themeColors);
+  const styles = useMemo(() => getStyles(themeColors), [themeColors]);
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <TouchableOpacity
+        style={styles.option}
+        onPress={() => onSelect(item)}
+        accessibilityRole="button"
+        accessibilityLabel={item}
+      >
+        <Text style={styles.optionText}>{item}</Text>
+      </TouchableOpacity>
+    ),
+    [styles, onSelect]
+  );
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
@@ -19,17 +36,11 @@ export function SelectModal({ visible, title, options, onSelect, onClose }) {
               <Text style={styles.title}>{title}</Text>
               <FlatList
                 data={options}
-                keyExtractor={(item) => item}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.option}
-                    onPress={() => onSelect(item)}
-                    accessibilityRole="button"
-                    accessibilityLabel={item}
-                  >
-                    <Text style={styles.optionText}>{item}</Text>
-                  </TouchableOpacity>
-                )}
+                keyExtractor={keyExtractor}
+                renderItem={renderItem}
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={7}
               />
             </View>
           </TouchableWithoutFeedback>
